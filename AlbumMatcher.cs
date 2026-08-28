@@ -360,7 +360,7 @@ public static class AlbumMatcher
 
             var key = match.TrackId.Length > 0
                 ? match.TrackId
-                : match.TrackPosition + ":" + match.Title;
+                : match.DiskNumber + ":" + match.TrackPosition + ":" + match.Title;
             matchedCatalogTracks.Add(key);
         }
 
@@ -411,6 +411,13 @@ public static class AlbumMatcher
                 continue;
             }
 
+            // Only treat as deluxe/expanded when titles relate (Dreamland ⊂ Dreamland + Bonus).
+            // Avoid false subsets from unrelated short-title fuzzy matches.
+            if (!TitlesSuggestExpansion(other.Title, album.Title))
+            {
+                continue;
+            }
+
             if (!IsExpandedEditionOf(other, album, artist, minSimilarity, markers))
             {
                 continue;
@@ -424,6 +431,18 @@ public static class AlbumMatcher
         }
 
         return false;
+    }
+
+    private static bool TitlesSuggestExpansion(string baseTitle, string expandedTitle)
+    {
+        var b = Titles.Norm(baseTitle);
+        var e = Titles.Norm(expandedTitle);
+        if (b.Length < 4 || e.Length < 4)
+        {
+            return false;
+        }
+
+        return e.Contains(b, StringComparison.Ordinal) || b.Contains(e, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -444,7 +463,14 @@ public static class AlbumMatcher
 
         foreach (var track in baseAlbum.Tracks)
         {
-            if (TrackMatcher.MatchTrack(track.Title, expanded.Tracks, minSimilarity, markers, artist) is null)
+            var match = TrackMatcher.MatchTrack(track.Title, expanded.Tracks, minSimilarity, markers, artist);
+            if (match is null)
+            {
+                return false;
+            }
+
+            // Require a strong title fit so unrelated short titles don't form fake subsets.
+            if (TrackMatcher.TitleMatchScore(track.Title, match.Title, markers, artist) < 0.95)
             {
                 return false;
             }

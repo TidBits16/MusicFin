@@ -299,7 +299,7 @@ public sealed class DeezerContextClient : IContextMetadataClient
         var items = new List<CatalogTrack>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        void AddTrack(JsonElement raw, int listIndex)
+        void AddTrack(JsonElement raw, int listIndex, bool allowSyntheticPosition)
         {
             if (TrackFromAlbumPayload(raw) is not { } t)
             {
@@ -311,7 +311,8 @@ public sealed class DeezerContextClient : IContextMetadataClient
                 return;
             }
 
-            if (t.TrackPosition <= 0 && listIndex > 0)
+            var hasRealPosition = JsonUtil.Num(raw, "track_position") > 0;
+            if (!hasRealPosition && allowSyntheticPosition && listIndex > 0)
             {
                 t = WithPosition(t, listIndex);
             }
@@ -320,26 +321,26 @@ public sealed class DeezerContextClient : IContextMetadataClient
         }
 
         var embeddedList = embedded.ToList();
-        for (var i = 0; i < embeddedList.Count; i++)
-        {
-            AddTrack(embeddedList[i], i + 1);
-        }
+        var embedMissingPositions = embeddedList.Any(raw => JsonUtil.Num(raw, "track_position") <= 0);
+        var embedMissingDiscs = embeddedList.Count > 0 && embeddedList.Any(raw => JsonUtil.Num(raw, "disk_number") <= 0);
 
+        // Prefer /tracks whenever the album payload omits real positions/discs.
+        // Otherwise list-index fallback invents 1..N and hides multi-disc releases.
         var expected = nb.ValueKind == JsonValueKind.Number ? (int)nb.GetDouble() : 0;
-        var needMore = expected > 0 && items.Count < expected;
-        var needPositions = items.Count > 0 && items.Any(t => t.TrackPosition <= 0);
-        if (!needMore && !needPositions)
+        var needTrackEndpoint = embedMissingPositions || embedMissingDiscs
+            || (expected > 0 && embeddedList.Count < expected);
+
+        if (!needTrackEndpoint)
         {
+            for (var i = 0; i < embeddedList.Count; i++)
+            {
+                AddTrack(embeddedList[i], i + 1, allowSyntheticPosition: false);
+            }
+
             return items;
         }
 
-        if (needPositions && !needMore)
-        {
-            items.Clear();
-            seen.Clear();
-        }
-
-        var listIndex = items.Count;
+        var listIndex = 0;
         var path = "album/" + id + "/tracks";
         var query = new Dictionary<string, string> { ["limit"] = "100" };
         while (path.Length > 0)
@@ -353,7 +354,7 @@ public sealed class DeezerContextClient : IContextMetadataClient
             foreach (var raw in JsonUtil.Arr(page.Value, "data"))
             {
                 listIndex++;
-                AddTrack(raw, listIndex);
+                AddTrack(raw, listIndex, allowSyntheticPosition: true);
             }
 
             var next = JsonUtil.Str(page.Value, "next").Trim();
@@ -383,6 +384,14 @@ public sealed class DeezerContextClient : IContextMetadataClient
                 }
 
                 query[Uri.UnescapeDataString(part[..eq])] = Uri.UnescapeDataString(part[(eq + 1)..]);
+            }
+        }
+
+        if (items.Count == 0)
+        {
+            for (var i = 0; i < embeddedList.Count; i++)
+            {
+                AddTrack(embeddedList[i], i + 1, allowSyntheticPosition: true);
             }
         }
 
