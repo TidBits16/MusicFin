@@ -95,8 +95,40 @@ public static class TrackMatcher
             return 1;
         }
 
-        var score = Similarity.Ratio(got, wantNorm);
-        if (got.Contains(wantNorm, StringComparison.Ordinal) || wantNorm.Contains(got, StringComparison.Ordinal))
+        var score = PairScore(wantNorm, got);
+
+        var wantCompact = Titles.CompactNorm(wantNorm);
+        var gotCompact = Titles.CompactNorm(got);
+        if (wantCompact.Length > 0 && gotCompact.Length > 0)
+        {
+            score = Math.Max(score, PairScore(wantCompact, gotCompact));
+        }
+
+        var wantLeet = Titles.FoldLeetDigits(wantNorm);
+        var gotLeet = Titles.FoldLeetDigits(got);
+        if (wantLeet.Length > 0 && gotLeet.Length > 0)
+        {
+            score = Math.Max(score, PairScore(wantLeet, gotLeet));
+            score = Math.Max(score, PairScore(Titles.CompactNorm(wantLeet), Titles.CompactNorm(gotLeet)));
+        }
+
+        return score;
+    }
+
+    private static double PairScore(string want, string got)
+    {
+        if (want.Length == 0 || got.Length == 0)
+        {
+            return 0;
+        }
+
+        if (got == want)
+        {
+            return 1;
+        }
+
+        var score = Similarity.Ratio(got, want);
+        if (got.Contains(want, StringComparison.Ordinal) || want.Contains(got, StringComparison.Ordinal))
         {
             score = Math.Max(score, 0.84);
         }

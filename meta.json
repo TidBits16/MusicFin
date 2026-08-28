@@ -6,7 +6,7 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "",
-  "version": "1.5",
+  "version": "1.6",
   "targetAbi": "10.11.0.0",
-  "changelog": "Album fitness = matchCount × completion² so full albums beat half-covered tour sets/collections while fully owned EPs still rank above sparse big releases."
+  "changelog": "Smarter title folding (&/and, compound words, stylized digits) and title-band + fitness so short local titles land on the studio album instead of live/edit singles."
 }

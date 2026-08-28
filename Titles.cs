@@ -51,11 +51,12 @@ public static class Titles
     {
         var s = StripMark(text, markers).ToLowerInvariant().Normalize(System.Text.NormalizationForm.FormKC);
         s = FoldQuotes(s);
+        s = s.Replace("&", " and ", StringComparison.Ordinal);
         var b = new StringBuilder();
         var prevSpace = false;
         foreach (var r in s)
         {
-            if ((r is >= 'a' and <= 'z') || (r is >= '0' and <= '9') || r == '&' || r == ' ')
+            if ((r is >= 'a' and <= 'z') || (r is >= '0' and <= '9') || r == ' ')
             {
                 if (r == ' ')
                 {
@@ -83,6 +84,39 @@ public static class Titles
         }
 
         return b.ToString().Trim();
+    }
+
+    /// <summary>Removes spaces for compound-title compares (Black Box Warrior vs BlackBoxWarrior).</summary>
+    public static string CompactNorm(string norm)
+        => norm.Replace(" ", "", StringComparison.Ordinal);
+
+    /// <summary>
+    /// Maps digits commonly used as letter lookalikes in stylized titles (2econd → second).
+    /// </summary>
+    public static string FoldLeetDigits(string norm)
+    {
+        if (norm.Length == 0)
+        {
+            return norm;
+        }
+
+        var b = new StringBuilder(norm.Length);
+        foreach (var ch in norm)
+        {
+            b.Append(ch switch
+            {
+                '0' => 'o',
+                '1' => 'i',
+                '2' => 's',
+                '3' => 'e',
+                '4' => 'a',
+                '5' => 's',
+                '7' => 't',
+                _ => ch
+            });
+        }
+
+        return b.ToString();
     }
 
     /// <summary>

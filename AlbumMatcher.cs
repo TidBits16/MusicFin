@@ -233,12 +233,12 @@ public static class AlbumMatcher
         int bestTitleLength,
         int bestAlbumSize)
     {
-        if (trackScore > bestTrackScore + 0.0001)
+        if (TitleBand(trackScore) > TitleBand(bestTrackScore) + 0.0001)
         {
             return true;
         }
 
-        if (Math.Abs(trackScore - bestTrackScore) > 0.0001)
+        if (Math.Abs(TitleBand(trackScore) - TitleBand(bestTrackScore)) > 0.0001)
         {
             return false;
         }
@@ -251,6 +251,17 @@ public static class AlbumMatcher
         }
 
         if (Math.Abs(fitness - bestFitness) > 0.0001)
+        {
+            return false;
+        }
+
+        // Within the same title band, prefer the raw title score (exact over contains).
+        if (trackScore > bestTrackScore + 0.0001)
+        {
+            return true;
+        }
+
+        if (Math.Abs(trackScore - bestTrackScore) > 0.0001)
         {
             return false;
         }
@@ -297,6 +308,15 @@ public static class AlbumMatcher
 
         return albumSize < bestAlbumSize;
     }
+
+    /// <summary>
+    /// Groups strong title matches so album fitness can decide between a live/edit single
+    /// and the studio album when both are "good enough" contains-level hits.
+    /// </summary>
+    private static double TitleBand(double trackScore)
+        => trackScore >= 0.999 ? 1.0
+            : trackScore >= 0.84 ? 0.84
+            : trackScore;
 
     private static IReadOnlyList<string> AlbumArtistsFor(CatalogAlbum album, string fallbackArtist)
         => album.AlbumArtists.Count > 0 ? album.AlbumArtists : [fallbackArtist];

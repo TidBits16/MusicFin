@@ -65,4 +65,21 @@ public class TitlesTests
     [InlineData("Betty", "Betty")]
     public void StripShortParenthetical_OnlyRemovesShortSuffixes(string input, string expected)
         => Assert.Equal(expected, Titles.StripShortParenthetical(input));
+
+    [Theory]
+    [InlineData("Outliars & Hyppocrates", "outliars and hyppocrates")]
+    [InlineData("Black Box Warrior", "black box warrior")]
+    public void Norm_FoldsAmpersandAndKeepsWords(string input, string expected)
+        => Assert.Equal(expected, Titles.Norm(input));
+
+    [Fact]
+    public void FoldLeetDigits_MapsStylizedSecondSightSeer()
+        => Assert.Equal("second sight seer", Titles.FoldLeetDigits(Titles.Norm("2econd 2ight 2eer")));
+
+    [Theory]
+    [InlineData("Black Box Warrior", "BlackBoxWarrior - OKULTRA")]
+    [InlineData("Second Sight Seer", "2econd 2ight 2eer (that was fun, goodbye.)")]
+    [InlineData("Outliars & Hyppocrates", "Outliars and Hyppocrates: a fun fact about apples")]
+    public void TitleMatchScore_HandlesCompoundAndLeetTitles(string local, string catalog)
+        => Assert.True(TrackMatcher.TitleMatchScore(local, catalog) >= 0.84);
 }
