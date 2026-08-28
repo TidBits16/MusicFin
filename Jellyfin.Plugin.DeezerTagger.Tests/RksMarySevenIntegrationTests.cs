@@ -11,6 +11,7 @@ public class RksMarySevenIntegrationTests
     public RksMarySevenIntegrationTests(ITestOutputHelper output) => _out = output;
 
     [Fact]
+    [Trait("Category", "Live")]
     public async Task RainbowKittenSurprise_UserLibraryTracks_ShouldLandOnSevenPlusMary()
     {
         var client = TestMetadata.CreateDeezer();

@@ -34,6 +34,7 @@ public class AjrArtistSearchTests
     }
 
     [Fact]
+    [Trait("Category", "Live")]
     public async Task Ajr_LiveSearchPicksPopularArtistWithStudioAlbums()
     {
         var client = TestDeezer.CreateClient();

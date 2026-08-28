@@ -11,6 +11,7 @@ public class AlexWarrenIntegrationTests
     public AlexWarrenIntegrationTests(ITestOutputHelper output) => _out = output;
 
     [Fact]
+    [Trait("Category", "Live")]
     public async Task AlexWarren_AlbumTracksMatchLocalTitles()
     {
         var client = TestMetadata.CreateDeezer();

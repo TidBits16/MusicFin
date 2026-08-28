@@ -11,6 +11,7 @@ public class ProviderCatalogIntegrationTests
     public ProviderCatalogIntegrationTests(ITestOutputHelper output) => _out = output;
 
     [Fact]
+    [Trait("Category", "Live")]
     public async Task Deezer_AlexWarren_AlbumsHaveGenresAndTrackMatches()
     {
         var client = TestMetadata.CreateDeezer();
@@ -39,6 +40,7 @@ public class ProviderCatalogIntegrationTests
     }
 
     [Fact]
+    [Trait("Category", "Live")]
     public async Task Itunes_Radiohead_AlbumsHaveGenresAndOkComputerTracks()
     {
         var client = TestMetadata.CreateItunes();
@@ -66,6 +68,7 @@ public class ProviderCatalogIntegrationTests
     }
 
     [Fact]
+    [Trait("Category", "Live")]
     public async Task Discogs_Radiohead_SearchWorks_AndGenresParseFromSample()
     {
         var client = TestMetadata.CreateDiscogs();
@@ -91,6 +94,7 @@ public class ProviderCatalogIntegrationTests
     }
 
     [Fact]
+    [Trait("Category", "Live")]
     public async Task OpenOpus_Bach_WorksHaveClassicalGenres()
     {
         var client = TestMetadata.CreateOpenOpus();

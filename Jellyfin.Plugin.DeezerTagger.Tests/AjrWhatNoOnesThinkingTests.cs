@@ -11,6 +11,7 @@ public class AjrWhatNoOnesThinkingTests
     public AjrWhatNoOnesThinkingTests(ITestOutputHelper output) => _out = output;
 
     [Fact]
+    [Trait("Category", "Live")]
     public async Task DeezerEpBeatsLiveAlbum_ForWhatNoOnesThinkingTracks()
     {
         var client = TestDeezer.CreateClient();
