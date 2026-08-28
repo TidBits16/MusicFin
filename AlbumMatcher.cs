@@ -81,7 +81,9 @@ public static class AlbumMatcher
         // Singles compete with albums/EPs: a 1/1 single (100%) beats a 1/20 album (5%).
         var candidates = catalogAlbums.ToList();
         var scored = candidates
-            .Select(album => new ScoredAlbum(album, ScoreAlbum(localTracks, album, artist, minSim, markers)))
+            .Select(album => new ScoredAlbum(
+                album,
+                ScoreAlbum(localTracks, album, candidates, artist, minSim, markers)))
             .Where(x => x.Score > 0)
             .ToDictionary(x => x.Album.AlbumId, StringComparer.Ordinal);
 
@@ -160,14 +162,12 @@ public static class AlbumMatcher
 
             if (IsBetterCandidate(
                     trackScore,
-                    album.IsSingle,
                     albumScore.Score,
                     albumScore.Ratio,
                     exact,
                     got.Length,
                     album.Tracks.Count,
                     bestTrackScore,
-                    bestAlbum?.IsSingle ?? false,
                     bestAlbumScore,
                     bestRatio,
                     bestExact,
@@ -209,14 +209,12 @@ public static class AlbumMatcher
 
     private static bool IsBetterCandidate(
         double trackScore,
-        bool isSingle,
         int albumScore,
         double ratio,
         bool exact,
         int titleLength,
         int albumSize,
         double bestTrackScore,
-        bool bestIsSingle,
         int bestAlbumScore,
         double bestRatio,
         bool bestExact,
@@ -233,51 +231,26 @@ public static class AlbumMatcher
             return false;
         }
 
-        // Singles compete on coverage % (1/1 = 100% beats 1/20 = 5%).
-        // Albums/EPs compete on how many local tracks they cover, then %.
-        if (isSingle || bestIsSingle)
+        // Prefer tighter catalog coverage (The Elements 11/11) over sprawling
+        // collections that merely contain more of the library (Collection 20/54).
+        if (ratio > bestRatio + 0.0001)
         {
-            if (ratio > bestRatio + 0.0001)
-            {
-                return true;
-            }
-
-            if (Math.Abs(ratio - bestRatio) > 0.0001)
-            {
-                return false;
-            }
-
-            if (albumScore > bestAlbumScore)
-            {
-                return true;
-            }
-
-            if (albumScore < bestAlbumScore)
-            {
-                return false;
-            }
+            return true;
         }
-        else
+
+        if (Math.Abs(ratio - bestRatio) > 0.0001)
         {
-            if (albumScore > bestAlbumScore)
-            {
-                return true;
-            }
+            return false;
+        }
 
-            if (albumScore < bestAlbumScore)
-            {
-                return false;
-            }
+        if (albumScore > bestAlbumScore)
+        {
+            return true;
+        }
 
-            if (ratio > bestRatio + 0.0001)
-            {
-                return true;
-            }
-
-            if (Math.Abs(ratio - bestRatio) > 0.0001)
-            {
-                return false;
-            }
+        if (albumScore < bestAlbumScore)
+        {
+            return false;
         }
 
         if (exact && !bestExact)
@@ -319,6 +292,7 @@ public static class AlbumMatcher
     private static int ScoreAlbum(
         IReadOnlyList<LocalTrack> localTracks,
         CatalogAlbum album,
+        IReadOnlyList<CatalogAlbum> allAlbums,
         string artist,
         double minSimilarity,
         IReadOnlyList<string> markers)
@@ -326,13 +300,108 @@ public static class AlbumMatcher
         var count = 0;
         foreach (var local in localTracks)
         {
-            if (TrackMatcher.MatchTrack(local.Title, album.Tracks, minSimilarity, markers, artist) is not null)
+            if (TrackMatcher.MatchTrack(local.Title, album.Tracks, minSimilarity, markers, artist) is null)
             {
-                count++;
+                continue;
             }
+
+            // Don't let a track that exists as its own single inflate a deluxe/expanded
+            // edition's score over the base album (Dreamland vs Dreamland + Bonus Levels).
+            if (IsExclusiveSingleOnExpandedEdition(local, album, allAlbums, artist, minSimilarity, markers))
+            {
+                continue;
+            }
+
+            count++;
         }
 
         return count;
+    }
+
+    /// <summary>
+    /// True when <paramref name="local"/> matches <paramref name="album"/>, matches a single release,
+    /// and does not match some smaller non-single album that is a track-subset of <paramref name="album"/>.
+    /// </summary>
+    private static bool IsExclusiveSingleOnExpandedEdition(
+        LocalTrack local,
+        CatalogAlbum album,
+        IReadOnlyList<CatalogAlbum> allAlbums,
+        string artist,
+        double minSimilarity,
+        IReadOnlyList<string> markers)
+    {
+        if (album.IsSingle)
+        {
+            return false;
+        }
+
+        var matchesSingle = false;
+        foreach (var single in allAlbums)
+        {
+            if (!single.IsSingle)
+            {
+                continue;
+            }
+
+            if (TrackMatcher.MatchTrack(local.Title, single.Tracks, minSimilarity, markers, artist) is not null)
+            {
+                matchesSingle = true;
+                break;
+            }
+        }
+
+        if (!matchesSingle)
+        {
+            return false;
+        }
+
+        foreach (var other in allAlbums)
+        {
+            if (other.IsSingle || other.AlbumId == album.AlbumId)
+            {
+                continue;
+            }
+
+            if (!IsExpandedEditionOf(other, album, artist, minSimilarity, markers))
+            {
+                continue;
+            }
+
+            // Exclusive to the expanded edition (not on the base album).
+            if (TrackMatcher.MatchTrack(local.Title, other.Tracks, minSimilarity, markers, artist) is null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// True when every track on <paramref name="baseAlbum"/> appears on <paramref name="expanded"/>,
+    /// and expanded has additional tracks.
+    /// </summary>
+    private static bool IsExpandedEditionOf(
+        CatalogAlbum baseAlbum,
+        CatalogAlbum expanded,
+        string artist,
+        double minSimilarity,
+        IReadOnlyList<string> markers)
+    {
+        if (expanded.Tracks.Count <= baseAlbum.Tracks.Count)
+        {
+            return false;
+        }
+
+        foreach (var track in baseAlbum.Tracks)
+        {
+            if (TrackMatcher.MatchTrack(track.Title, expanded.Tracks, minSimilarity, markers, artist) is null)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private sealed class ScoredAlbum(CatalogAlbum album, int score)

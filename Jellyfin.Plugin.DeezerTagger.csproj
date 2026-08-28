@@ -5,9 +5,9 @@
     <AssemblyName>Jellyfin.Plugin.DeezerTagger</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.3</Version>
-    <FileVersion>1.3</FileVersion>
-    <AssemblyVersion>1.3.0.0</AssemblyVersion>
+    <Version>1.4</Version>
+    <FileVersion>1.4</FileVersion>
+    <AssemblyVersion>1.4.0.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Jellyfin.Controller" Version="10.11.0">

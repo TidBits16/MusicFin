@@ -13,6 +13,7 @@ public class AlbumMatcherTests
             Track("mary-1", "All That And More"),
             Track("mary-2", "Mary"),
             Track("mary-3", "Hey Pretty Momma"),
+            Track("mary-4", "Black and White"),
             Track("seven-1", "Devil Like Me"),
             Track("seven-2", "Seven"),
             Track("seven-3", "Mr. Redundant"),
@@ -37,7 +38,55 @@ public class AlbumMatcherTests
         Assert.All(result.Assignments, a => Assert.Equal("Seven + Mary", a.AlbumTitle));
         Assert.Equal(0, result.SingleReleaseCount);
         Assert.Equal(0, result.UnmatchedCount);
-        Assert.Equal(9, result.Assignments.Count);
+        Assert.Equal(10, result.Assignments.Count);
+    }
+
+    [Fact]
+    public void StudioAlbumBeatsSprawlingCollectionDespiteFewerLibraryHits()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("e1", "I just need U."),
+            Track("e2", "Overflow"),
+            Track("e3", "Edge of My Seat"),
+            Track("e4", "scars"),
+            Track("hits1", "Speak Life"),
+            Track("hits2", "Feel It"),
+            Track("hits3", "City on Our Knees"),
+            Track("hits4", "Made to Love"),
+            Track("hits5", "Me Without You"),
+            Track("hits6", "Steal My Show"),
+            Track("hits7", "Irene"),
+            Track("hits8", "Diverse City")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("The Elements", 1, "album", "tobyMac",
+                "I just need U.", "Overflow", "Edge of My Seat", "scars",
+                "Everything", "The Element", "Horizon", "See You Again",
+                "Starts With Me", "It's All About You", "Outro"),
+            AlbumWithType("TobyMac Collection", 2, "album", "tobyMac",
+                "I just need U.", "Overflow", "Edge of My Seat", "scars",
+                "Speak Life", "Feel It", "City on Our Knees", "Made to Love",
+                "Me Without You", "Steal My Show", "Irene", "Diverse City",
+                "Catchafire", "Gone", "Somebody's Watching", "Boomin'",
+                "Get Back Up", "Lose Myself", "Tonight", "Hold On",
+                "One World", "Extreme Days", "J Train", "Irene (Remix)",
+                "Extra 1", "Extra 2", "Extra 3", "Extra 4", "Extra 5",
+                "Extra 6", "Extra 7", "Extra 8", "Extra 9", "Extra 10",
+                "Extra 11", "Extra 12", "Extra 13", "Extra 14", "Extra 15",
+                "Extra 16", "Extra 17", "Extra 18", "Extra 19", "Extra 20",
+                "Extra 21", "Extra 22", "Extra 23", "Extra 24", "Extra 25",
+                "Extra 26", "Extra 27", "Extra 28", "Extra 29", "Extra 30")
+        };
+
+        var result = AlbumMatcher.Match("tobyMac", local, albums, new AlbumMatcherOptions());
+
+        Assert.All(
+            result.Assignments.Where(a =>
+                a.TrackTitle is "I just need U." or "Overflow" or "Edge of My Seat" or "scars"),
+            a => Assert.Equal("The Elements", a.AlbumTitle));
     }
 
     [Fact]
@@ -199,6 +248,82 @@ public class AlbumMatcherTests
 
         var result = AlbumMatcher.Match("The Living Tombstone", local, albums, new AlbumMatcherOptions());
         Assert.All(result.Assignments, a => Assert.Equal("FNAFdom (Live)", a.AlbumTitle));
+        Assert.Equal(0, result.SingleReleaseCount);
+    }
+
+    [Fact]
+    public void RegularAlbumBeatsDeluxeWhenBonusTrackIsOwnedAsSingle()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "Dreamland"),
+            Track("2", "Tangerine"),
+            Track("3", "Hot Sugar"),
+            Track("4", "Heat Waves"),
+            Track("5", "Helium"),
+            Track("6", "I Don't Wanna Talk (I Just Wanna Dance)")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("Dreamland", 1, "album", "Glass Animals",
+                "Dreamland", "Tangerine", "Hot Sugar", "Heat Waves", "Helium"),
+            AlbumWithType("Dreamland (+ Bonus Levels 2.0)", 2, "album", "Glass Animals",
+                "Dreamland", "Tangerine", "Hot Sugar", "Heat Waves", "Helium",
+                "I Don't Wanna Talk (I Just Wanna Dance)"),
+            new()
+            {
+                AlbumId = "3",
+                Title = "I Don't Wanna Talk (I Just Wanna Dance)",
+                RecordType = "single",
+                AlbumArtists = ["Glass Animals"],
+                Tracks =
+                [
+                    new CatalogTrack
+                    {
+                        Title = "I Don't Wanna Talk (I Just Wanna Dance)",
+                        TrackPosition = 1,
+                        TrackId = "301"
+                    }
+                ]
+            }
+        };
+
+        var result = AlbumMatcher.Match("Glass Animals", local, albums, new AlbumMatcherOptions());
+
+        Assert.Equal(0, result.UnmatchedCount);
+        Assert.All(
+            result.Assignments.Where(a => a.TrackTitle != "I Don't Wanna Talk (I Just Wanna Dance)"),
+            a => Assert.Equal("Dreamland", a.AlbumTitle));
+        var single = Assert.Single(result.Assignments, a => a.TrackTitle == "I Don't Wanna Talk (I Just Wanna Dance)");
+        Assert.Equal("I Don't Wanna Talk (I Just Wanna Dance)", single.AlbumTitle);
+        Assert.True(single.IsSingleRelease);
+    }
+
+    [Fact]
+    public void RegularAlbumBeatsDeluxeWhenOnlyBaseTracksOwned()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "Dreamland"),
+            Track("2", "Tangerine"),
+            Track("3", "Hot Sugar"),
+            Track("4", "Heat Waves"),
+            Track("5", "Helium")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("Dreamland", 1, "album", "Glass Animals",
+                "Dreamland", "Tangerine", "Hot Sugar", "Heat Waves", "Helium"),
+            AlbumWithType("Dreamland (+ Bonus Levels 2.0)", 2, "album", "Glass Animals",
+                "Dreamland", "Tangerine", "Hot Sugar", "Heat Waves", "Helium",
+                "I Don't Wanna Talk (I Just Wanna Dance)")
+        };
+
+        var result = AlbumMatcher.Match("Glass Animals", local, albums, new AlbumMatcherOptions());
+
+        Assert.All(result.Assignments, a => Assert.Equal("Dreamland", a.AlbumTitle));
         Assert.Equal(0, result.SingleReleaseCount);
     }
 
