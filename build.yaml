@@ -1,6 +1,6 @@
 name: "MusicFin: Smarter Music Tagging"
 guid: "ade80bea-e92e-4f2c-9a42-f5bf88bffa98"
-version: "1.4"
+version: "1.5"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Context-based album assignment (Deezer, MusicBrainz, iTunes, Discogs, Open Opus)"
@@ -10,4 +10,4 @@ owner: "TidBits16"
 artifacts:
   - "Jellyfin.Plugin.DeezerTagger.dll"
 changelog: >
-  Prefer album coverage ratio over raw hit count; keep base albums when bonus tracks are owned as singles (Dreamland / TobyMac Collection fixes).
+  Album fitness = matchCount × completion² so full albums beat half-covered tour sets/collections while fully owned EPs still rank above sparse big releases.

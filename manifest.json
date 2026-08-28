@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "1.5",
+        "changelog": "Album fitness = matchCount \u00d7 completion\u00b2 so full albums beat half-covered tour sets/collections while fully owned EPs still rank above sparse big releases.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.5/MusicFin_1.5.zip",
+        "checksum": "594da203700b6ec309b091538bc8935f",
+        "timestamp": "2026-08-28T18:31:58Z"
+      },
+      {
         "version": "1.4",
         "changelog": "Prefer album coverage ratio over raw hit count; keep base albums when bonus tracks are owned as singles (Dreamland / TobyMac Collection fixes).",
         "targetAbi": "10.11.0.0",

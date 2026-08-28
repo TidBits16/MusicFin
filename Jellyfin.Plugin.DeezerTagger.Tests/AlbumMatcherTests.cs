@@ -50,6 +50,13 @@ public class AlbumMatcherTests
             Track("e2", "Overflow"),
             Track("e3", "Edge of My Seat"),
             Track("e4", "scars"),
+            Track("e5", "Everything"),
+            Track("e6", "The Element"),
+            Track("e7", "Horizon"),
+            Track("e8", "See You Again"),
+            Track("e9", "Starts With Me"),
+            Track("e10", "It's All About You"),
+            Track("e11", "Outro"),
             Track("hits1", "Speak Life"),
             Track("hits2", "Feel It"),
             Track("hits3", "City on Our Knees"),
@@ -85,8 +92,76 @@ public class AlbumMatcherTests
 
         Assert.All(
             result.Assignments.Where(a =>
-                a.TrackTitle is "I just need U." or "Overflow" or "Edge of My Seat" or "scars"),
+                a.TrackTitle is "I just need U." or "Overflow" or "Edge of My Seat" or "scars"
+                    or "Everything" or "The Element" or "Horizon" or "See You Again"
+                    or "Starts With Me" or "It's All About You" or "Outro"),
             a => Assert.Equal("The Elements", a.AlbumTitle));
+    }
+
+    [Fact]
+    public void StudioAlbumBeatsTourSetAndFullyOwnedEpOnFitness()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "Song A"),
+            Track("2", "Song B"),
+            Track("3", "Song C"),
+            Track("4", "Song D"),
+            Track("5", "Song E"),
+            Track("6", "Song F"),
+            Track("7", "Song G"),
+            Track("8", "Song H"),
+            Track("9", "Song I"),
+            Track("10", "Song J")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("Studio Album", 1, "album", "Test Artist",
+                "Song A", "Song B", "Song C", "Song D", "Song E",
+                "Song F", "Song G", "Song H", "Song I", "Song J"),
+            AlbumWithType("Tour Set", 2, "album", "Test Artist",
+                "Song A", "Song B", "Song C", "Song D", "Song E",
+                "Song F", "Song G", "Song H", "Song I", "Song J",
+                "Live Extra 1", "Live Extra 2", "Live Extra 3", "Live Extra 4",
+                "Live Extra 5", "Live Extra 6", "Live Extra 7", "Live Extra 8",
+                "Live Extra 9", "Live Extra 10"),
+            AlbumWithType("Early EP", 3, "ep", "Test Artist",
+                "Song A", "Song B", "Song C", "Song D")
+        };
+
+        var result = AlbumMatcher.Match("Test Artist", local, albums, new AlbumMatcherOptions());
+
+        Assert.All(result.Assignments, a => Assert.Equal("Studio Album", a.AlbumTitle));
+        Assert.Equal(10, result.Assignments.Count);
+    }
+
+    [Fact]
+    public void FullyOwnedEpBeatsHalfCoveredTourSet()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "Song A"),
+            Track("2", "Song B"),
+            Track("3", "Song C"),
+            Track("4", "Song D")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("Early EP", 1, "ep", "Test Artist",
+                "Song A", "Song B", "Song C", "Song D"),
+            AlbumWithType("Tour Set", 2, "album", "Test Artist",
+                "Song A", "Song B", "Song C", "Song D", "Song E",
+                "Song F", "Song G", "Song H", "Song I", "Song J",
+                "Live Extra 1", "Live Extra 2", "Live Extra 3", "Live Extra 4",
+                "Live Extra 5", "Live Extra 6", "Live Extra 7", "Live Extra 8",
+                "Live Extra 9", "Live Extra 10")
+        };
+
+        var result = AlbumMatcher.Match("Test Artist", local, albums, new AlbumMatcherOptions());
+
+        Assert.All(result.Assignments, a => Assert.Equal("Early EP", a.AlbumTitle));
     }
 
     [Fact]

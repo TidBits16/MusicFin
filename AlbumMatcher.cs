@@ -78,7 +78,7 @@ public static class AlbumMatcher
         var minSim = options.MinTitleSimilarity;
         var markers = options.IgnoreTitleMarkers;
 
-        // Singles compete with albums/EPs: a 1/1 single (100%) beats a 1/20 album (5%).
+        // Candidates compete on title fit, then fitness = matchCount * ratio^2.
         var candidates = catalogAlbums.ToList();
         var scored = candidates
             .Select(album => new ScoredAlbum(
@@ -129,6 +129,7 @@ public static class AlbumMatcher
         CatalogAlbum? bestAlbum = null;
         CatalogTrack? bestTrack = null;
         var bestTrackScore = -1.0;
+        var bestFitness = -1.0;
         var bestExact = false;
         var bestTitleLength = int.MaxValue;
         var bestRatio = -1.0;
@@ -148,6 +149,12 @@ public static class AlbumMatcher
                 continue;
             }
 
+            // Bonus-only tracks that exist as their own single should not be claimed by a deluxe edition.
+            if (IsExclusiveSingleOnExpandedEdition(local, album, candidates, artist, minSimilarity, markers))
+            {
+                continue;
+            }
+
             var trackScore = TrackMatcher.TitleMatchScore(local.Title, match.Title, markers, artist);
             // Singles are often titled after the song; treat album-title fit as part of the track score.
             if (album.IsSingle)
@@ -162,14 +169,16 @@ public static class AlbumMatcher
 
             if (IsBetterCandidate(
                     trackScore,
-                    albumScore.Score,
+                    albumScore.Fitness,
                     albumScore.Ratio,
+                    albumScore.Score,
                     exact,
                     got.Length,
                     album.Tracks.Count,
                     bestTrackScore,
-                    bestAlbumScore,
+                    bestFitness,
                     bestRatio,
+                    bestAlbumScore,
                     bestExact,
                     bestTitleLength,
                     bestAlbumSize))
@@ -177,6 +186,7 @@ public static class AlbumMatcher
                 bestAlbum = album;
                 bestTrack = match;
                 bestTrackScore = trackScore;
+                bestFitness = albumScore.Fitness;
                 bestExact = exact;
                 bestTitleLength = got.Length;
                 bestRatio = albumScore.Ratio;
@@ -209,14 +219,16 @@ public static class AlbumMatcher
 
     private static bool IsBetterCandidate(
         double trackScore,
-        int albumScore,
+        double fitness,
         double ratio,
+        int albumScore,
         bool exact,
         int titleLength,
         int albumSize,
         double bestTrackScore,
-        int bestAlbumScore,
+        double bestFitness,
         double bestRatio,
+        int bestAlbumScore,
         bool bestExact,
         int bestTitleLength,
         int bestAlbumSize)
@@ -231,8 +243,18 @@ public static class AlbumMatcher
             return false;
         }
 
-        // Prefer tighter catalog coverage (The Elements 11/11) over sprawling
-        // collections that merely contain more of the library (Collection 20/54).
+        // Mixed size + completion: matchCount * ratio^2.
+        // 10/10 album (10) beats 10/20 tour set (2.5); 4/4 EP (4) still beats the tour set.
+        if (fitness > bestFitness + 0.0001)
+        {
+            return true;
+        }
+
+        if (Math.Abs(fitness - bestFitness) > 0.0001)
+        {
+            return false;
+        }
+
         if (ratio > bestRatio + 0.0001)
         {
             return true;
@@ -297,25 +319,28 @@ public static class AlbumMatcher
         double minSimilarity,
         IReadOnlyList<string> markers)
     {
-        var count = 0;
+        var matchedCatalogTracks = new HashSet<string>(StringComparer.Ordinal);
         foreach (var local in localTracks)
         {
-            if (TrackMatcher.MatchTrack(local.Title, album.Tracks, minSimilarity, markers, artist) is null)
+            var match = TrackMatcher.MatchTrack(local.Title, album.Tracks, minSimilarity, markers, artist);
+            if (match is null)
             {
                 continue;
             }
 
-            // Don't let a track that exists as its own single inflate a deluxe/expanded
-            // edition's score over the base album (Dreamland vs Dreamland + Bonus Levels).
+            // Bonus-only tracks that exist as their own single should not inflate deluxe editions.
             if (IsExclusiveSingleOnExpandedEdition(local, album, allAlbums, artist, minSimilarity, markers))
             {
                 continue;
             }
 
-            count++;
+            var key = match.TrackId.Length > 0
+                ? match.TrackId
+                : match.TrackPosition + ":" + match.Title;
+            matchedCatalogTracks.Add(key);
         }
 
-        return count;
+        return matchedCatalogTracks.Count;
     }
 
     /// <summary>
@@ -410,6 +435,22 @@ public static class AlbumMatcher
 
         public int Score { get; } = score;
 
-        public double Ratio => Album.Tracks.Count > 0 ? (double)Score / Album.Tracks.Count : 0;
+        public double Ratio
+        {
+            get
+            {
+                if (Album.Tracks.Count <= 0 || Score <= 0)
+                {
+                    return 0;
+                }
+
+                return Math.Min(1.0, (double)Score / Album.Tracks.Count);
+            }
+        }
+
+        /// <summary>
+        /// matchCount * ratio^2 — rewards both owning more songs and covering the release.
+        /// </summary>
+        public double Fitness => Score * Ratio * Ratio;
     }
 }
