@@ -1,6 +1,6 @@
 name: "MusicFin: Smarter Music Tagging"
 guid: "ade80bea-e92e-4f2c-9a42-f5bf88bffa98"
-version: "1.2"
+version: "1.3"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Context-based album assignment (Deezer, MusicBrainz, iTunes, Discogs, Open Opus)"
@@ -10,4 +10,4 @@ owner: "TidBits16"
 artifacts:
   - "Jellyfin.Plugin.DeezerTagger.dll"
 changelog: >
-  Per-track album assignment: prefer exact studio titles over live variants; strip trailing artist from titles; case-insensitive artist grouping.
+  Singles compete with albums on coverage percent so a 1/1 single beats a 1/20 album hit.

@@ -113,6 +113,96 @@ public class AlbumMatcherTests
     }
 
     [Fact]
+    public void SingleReleaseBeatsLargeAlbumWhenCoverageRatioIsHigher()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("live-1", "FNAFdom (Live)")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("zero_one:reloaded", 1, "album", "The Living Tombstone",
+                "FNAFdom (Live)", "Drink My Water (Live)", "What I Want (Live)", "Drunk (Live)",
+                "In the Land of Gods and Monsters (Live)", "Orphans (Live)", "Fly Home (Live)",
+                "My Ordinary Life (Live)", "Sunburn (Live)", "Misplaced (Live)",
+                "I Can't Fix You (Live)", "It's Been So Long (Live)", "Die In A Fire (Live)",
+                "Five Nights at Freddy's (Live)", "Step On Up (Live)",
+                "This Comes From Inside (Live)", "I Got No Time (Live)", "Other Live Cut",
+                "Bonus Live"),
+            new()
+            {
+                AlbumId = "2",
+                Title = "FNAFdom (Live)",
+                RecordType = "single",
+                AlbumArtists = ["The Living Tombstone"],
+                Tracks =
+                [
+                    new CatalogTrack { Title = "FNAFdom (Live)", TrackPosition = 1, TrackId = "201" }
+                ]
+            }
+        };
+
+        var result = AlbumMatcher.Match("The Living Tombstone", local, albums, new AlbumMatcherOptions());
+        var assignment = Assert.Single(result.Assignments);
+        Assert.Equal("FNAFdom (Live)", assignment.AlbumTitle);
+        Assert.True(assignment.IsSingleRelease);
+        Assert.Equal(1, assignment.TrackNumber);
+    }
+
+    [Fact]
+    public void FullLiveAlbumBeatsPerTrackSinglesWhenCoverageTiesAt100Percent()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "FNAFdom (Live)"),
+            Track("2", "Drink My Water (Live)")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            new()
+            {
+                AlbumId = "ep",
+                Title = "FNAFdom (Live)",
+                RecordType = "ep",
+                AlbumArtists = ["The Living Tombstone"],
+                Tracks =
+                [
+                    new CatalogTrack { Title = "FNAFdom (Live)", TrackPosition = 1, TrackId = "e1" },
+                    new CatalogTrack { Title = "Drink My Water (Live)", TrackPosition = 2, TrackId = "e2" }
+                ]
+            },
+            new()
+            {
+                AlbumId = "s1",
+                Title = "FNAFdom (Live)",
+                RecordType = "single",
+                AlbumArtists = ["The Living Tombstone"],
+                Tracks =
+                [
+                    new CatalogTrack { Title = "FNAFdom (Live)", TrackPosition = 1, TrackId = "s1t" }
+                ]
+            },
+            new()
+            {
+                AlbumId = "s2",
+                Title = "Drink My Water (Live)",
+                RecordType = "single",
+                AlbumArtists = ["The Living Tombstone"],
+                Tracks =
+                [
+                    new CatalogTrack { Title = "Drink My Water (Live)", TrackPosition = 1, TrackId = "s2t" }
+                ]
+            }
+        };
+
+        var result = AlbumMatcher.Match("The Living Tombstone", local, albums, new AlbumMatcherOptions());
+        Assert.All(result.Assignments, a => Assert.Equal("FNAFdom (Live)", a.AlbumTitle));
+        Assert.Equal(0, result.SingleReleaseCount);
+    }
+
+    [Fact]
     public void OneOffSongPrefersStudioAlbumOverVariousArtistsCompilation()
     {
         var local = new List<LocalTrack>

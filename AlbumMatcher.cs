@@ -77,10 +77,10 @@ public static class AlbumMatcher
     {
         var minSim = options.MinTitleSimilarity;
         var markers = options.IgnoreTitleMarkers;
-        var studioAlbums = catalogAlbums.Where(a => !a.IsSingle).ToList();
-        var singleReleases = catalogAlbums.Where(a => a.IsSingle).ToList();
 
-        var scored = studioAlbums
+        // Singles compete with albums/EPs: a 1/1 single (100%) beats a 1/20 album (5%).
+        var candidates = catalogAlbums.ToList();
+        var scored = candidates
             .Select(album => new ScoredAlbum(album, ScoreAlbum(localTracks, album, artist, minSim, markers)))
             .Where(x => x.Score > 0)
             .ToDictionary(x => x.Album.AlbumId, StringComparer.Ordinal);
@@ -90,31 +90,13 @@ public static class AlbumMatcher
 
         foreach (var local in localTracks)
         {
-            if (TryAssignStudioAlbum(local, artist, studioAlbums, scored, minSim, markers) is not { } assignment)
+            if (TryAssignAlbum(local, artist, candidates, scored, minSim, markers) is not { } assignment)
             {
                 continue;
             }
 
             assignments.Add(assignment);
             albumCounts[assignment.AlbumTitle] = albumCounts.GetValueOrDefault(assignment.AlbumTitle) + 1;
-        }
-
-        var assigned = assignments.Select(a => a.TrackId).ToHashSet();
-        foreach (var local in localTracks)
-        {
-            if (assigned.Contains(local.Id))
-            {
-                continue;
-            }
-
-            if (TryMatchSingleRelease(local, singleReleases, artist, minSim, markers) is not { } singleAssignment)
-            {
-                continue;
-            }
-
-            assigned.Add(local.Id);
-            assignments.Add(singleAssignment);
-            albumCounts[singleAssignment.AlbumTitle] = albumCounts.GetValueOrDefault(singleAssignment.AlbumTitle) + 1;
         }
 
         var summaries = albumCounts
@@ -134,10 +116,10 @@ public static class AlbumMatcher
         };
     }
 
-    private static TrackAssignment? TryAssignStudioAlbum(
+    private static TrackAssignment? TryAssignAlbum(
         LocalTrack local,
         string artist,
-        IReadOnlyList<CatalogAlbum> studioAlbums,
+        IReadOnlyList<CatalogAlbum> candidates,
         IReadOnlyDictionary<string, ScoredAlbum> scored,
         double minSimilarity,
         IReadOnlyList<string> markers)
@@ -151,7 +133,7 @@ public static class AlbumMatcher
         var bestAlbumScore = -1;
         var bestAlbumSize = int.MaxValue;
 
-        foreach (var album in studioAlbums)
+        foreach (var album in candidates)
         {
             if (!scored.TryGetValue(album.AlbumId, out var albumScore))
             {
@@ -165,18 +147,27 @@ public static class AlbumMatcher
             }
 
             var trackScore = TrackMatcher.TitleMatchScore(local.Title, match.Title, markers, artist);
+            // Singles are often titled after the song; treat album-title fit as part of the track score.
+            if (album.IsSingle)
+            {
+                var albumTitleScore = TrackMatcher.TitleMatchScore(local.Title, album.Title, markers, artist);
+                trackScore = Math.Max(trackScore, albumTitleScore);
+            }
+
             var want = Titles.Norm(Titles.StripTrailingArtist(local.Title, artist), markers);
             var got = Titles.Norm(match.Title, markers);
             var exact = got == want;
 
             if (IsBetterCandidate(
                     trackScore,
+                    album.IsSingle,
                     albumScore.Score,
                     albumScore.Ratio,
                     exact,
                     got.Length,
                     album.Tracks.Count,
                     bestTrackScore,
+                    bestAlbum?.IsSingle ?? false,
                     bestAlbumScore,
                     bestRatio,
                     bestExact,
@@ -199,29 +190,33 @@ public static class AlbumMatcher
             return null;
         }
 
+        var trackNumber = bestTrack.TrackPosition > 0 ? bestTrack.TrackPosition : 1;
         return new TrackAssignment
         {
             TrackId = local.Id,
             TrackTitle = local.Title,
             AlbumTitle = bestAlbum.Title,
-            TrackNumber = bestTrack.TrackPosition,
+            TrackNumber = trackNumber,
             ProviderAlbumId = bestAlbum.AlbumId,
             ProviderTrackId = bestTrack.TrackId,
             Genres = bestAlbum.Genres,
             TrackArtists = ArtistsForTrack(bestTrack, bestAlbum, artist),
             AlbumArtists = AlbumArtistsFor(bestAlbum, artist),
-            Year = bestAlbum.Year
+            Year = bestAlbum.Year,
+            IsSingleRelease = bestAlbum.IsSingle
         };
     }
 
     private static bool IsBetterCandidate(
         double trackScore,
+        bool isSingle,
         int albumScore,
         double ratio,
         bool exact,
         int titleLength,
         int albumSize,
         double bestTrackScore,
+        bool bestIsSingle,
         int bestAlbumScore,
         double bestRatio,
         bool bestExact,
@@ -238,25 +233,51 @@ public static class AlbumMatcher
             return false;
         }
 
-        // Prefer the album that covers more of this artist's local library.
-        if (albumScore > bestAlbumScore)
+        // Singles compete on coverage % (1/1 = 100% beats 1/20 = 5%).
+        // Albums/EPs compete on how many local tracks they cover, then %.
+        if (isSingle || bestIsSingle)
         {
-            return true;
-        }
+            if (ratio > bestRatio + 0.0001)
+            {
+                return true;
+            }
 
-        if (albumScore < bestAlbumScore)
-        {
-            return false;
-        }
+            if (Math.Abs(ratio - bestRatio) > 0.0001)
+            {
+                return false;
+            }
 
-        if (ratio > bestRatio + 0.0001)
-        {
-            return true;
-        }
+            if (albumScore > bestAlbumScore)
+            {
+                return true;
+            }
 
-        if (Math.Abs(ratio - bestRatio) > 0.0001)
+            if (albumScore < bestAlbumScore)
+            {
+                return false;
+            }
+        }
+        else
         {
-            return false;
+            if (albumScore > bestAlbumScore)
+            {
+                return true;
+            }
+
+            if (albumScore < bestAlbumScore)
+            {
+                return false;
+            }
+
+            if (ratio > bestRatio + 0.0001)
+            {
+                return true;
+            }
+
+            if (Math.Abs(ratio - bestRatio) > 0.0001)
+            {
+                return false;
+            }
         }
 
         if (exact && !bestExact)
@@ -280,60 +301,6 @@ public static class AlbumMatcher
         }
 
         return albumSize < bestAlbumSize;
-    }
-
-    private static TrackAssignment? TryMatchSingleRelease(
-        LocalTrack local,
-        IReadOnlyList<CatalogAlbum> singles,
-        string artist,
-        double minSimilarity,
-        IReadOnlyList<string> markers)
-    {
-        CatalogAlbum? bestAlbum = null;
-        CatalogTrack? bestTrack = null;
-        var bestScore = -1.0;
-        var bestTitleScore = -1.0;
-
-        foreach (var single in singles)
-        {
-            var match = TrackMatcher.MatchTrack(local.Title, single.Tracks, minSimilarity, markers, artist);
-            if (match is null)
-            {
-                continue;
-            }
-
-            var titleScore = TrackMatcher.TitleMatchScore(local.Title, single.Title, markers, artist);
-            var trackScore = TrackMatcher.TitleMatchScore(local.Title, match.Title, markers, artist);
-            var score = Math.Max(titleScore, trackScore);
-            if (score > bestScore || (Math.Abs(score - bestScore) < 0.0001 && titleScore > bestTitleScore))
-            {
-                bestScore = score;
-                bestTitleScore = titleScore;
-                bestAlbum = single;
-                bestTrack = match;
-            }
-        }
-
-        if (bestAlbum is null || bestTrack is null)
-        {
-            return null;
-        }
-
-        var trackNumber = bestTrack.TrackPosition > 0 ? bestTrack.TrackPosition : 1;
-        return new TrackAssignment
-        {
-            TrackId = local.Id,
-            TrackTitle = local.Title,
-            AlbumTitle = bestAlbum.Title,
-            TrackNumber = trackNumber,
-            ProviderAlbumId = bestAlbum.AlbumId,
-            ProviderTrackId = bestTrack.TrackId,
-            Genres = bestAlbum.Genres,
-            TrackArtists = ArtistsForTrack(bestTrack, bestAlbum, artist),
-            AlbumArtists = AlbumArtistsFor(bestAlbum, artist),
-            Year = bestAlbum.Year,
-            IsSingleRelease = true
-        };
     }
 
     private static IReadOnlyList<string> AlbumArtistsFor(CatalogAlbum album, string fallbackArtist)
