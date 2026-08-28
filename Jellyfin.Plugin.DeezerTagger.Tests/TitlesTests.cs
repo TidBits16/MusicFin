@@ -51,4 +51,18 @@ public class TitlesTests
         Assert.Equal("short", match!.TrackId);
         Assert.Equal(3, match.TrackPosition);
     }
+
+    [Theory]
+    [InlineData("That's My Shit - Rainbow Kitten Surprise", "Rainbow Kitten Surprise", "That's My Shit")]
+    [InlineData("That's My Shit - Rainbow Kitten Suprise", "Rainbow Kitten Surprise", "That's My Shit")]
+    [InlineData("That's My Shit", "Rainbow Kitten Surprise", "That's My Shit")]
+    public void StripTrailingArtist_RemovesArtistSuffix(string input, string artist, string expected)
+        => Assert.Equal(expected, Titles.StripTrailingArtist(input, artist));
+
+    [Theory]
+    [InlineData("All That and More (Sailboat)", "All That and More")]
+    [InlineData("That's My Shit (Live from Athens Georgia)", "That's My Shit (Live from Athens Georgia)")]
+    [InlineData("Betty", "Betty")]
+    public void StripShortParenthetical_OnlyRemovesShortSuffixes(string input, string expected)
+        => Assert.Equal(expected, Titles.StripShortParenthetical(input));
 }

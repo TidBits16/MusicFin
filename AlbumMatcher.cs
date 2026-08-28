@@ -81,52 +81,25 @@ public static class AlbumMatcher
         var singleReleases = catalogAlbums.Where(a => a.IsSingle).ToList();
 
         var scored = studioAlbums
-            .Select(album => new ScoredAlbum(album, ScoreAlbum(localTracks, album, minSim, markers)))
+            .Select(album => new ScoredAlbum(album, ScoreAlbum(localTracks, album, artist, minSim, markers)))
             .Where(x => x.Score > 0)
-            .OrderByDescending(x => x.Score)
-            .ThenByDescending(x => x.Ratio)
-            .ThenBy(x => x.Album.IsCompilation ? 1 : 0)
-            .ThenBy(x => x.Album.Tracks.Count)
-            .ToList();
+            .ToDictionary(x => x.Album.AlbumId, StringComparer.Ordinal);
 
-        var assigned = new HashSet<Guid>();
         var assignments = new List<TrackAssignment>();
         var albumCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var entry in scored)
+        foreach (var local in localTracks)
         {
-            foreach (var local in localTracks)
+            if (TryAssignStudioAlbum(local, artist, studioAlbums, scored, minSim, markers) is not { } assignment)
             {
-                if (assigned.Contains(local.Id))
-                {
-                    continue;
-                }
-
-                var match = TrackMatcher.MatchTrack(local.Title, entry.Album.Tracks, minSim, markers);
-                if (match is null)
-                {
-                    continue;
-                }
-
-                assigned.Add(local.Id);
-                assignments.Add(new TrackAssignment
-                {
-                    TrackId = local.Id,
-                    TrackTitle = local.Title,
-                    AlbumTitle = entry.Album.Title,
-                    TrackNumber = match.TrackPosition,
-                    ProviderAlbumId = entry.Album.AlbumId,
-                    ProviderTrackId = match.TrackId,
-                    Genres = entry.Album.Genres,
-                    TrackArtists = ArtistsForTrack(match, entry.Album, artist),
-                    AlbumArtists = AlbumArtistsFor(entry.Album, artist),
-                    Year = entry.Album.Year
-                });
-
-                albumCounts[entry.Album.Title] = albumCounts.GetValueOrDefault(entry.Album.Title) + 1;
+                continue;
             }
+
+            assignments.Add(assignment);
+            albumCounts[assignment.AlbumTitle] = albumCounts.GetValueOrDefault(assignment.AlbumTitle) + 1;
         }
 
+        var assigned = assignments.Select(a => a.TrackId).ToHashSet();
         foreach (var local in localTracks)
         {
             if (assigned.Contains(local.Id))
@@ -161,6 +134,154 @@ public static class AlbumMatcher
         };
     }
 
+    private static TrackAssignment? TryAssignStudioAlbum(
+        LocalTrack local,
+        string artist,
+        IReadOnlyList<CatalogAlbum> studioAlbums,
+        IReadOnlyDictionary<string, ScoredAlbum> scored,
+        double minSimilarity,
+        IReadOnlyList<string> markers)
+    {
+        CatalogAlbum? bestAlbum = null;
+        CatalogTrack? bestTrack = null;
+        var bestTrackScore = -1.0;
+        var bestExact = false;
+        var bestTitleLength = int.MaxValue;
+        var bestRatio = -1.0;
+        var bestAlbumScore = -1;
+        var bestAlbumSize = int.MaxValue;
+
+        foreach (var album in studioAlbums)
+        {
+            if (!scored.TryGetValue(album.AlbumId, out var albumScore))
+            {
+                continue;
+            }
+
+            var match = TrackMatcher.MatchTrack(local.Title, album.Tracks, minSimilarity, markers, artist);
+            if (match is null)
+            {
+                continue;
+            }
+
+            var trackScore = TrackMatcher.TitleMatchScore(local.Title, match.Title, markers, artist);
+            var want = Titles.Norm(Titles.StripTrailingArtist(local.Title, artist), markers);
+            var got = Titles.Norm(match.Title, markers);
+            var exact = got == want;
+
+            if (IsBetterCandidate(
+                    trackScore,
+                    albumScore.Score,
+                    albumScore.Ratio,
+                    exact,
+                    got.Length,
+                    album.Tracks.Count,
+                    bestTrackScore,
+                    bestAlbumScore,
+                    bestRatio,
+                    bestExact,
+                    bestTitleLength,
+                    bestAlbumSize))
+            {
+                bestAlbum = album;
+                bestTrack = match;
+                bestTrackScore = trackScore;
+                bestExact = exact;
+                bestTitleLength = got.Length;
+                bestRatio = albumScore.Ratio;
+                bestAlbumScore = albumScore.Score;
+                bestAlbumSize = album.Tracks.Count;
+            }
+        }
+
+        if (bestAlbum is null || bestTrack is null)
+        {
+            return null;
+        }
+
+        return new TrackAssignment
+        {
+            TrackId = local.Id,
+            TrackTitle = local.Title,
+            AlbumTitle = bestAlbum.Title,
+            TrackNumber = bestTrack.TrackPosition,
+            ProviderAlbumId = bestAlbum.AlbumId,
+            ProviderTrackId = bestTrack.TrackId,
+            Genres = bestAlbum.Genres,
+            TrackArtists = ArtistsForTrack(bestTrack, bestAlbum, artist),
+            AlbumArtists = AlbumArtistsFor(bestAlbum, artist),
+            Year = bestAlbum.Year
+        };
+    }
+
+    private static bool IsBetterCandidate(
+        double trackScore,
+        int albumScore,
+        double ratio,
+        bool exact,
+        int titleLength,
+        int albumSize,
+        double bestTrackScore,
+        int bestAlbumScore,
+        double bestRatio,
+        bool bestExact,
+        int bestTitleLength,
+        int bestAlbumSize)
+    {
+        if (trackScore > bestTrackScore + 0.0001)
+        {
+            return true;
+        }
+
+        if (Math.Abs(trackScore - bestTrackScore) > 0.0001)
+        {
+            return false;
+        }
+
+        // Prefer the album that covers more of this artist's local library.
+        if (albumScore > bestAlbumScore)
+        {
+            return true;
+        }
+
+        if (albumScore < bestAlbumScore)
+        {
+            return false;
+        }
+
+        if (ratio > bestRatio + 0.0001)
+        {
+            return true;
+        }
+
+        if (Math.Abs(ratio - bestRatio) > 0.0001)
+        {
+            return false;
+        }
+
+        if (exact && !bestExact)
+        {
+            return true;
+        }
+
+        if (exact != bestExact)
+        {
+            return false;
+        }
+
+        if (titleLength < bestTitleLength)
+        {
+            return true;
+        }
+
+        if (titleLength > bestTitleLength)
+        {
+            return false;
+        }
+
+        return albumSize < bestAlbumSize;
+    }
+
     private static TrackAssignment? TryMatchSingleRelease(
         LocalTrack local,
         IReadOnlyList<CatalogAlbum> singles,
@@ -175,14 +296,14 @@ public static class AlbumMatcher
 
         foreach (var single in singles)
         {
-            var match = TrackMatcher.MatchTrack(local.Title, single.Tracks, minSimilarity, markers);
+            var match = TrackMatcher.MatchTrack(local.Title, single.Tracks, minSimilarity, markers, artist);
             if (match is null)
             {
                 continue;
             }
 
-            var titleScore = TrackMatcher.TitleMatchScore(local.Title, single.Title, markers);
-            var trackScore = TrackMatcher.TitleMatchScore(local.Title, match.Title, markers);
+            var titleScore = TrackMatcher.TitleMatchScore(local.Title, single.Title, markers, artist);
+            var trackScore = TrackMatcher.TitleMatchScore(local.Title, match.Title, markers, artist);
             var score = Math.Max(titleScore, trackScore);
             if (score > bestScore || (Math.Abs(score - bestScore) < 0.0001 && titleScore > bestTitleScore))
             {
@@ -231,13 +352,14 @@ public static class AlbumMatcher
     private static int ScoreAlbum(
         IReadOnlyList<LocalTrack> localTracks,
         CatalogAlbum album,
+        string artist,
         double minSimilarity,
         IReadOnlyList<string> markers)
     {
         var count = 0;
         foreach (var local in localTracks)
         {
-            if (TrackMatcher.MatchTrack(local.Title, album.Tracks, minSimilarity, markers) is not null)
+            if (TrackMatcher.MatchTrack(local.Title, album.Tracks, minSimilarity, markers, artist) is not null)
             {
                 count++;
             }

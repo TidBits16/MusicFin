@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "1.2",
+        "changelog": "Per-track album assignment: prefer exact studio titles over live variants; strip trailing artist from titles; case-insensitive artist grouping.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.2/MusicFin_1.2.zip",
+        "checksum": "bce1d8ddb77cffd1ad9b2c0be5b15fad",
+        "timestamp": "2026-08-28T16:33:10Z"
+      },
+      {
         "version": "1.1",
         "changelog": "Separate plugin identity (new GUID) from the old Smarter Music Tagging install.",
         "targetAbi": "10.11.0.0",

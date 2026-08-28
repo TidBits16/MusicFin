@@ -61,7 +61,7 @@ public class ContextEngine
 
         var skipSet = new HashSet<string>(cfg.EffectiveSkipArtists, StringComparer.OrdinalIgnoreCase);
         var grouped = tracks
-            .GroupBy(AlbumArtistOf)
+            .GroupBy(AlbumArtistOf, StringComparer.OrdinalIgnoreCase)
             .Where(g => !SkipArtistNames.Contains(g.Key) && !skipSet.Contains(g.Key))
             .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -89,7 +89,7 @@ public class ContextEngine
             try
             {
                 await ProcessArtistAsync(
-                    g.Key,
+                    PreferredArtistName(g),
                     g.ToList(),
                     cfg,
                     primaryClient,
@@ -691,6 +691,19 @@ public class ContextEngine
     private static string AlbumArtistOf(Audio item)
         => item.AlbumArtists.Count > 0 ? item.AlbumArtists[0]
             : item.Artists.Count > 0 ? item.Artists[0] : string.Empty;
+
+    /// <summary>Most common casing in the group — avoids "toby fox" winning over "Toby Fox".</summary>
+    private static string PreferredArtistName(IGrouping<string, Audio> group)
+        => group
+            .Select(AlbumArtistOf)
+            .Where(n => n.Length > 0)
+            .GroupBy(n => n, StringComparer.Ordinal)
+            .OrderByDescending(g => g.Count())
+            .ThenByDescending(g => g.Key.Count(char.IsUpper))
+            .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.Key)
+            .DefaultIfEmpty(group.Key)
+            .First();
 
     private sealed class Patch
     {

@@ -6,9 +6,13 @@ public static class TrackMatcher
         string title,
         IReadOnlyList<CatalogTrack> tracks,
         double minSimilarity = 0.72,
-        IReadOnlyList<string>? ignoreTitleMarkers = null)
+        IReadOnlyList<string>? ignoreTitleMarkers = null,
+        string? albumArtist = null)
     {
-        var want = Titles.Norm(title, ignoreTitleMarkers);
+        var cleaned = albumArtist is { Length: > 0 }
+            ? Titles.StripTrailingArtist(title, albumArtist)
+            : title;
+        var want = Titles.Norm(cleaned, ignoreTitleMarkers);
         if (want.Length == 0 || tracks.Count == 0)
         {
             return null;
@@ -21,23 +25,7 @@ public static class TrackMatcher
         var bestExplicitRank = -1;
         foreach (var t in tracks)
         {
-            var got = Titles.Norm(t.Title, ignoreTitleMarkers);
-            if (got.Length == 0)
-            {
-                continue;
-            }
-
-            var score = Similarity.Ratio(got, want);
-            var exact = got == want;
-            if (exact)
-            {
-                score = 1;
-            }
-            else if (got.Contains(want, StringComparison.Ordinal) || want.Contains(got, StringComparison.Ordinal))
-            {
-                score = Math.Max(score, 0.84);
-            }
-
+            var score = ScoreTitles(want, t.Title, ignoreTitleMarkers, out var exact, out var gotLength);
             if (score < minSimilarity)
             {
                 continue;
@@ -47,13 +35,13 @@ public static class TrackMatcher
             if (score > bestScore
                 || (Math.Abs(score - bestScore) < 0.0001 && (
                     exact && !bestExact
-                    || exact == bestExact && got.Length < bestTitleLength
-                    || exact == bestExact && got.Length == bestTitleLength && explicitRank > bestExplicitRank)))
+                    || exact == bestExact && gotLength < bestTitleLength
+                    || exact == bestExact && gotLength == bestTitleLength && explicitRank > bestExplicitRank)))
             {
                 best = t;
                 bestScore = score;
                 bestExact = exact;
-                bestTitleLength = got.Length;
+                bestTitleLength = gotLength;
                 bestExplicitRank = explicitRank;
             }
         }
@@ -61,22 +49,54 @@ public static class TrackMatcher
         return best;
     }
 
-    public static double TitleMatchScore(string title, string candidate, IReadOnlyList<string>? ignoreTitleMarkers = null)
+    public static double TitleMatchScore(
+        string title,
+        string candidate,
+        IReadOnlyList<string>? ignoreTitleMarkers = null,
+        string? albumArtist = null)
     {
-        var want = Titles.Norm(title, ignoreTitleMarkers);
-        var got = Titles.Norm(candidate, ignoreTitleMarkers);
-        if (want.Length == 0 || got.Length == 0)
+        var cleaned = albumArtist is { Length: > 0 }
+            ? Titles.StripTrailingArtist(title, albumArtist)
+            : title;
+        var want = Titles.Norm(cleaned, ignoreTitleMarkers);
+        if (want.Length == 0)
         {
             return 0;
         }
 
-        if (got == want)
+        return ScoreTitles(want, candidate, ignoreTitleMarkers, out _, out _);
+    }
+
+    private static double ScoreTitles(
+        string wantNorm,
+        string candidate,
+        IReadOnlyList<string>? ignoreTitleMarkers,
+        out bool exact,
+        out int gotLength)
+    {
+        exact = false;
+        gotLength = 0;
+        var got = Titles.Norm(candidate, ignoreTitleMarkers);
+        if (got.Length == 0)
+        {
+            return 0;
+        }
+
+        gotLength = got.Length;
+        if (got == wantNorm)
+        {
+            exact = true;
+            return 1;
+        }
+
+        var core = Titles.Norm(Titles.StripShortParenthetical(candidate), ignoreTitleMarkers);
+        if (core.Length > 0 && core == wantNorm)
         {
             return 1;
         }
 
-        var score = Similarity.Ratio(got, want);
-        if (got.Contains(want, StringComparison.Ordinal) || want.Contains(got, StringComparison.Ordinal))
+        var score = Similarity.Ratio(got, wantNorm);
+        if (got.Contains(wantNorm, StringComparison.Ordinal) || wantNorm.Contains(got, StringComparison.Ordinal))
         {
             score = Math.Max(score, 0.84);
         }

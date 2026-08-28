@@ -85,6 +85,94 @@ public static class Titles
         return b.ToString().Trim();
     }
 
+    /// <summary>
+    /// Strips a trailing " - Artist" (or similar dash) when the suffix matches the album artist,
+    /// including close typos like "Rainbow Kitten Suprise".
+    /// </summary>
+    public static string StripTrailingArtist(string title, string artist)
+    {
+        var t = title.Trim();
+        var a = artist.Trim();
+        if (t.Length == 0 || a.Length == 0)
+        {
+            return t;
+        }
+
+        foreach (var sep in new[] { " - ", " – ", " — ", " -- " })
+        {
+            var idx = t.LastIndexOf(sep, StringComparison.Ordinal);
+            if (idx <= 0)
+            {
+                continue;
+            }
+
+            var suffix = t[(idx + sep.Length)..].Trim();
+            if (suffix.Length == 0)
+            {
+                continue;
+            }
+
+            var want = Norm(a);
+            var got = Norm(suffix);
+            if (got == want || Similarity.Ratio(got, want) >= 0.82)
+            {
+                return t[..idx].TrimEnd();
+            }
+        }
+
+        return t;
+    }
+
+    /// <summary>
+    /// Strips a short trailing parenthetical alternate title (e.g. "Sailboat"), but leaves
+    /// longer descriptors like "Live from Athens Georgia" intact for scoring.
+    /// </summary>
+    public static string StripShortParenthetical(string title)
+    {
+        var t = title.Trim();
+        if (t.Length == 0 || t[^1] != ')')
+        {
+            return t;
+        }
+
+        var open = t.LastIndexOf('(');
+        if (open <= 0)
+        {
+            return t;
+        }
+
+        var inner = t[(open + 1)..^1].Trim();
+        if (inner.Length == 0)
+        {
+            return t;
+        }
+
+        var words = 0;
+        var inWord = false;
+        foreach (var ch in inner)
+        {
+            if (char.IsLetterOrDigit(ch))
+            {
+                if (!inWord)
+                {
+                    words++;
+                    inWord = true;
+                }
+            }
+            else
+            {
+                inWord = false;
+            }
+        }
+
+        if (words == 0 || words > 2 || inner.Length > 24)
+        {
+            return t;
+        }
+
+        return t[..open].TrimEnd();
+    }
+
     private static string FoldQuotes(string text)
     {
         return text

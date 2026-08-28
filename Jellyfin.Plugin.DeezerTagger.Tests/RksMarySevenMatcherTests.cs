@@ -69,6 +69,45 @@ public class RksMarySevenMatcherTests
         Assert.Contains(result.Assignments, a => a.AlbumTitle == "Seven" && a.TrackTitle == "Fail!");
     }
 
+    [Fact]
+    public void ExactStudioTitle_BeatsLiveAlbumEvenWhenLiveHasMoreLibraryHits()
+    {
+        var local = new List<LocalTrack>
+        {
+            new() { Id = Guid.NewGuid(), Title = "That's My Shit - Rainbow Kitten Suprise" },
+            new() { Id = Guid.NewGuid(), Title = "Mission to Mars" },
+            new() { Id = Guid.NewGuid(), Title = "Cocaine Jesus" },
+            new() { Id = Guid.NewGuid(), Title = "Hide" },
+            new() { Id = Guid.NewGuid(), Title = "Run" },
+            new() { Id = Guid.NewGuid(), Title = "Goodnight Chicago" }
+        };
+
+        var discography = new List<CatalogAlbum>
+        {
+            MbAlbum("Seven + Mary", "combo", "album",
+                "Fail!", "Mr. Redundant", "First Class", "Shameful Company", "Seven", "Devil Like Me", "American Hero",
+                "All That and More (Sailboat)", "Hey Pretty Momma", "Black and White", "That's My Shit"),
+            MbAlbum("RKS! Live From Athens Georgia", "live", "album",
+                "Mission to Mars (Live from Athens Georgia)",
+                "Cocaine Jesus (Live from Athens Georgia)",
+                "Hide (Live from Athens Georgia)",
+                "Seven (Live from Athens Georgia)",
+                "Devil Like Me (Live from Athens Georgia)",
+                "That's My Shit (Live from Athens Georgia)",
+                "Goodnight Chicago (Live from Athens Georgia)",
+                "Run (Live from Athens Georgia)",
+                "First Class (Live from Athens Georgia)",
+                "Shameful Company (Live from Athens Georgia)")
+        };
+
+        var result = AlbumMatcher.Match("Rainbow Kitten Surprise", local, discography, new AlbumMatcherOptions());
+
+        var thatsMyShit = Assert.Single(result.Assignments, a =>
+            a.TrackTitle.Contains("That's My Shit", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("Seven + Mary", thatsMyShit.AlbumTitle);
+        Assert.Equal(11, thatsMyShit.TrackNumber);
+    }
+
 
     private static CatalogAlbum MbAlbum(string title, string id, string recordType, params string[] tracks)
         => new()

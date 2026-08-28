@@ -6,7 +6,7 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "",
-  "version": "1.1",
+  "version": "1.2",
   "targetAbi": "10.11.0.0",
-  "changelog": "Separate plugin identity (new GUID) from the old Smarter Music Tagging install."
+  "changelog": "Per-track album assignment: prefer exact studio titles over live variants; strip trailing artist from titles; case-insensitive artist grouping."
 }
