@@ -16,7 +16,7 @@ public class ContextTaggerTask : IScheduledTask
 
     public string Name => "MusicFin: Smarter Music Tagging";
 
-    public string Key => "DeezerTaggerLibrary";
+    public string Key => "MusicFinLibrary";
 
     public string Description =>
         "Assigns albums, track numbers, years, and genres using context-based metadata matching (Deezer or MusicBrainz).";

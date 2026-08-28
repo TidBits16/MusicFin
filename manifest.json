@@ -1,6 +1,6 @@
 [
   {
-    "guid": "a7b3c9d1-4e2f-5a6b-8c7d-9e0f1a2b3c4d",
+    "guid": "ade80bea-e92e-4f2c-9a42-f5bf88bffa98",
     "name": "MusicFin: Smarter Music Tagging",
     "description": "Context-based album assignment for Jellyfin music libraries (Deezer, MusicBrainz, iTunes, Discogs, or Open Opus).",
     "overview": "Fixes album names, track numbers, years, and genres using artist-wide overlap matching.",
@@ -8,6 +8,14 @@
     "category": "Metadata",
     "imageUrl": "",
     "versions": [
+      {
+        "version": "1.1",
+        "changelog": "Separate plugin identity (new GUID) from the old Smarter Music Tagging install.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.1/MusicFin_1.1.zip",
+        "checksum": "cb4a6dbf8ef37a4a91a601ddf94133ac",
+        "timestamp": "2026-08-28T15:37:29Z"
+      },
       {
         "version": "1.0",
         "changelog": "Initial MusicFin release: context-based album assignment for Jellyfin.",

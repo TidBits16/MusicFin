@@ -9,7 +9,7 @@ namespace Jellyfin.Plugin.DeezerTagger;
 
 public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {
-    public static readonly Guid PluginGuid = Guid.Parse("a7b3c9d1-4e2f-5a6b-8c7d-9e0f1a2b3c4d");
+    public static readonly Guid PluginGuid = Guid.Parse("ade80bea-e92e-4f2c-9a42-f5bf88bffa98");
 
     public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
         : base(applicationPaths, xmlSerializer)
