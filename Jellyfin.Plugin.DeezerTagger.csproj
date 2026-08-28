@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>Jellyfin.Plugin.DeezerTagger</RootNamespace>
+    <AssemblyName>Jellyfin.Plugin.DeezerTagger</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>1.0</Version>
+    <FileVersion>1.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Jellyfin.Controller" Version="10.11.0">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Jellyfin.Model" Version="10.11.0">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Configuration\configPage.html" />
+    <EmbeddedResource Include="Configuration\configPage.html" />
+    <None Remove="Resources\genres.json" />
+    <EmbeddedResource Include="Resources\genres.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Jellyfin.Plugin.DeezerTagger.Tests/**" />
+    <None Remove="Jellyfin.Plugin.DeezerTagger.Tests/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Jellyfin.Plugin.DeezerTagger.Tests" />
+  </ItemGroup>
+</Project>

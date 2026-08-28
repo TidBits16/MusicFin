@@ -1,0 +1,12 @@
+{
+  "guid": "a7b3c9d1-4e2f-5a6b-8c7d-9e0f1a2b3c4d",
+  "name": "MusicFin: Smarter Music Tagging",
+  "description": "Context-based album assignment for Jellyfin music libraries (Deezer, MusicBrainz, iTunes, Discogs, or Open Opus).",
+  "overview": "Fixes album names, track numbers, years, and genres using artist-wide overlap matching.",
+  "owner": "TidBits16",
+  "category": "Metadata",
+  "imageUrl": "",
+  "version": "1.0",
+  "targetAbi": "10.11.0.0",
+  "changelog": "Initial MusicFin release: context-based album assignment for Jellyfin."
+}

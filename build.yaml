@@ -1,0 +1,13 @@
+name: "MusicFin: Smarter Music Tagging"
+guid: "a7b3c9d1-4e2f-5a6b-8c7d-9e0f1a2b3c4d"
+version: "1.0"
+targetAbi: "10.11.0.0"
+framework: "net9.0"
+overview: "Context-based album assignment (Deezer, MusicBrainz, iTunes, Discogs, Open Opus)"
+description: "Fixes album names, track numbers, years, and genres using artist-wide overlap matching against catalog discographies."
+category: "Metadata"
+owner: "TidBits16"
+artifacts:
+  - "Jellyfin.Plugin.DeezerTagger.dll"
+changelog: >
+  Initial MusicFin release: context-based album assignment for Jellyfin.

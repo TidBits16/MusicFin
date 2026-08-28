@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>MusicFin: Smarter Music Tagging</title>
+</head>
+<body>
+    <div id="DtConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select,paper-icon-button-light">
+        <div data-role="content">
+            <div class="content-primary">
+                <form id="DtConfigForm">
+                    <div class="sectionTitleContainer flex align-items-center">
+                        <h2 class="sectionTitle">MusicFin: Smarter Music Tagging</h2>
+                    </div>
+                    <p>Context-based album assignment for Jellyfin. Groups all tracks by best matching album and artist.</p>
+
+                    <div class="verticalSection">
+                        <h3 class="checkboxListLabel">Metadata providers</h3>
+                        <div class="fieldDescription">Providers are checked in order. For consistency, its recommended to leave Deezer enabled and the rest disabled.</div>
+                        <div id="ProviderList" class="checkboxList paperList checkboxList-paperList"></div>
+                        <div class="inputContainer" id="MusicBrainzContactRow">
+                            <label class="inputLabel inputLabelUnfocused" for="MusicBrainzContact">MusicBrainz contact</label>
+                            <input is="emby-input" type="text" id="MusicBrainzContact" />
+                            <div class="fieldDescription">Required by MusicBrainz API policy — your email or project URL for the User-Agent header.</div>
+                        </div>
+                        <div class="inputContainer" id="DiscogsTokenRow">
+                            <label class="inputLabel inputLabelUnfocused" for="DiscogsToken">Discogs token</label>
+                            <input is="emby-input" type="text" id="DiscogsToken" />
+                            <div class="fieldDescription">Optional personal access token from discogs.com/settings/developers — improves rate limits.</div>
+                        </div>
+                    </div>
+
+                    <div class="verticalSection">
+                        <h3 class="checkboxListLabel">Writes</h3>
+                        <div class="checkboxContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="WriteAlbumNames" />
+                                <span>Album names</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="WriteTrackNumbers" />
+                                <span>Track numbers</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="WriteTrackArtists" />
+                                <span>Track artists</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="WriteAlbumArtists" />
+                                <span>Album artists</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="WriteYear" />
+                                <span>Year</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="WriteGenres" />
+                                <span>Genres</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="ApplyAlbumGenresToTracks" />
+                                <span>Keep album and track genres consistent</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="verticalSection">
+                        <h3 class="checkboxListLabel">Matching</h3>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="IgnoreTitleMarkers">Ignore special characters / phrases</label>
+                            <input is="emby-input" type="text" id="IgnoreTitleMarkers" />
+                            <div class="fieldDescription">Comma-separated markers stripped from track titles before matching, e.g. explicit tags like 🅴 or [Explicit].</div>
+                        </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="MinTitleSimilarity">Min title similarity</label>
+                            <input is="emby-input" type="number" id="MinTitleSimilarity" min="0.5" max="1" step="0.01" />
+                            <div class="fieldDescription">0.72 recommended. Higher = stricter title matching.</div>
+                        </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="SkipArtists">Skip artists</label>
+                            <input is="emby-input" type="text" id="SkipArtists" />
+                            <div class="fieldDescription">Comma-separated album artist names to ignore.</div>
+                        </div>
+                    </div>
+
+                    <details class="verticalSection">
+                        <summary class="checkboxListLabel" style="cursor:pointer">Advanced</summary>
+                        <div class="inputContainer" style="margin-top:1em">
+                            <label class="inputLabel" for="AlbumFetchWorkers">Album fetch workers</label>
+                            <input is="emby-input" type="number" id="AlbumFetchWorkers" min="0" max="4" />
+                            <div class="fieldDescription">Parallel release fetches per artist (Deezer and iTunes). 0 = 1. MusicBrainz, Discogs, and Open Opus run sequentially.</div>
+                        </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel" for="Workers">Artist workers</label>
+                            <input is="emby-input" type="number" id="Workers" min="0" max="4" />
+                            <div class="fieldDescription">Parallel artists. 0 = 1. Leave at 1 unless you know you need more.</div>
+                        </div>
+                    </details>
+
+                    <button is="emby-button" type="submit" class="raised button-submit block">
+                        <span>Save</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <script>
+            const DtConfig = { pluginUniqueId: 'a7b3c9d1-4e2f-5a6b-8c7d-9e0f1a2b3c4d' };
+
+            const PROVIDER_CATALOG = [
+                { id: 'Deezer', name: 'Deezer' },
+                { id: 'MusicBrainz', name: 'MusicBrainz' },
+                { id: 'Itunes', name: 'iTunes / Apple Music' },
+                { id: 'Discogs', name: 'Discogs' },
+                { id: 'OpenOpus', name: 'Open Opus (classical)' }
+            ];
+            const DEFAULT_PROVIDER_ORDER = PROVIDER_CATALOG.map(function (p) { return p.id; });
+
+            function providerName(id) {
+                var match = PROVIDER_CATALOG.find(function (p) { return p.id === id; });
+                return match ? match.name : id;
+            }
+
+            function normalizeProviderOrder(order) {
+                var list = [];
+                var seen = {};
+                (order || []).forEach(function (id) {
+                    if (!seen[id] && DEFAULT_PROVIDER_ORDER.indexOf(id) >= 0) {
+                        seen[id] = true;
+                        list.push(id);
+                    }
+                });
+                DEFAULT_PROVIDER_ORDER.forEach(function (id) {
+                    if (!seen[id]) {
+                        list.push(id);
+                    }
+                });
+                return list;
+            }
+
+            function legacyProviders(config) {
+                var primary = config.MetadataProvider || 'Deezer';
+                if (config.FallbackToOtherProvider === true) {
+                    return [primary].concat(DEFAULT_PROVIDER_ORDER.filter(function (p) { return p !== primary; }));
+                }
+                return [primary];
+            }
+
+            function adjustSortableListElement(elem) {
+                var btn = elem.querySelector('.btnSortable');
+                if (!btn) {
+                    return;
+                }
+                var siblings = elem.parentNode ? elem.parentNode.querySelectorAll('.sortableOption').length : 1;
+                if (siblings <= 1) {
+                    btn.style.display = 'none';
+                    return;
+                }
+                btn.style.display = '';
+                var icon = btn.querySelector('.material-icons');
+                if (elem.previousElementSibling) {
+                    btn.title = 'Up';
+                    btn.classList.add('btnSortableMoveUp');
+                    btn.classList.remove('btnSortableMoveDown');
+                    if (icon) {
+                        icon.classList.remove('keyboard_arrow_down');
+                        icon.classList.add('keyboard_arrow_up');
+                    }
+                } else {
+                    btn.title = 'Down';
+                    btn.classList.remove('btnSortableMoveUp');
+                    btn.classList.add('btnSortableMoveDown');
+                    if (icon) {
+                        icon.classList.remove('keyboard_arrow_up');
+                        icon.classList.add('keyboard_arrow_down');
+                    }
+                }
+            }
+
+            function renderProviderList(order, enabled) {
+                var list = document.querySelector('#ProviderList');
+                var html = '';
+                order.forEach(function (id, index) {
+                    var checked = enabled.indexOf(id) >= 0 ? ' checked="checked"' : '';
+                    html += '<div class="listItem providerItem sortableOption" data-provider="' + id + '">';
+                    html += '<label class="listItemCheckboxContainer">';
+                    html += '<input type="checkbox" is="emby-checkbox" class="providerCheckbox"' + checked + '><span></span>';
+                    html += '</label>';
+                    html += '<div class="listItemBody"><h3 class="listItemBodyText">' + providerName(id) + '</h3></div>';
+                    if (index > 0) {
+                        html += '<button type="button" is="paper-icon-button-light" title="Up" class="btnSortableMoveUp btnSortable">';
+                        html += '<span class="material-icons keyboard_arrow_up" aria-hidden="true"></span></button>';
+                    } else if (order.length > 1) {
+                        html += '<button type="button" is="paper-icon-button-light" title="Down" class="btnSortableMoveDown btnSortable">';
+                        html += '<span class="material-icons keyboard_arrow_down" aria-hidden="true"></span></button>';
+                    }
+                    html += '</div>';
+                });
+                list.innerHTML = html;
+                Array.from(list.querySelectorAll('.sortableOption')).forEach(adjustSortableListElement);
+                syncProviderUi();
+            }
+
+            function readProviderOrder() {
+                return Array.from(document.querySelectorAll('#ProviderList .providerItem'))
+                    .map(function (el) { return el.getAttribute('data-provider'); });
+            }
+
+            function readEnabledProviders() {
+                return Array.from(document.querySelectorAll('#ProviderList .providerItem'))
+                    .filter(function (el) { return el.querySelector('.providerCheckbox').checked; })
+                    .map(function (el) { return el.getAttribute('data-provider'); });
+            }
+
+            function onProviderListClick(e) {
+                var btn = e.target.closest('.btnSortable');
+                if (!btn) {
+                    return;
+                }
+                var item = btn.closest('.sortableOption');
+                var list = item.parentNode;
+                if (btn.classList.contains('btnSortableMoveDown')) {
+                    var next = item.nextElementSibling;
+                    if (next) {
+                        list.removeChild(item);
+                        list.insertBefore(item, next.nextElementSibling);
+                    }
+                } else {
+                    var prev = item.previousElementSibling;
+                    if (prev) {
+                        list.removeChild(item);
+                        list.insertBefore(item, prev);
+                    }
+                }
+                Array.from(list.querySelectorAll('.sortableOption')).forEach(adjustSortableListElement);
+            }
+
+            function syncProviderUi() {
+                var enabled = readEnabledProviders();
+                document.querySelector('#MusicBrainzContactRow').style.display =
+                    enabled.indexOf('MusicBrainz') >= 0 ? '' : 'none';
+                document.querySelector('#DiscogsTokenRow').style.display =
+                    enabled.indexOf('Discogs') >= 0 ? '' : 'none';
+            }
+
+            function applyConfig(config) {
+                var order = normalizeProviderOrder(
+                    config.MetadataProviderOrder && config.MetadataProviderOrder.length
+                        ? config.MetadataProviderOrder
+                        : (config.MetadataProviders && config.MetadataProviders.length
+                            ? config.MetadataProviders
+                            : legacyProviders(config)));
+                var enabled = config.MetadataProviders && config.MetadataProviders.length
+                    ? config.MetadataProviders
+                    : legacyProviders(config);
+                renderProviderList(order, enabled);
+                document.querySelector('#MusicBrainzContact').value = config.MusicBrainzContact || 'https://github.com/TidBits16/MusicFin';
+                document.querySelector('#DiscogsToken').value = config.DiscogsToken || '';
+                document.querySelector('#WriteAlbumNames').checked = config.WriteAlbumNames !== false;
+                document.querySelector('#WriteTrackNumbers').checked = config.WriteTrackNumbers !== false;
+                document.querySelector('#WriteTrackArtists').checked = config.WriteTrackArtists !== false;
+                document.querySelector('#WriteAlbumArtists').checked = config.WriteAlbumArtists !== false;
+                document.querySelector('#WriteYear').checked = config.WriteYear !== false;
+                document.querySelector('#WriteGenres').checked = config.WriteGenres !== false;
+                document.querySelector('#ApplyAlbumGenresToTracks').checked = config.ApplyAlbumGenresToTracks !== false;
+                document.querySelector('#IgnoreTitleMarkers').value = config.IgnoreTitleMarkers ?? '🅴,[Explicit]';
+                document.querySelector('#MinTitleSimilarity').value = config.MinTitleSimilarity || 0.72;
+                document.querySelector('#SkipArtists').value = config.SkipArtists || '';
+                document.querySelector('#AlbumFetchWorkers').value = config.AlbumFetchWorkers || 0;
+                document.querySelector('#Workers').value = config.Workers || 0;
+                syncProviderUi();
+            }
+
+            function saveConfig() {
+                return ApiClient.getPluginConfiguration(DtConfig.pluginUniqueId).then(function (config) {
+                    var enabled = readEnabledProviders();
+                    config.MetadataProviderOrder = readProviderOrder();
+                    config.MetadataProviders = enabled.length ? enabled : ['Deezer'];
+                    config.MusicBrainzContact = document.querySelector('#MusicBrainzContact').value;
+                    config.DiscogsToken = document.querySelector('#DiscogsToken').value;
+                    config.WriteAlbumNames = document.querySelector('#WriteAlbumNames').checked;
+                    config.WriteTrackNumbers = document.querySelector('#WriteTrackNumbers').checked;
+                    config.WriteTrackArtists = document.querySelector('#WriteTrackArtists').checked;
+                    config.WriteAlbumArtists = document.querySelector('#WriteAlbumArtists').checked;
+                    config.WriteYear = document.querySelector('#WriteYear').checked;
+                    config.WriteGenres = document.querySelector('#WriteGenres').checked;
+                    config.ApplyAlbumGenresToTracks = document.querySelector('#ApplyAlbumGenresToTracks').checked;
+                    config.IgnoreTitleMarkers = document.querySelector('#IgnoreTitleMarkers').value;
+                    config.MinTitleSimilarity = parseFloat(document.querySelector('#MinTitleSimilarity').value) || 0.72;
+                    config.SkipArtists = document.querySelector('#SkipArtists').value;
+                    config.AlbumFetchWorkers = parseInt(document.querySelector('#AlbumFetchWorkers').value, 10) || 0;
+                    config.Workers = parseInt(document.querySelector('#Workers').value, 10) || 0;
+                    return ApiClient.updatePluginConfiguration(DtConfig.pluginUniqueId, config);
+                });
+            }
+
+            document.querySelector('#ProviderList').addEventListener('click', onProviderListClick);
+            document.querySelector('#ProviderList').addEventListener('change', syncProviderUi);
+
+            document.querySelector('#DtConfigPage').addEventListener('pageshow', function () {
+                Dashboard.showLoadingMsg();
+                ApiClient.getPluginConfiguration(DtConfig.pluginUniqueId).then(function (config) {
+                    applyConfig(config);
+                    Dashboard.hideLoadingMsg();
+                });
+            });
+
+            document.querySelector('#DtConfigForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                Dashboard.showLoadingMsg();
+                saveConfig().then(function (result) {
+                    Dashboard.processPluginConfigurationUpdateResult(result);
+                }).catch(function () {
+                    Dashboard.hideLoadingMsg();
+                });
+                return false;
+            });
+        </script>
+    </div>
+</body>
+</html>
