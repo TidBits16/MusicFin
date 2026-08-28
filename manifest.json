@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "1.7",
+        "changelog": "Write disc numbers (ParentIndexNumber) from catalog sources including Deezer disk_number so tracks no longer float above Disc 1.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.7/MusicFin_1.7.zip",
+        "checksum": "7a3fe91d154e64c6e97793c539b598d9",
+        "timestamp": "2026-08-28T18:54:50Z"
+      },
+      {
         "version": "1.6",
         "changelog": "Smarter title folding (&/and, compound words, stylized digits) and title-band + fitness so short local titles land on the studio album instead of live/edit singles.",
         "targetAbi": "10.11.0.0",

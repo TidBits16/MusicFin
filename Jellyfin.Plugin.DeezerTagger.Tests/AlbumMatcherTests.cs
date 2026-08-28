@@ -493,8 +493,8 @@ public class AlbumMatcherTests
                 Title = "Seven",
                 Tracks =
                 [
-                    new CatalogTrack { Title = "Devil Like Me", TrackPosition = 1, TrackId = "101" },
-                    new CatalogTrack { Title = "Seven", TrackPosition = 2, TrackId = "102" }
+                    new CatalogTrack { Title = "Devil Like Me", TrackPosition = 1, DiskNumber = 1, TrackId = "101" },
+                    new CatalogTrack { Title = "Seven", TrackPosition = 2, DiskNumber = 1, TrackId = "102" }
                 ]
             }
         };
@@ -504,7 +504,9 @@ public class AlbumMatcherTests
         var devil = result.Assignments.Single(a => a.TrackTitle == "Devil Like Me");
         var seven = result.Assignments.Single(a => a.TrackTitle == "Seven");
         Assert.Equal(1, devil.TrackNumber);
+        Assert.Equal(1, devil.DiscNumber);
         Assert.Equal(2, seven.TrackNumber);
+        Assert.Equal(1, seven.DiscNumber);
         Assert.Equal("101", devil.ProviderTrackId);
     }
 

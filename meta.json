@@ -6,7 +6,7 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "",
-  "version": "1.6",
+  "version": "1.7",
   "targetAbi": "10.11.0.0",
-  "changelog": "Smarter title folding (&/and, compound words, stylized digits) and title-band + fitness so short local titles land on the studio album instead of live/edit singles."
+  "changelog": "Write disc numbers (ParentIndexNumber) from catalog sources including Deezer disk_number so tracks no longer float above Disc 1."
 }

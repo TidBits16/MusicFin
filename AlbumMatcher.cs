@@ -21,6 +21,8 @@ public sealed class TrackAssignment
 
     public int TrackNumber { get; init; }
 
+    public int DiscNumber { get; init; }
+
     public string ProviderAlbumId { get; init; } = string.Empty;
 
     public string ProviderTrackId { get; init; } = string.Empty;
@@ -201,12 +203,14 @@ public static class AlbumMatcher
         }
 
         var trackNumber = bestTrack.TrackPosition > 0 ? bestTrack.TrackPosition : 1;
+        var discNumber = bestTrack.DiskNumber > 0 ? bestTrack.DiskNumber : 1;
         return new TrackAssignment
         {
             TrackId = local.Id,
             TrackTitle = local.Title,
             AlbumTitle = bestAlbum.Title,
             TrackNumber = trackNumber,
+            DiscNumber = discNumber,
             ProviderAlbumId = bestAlbum.AlbumId,
             ProviderTrackId = bestTrack.TrackId,
             Genres = bestAlbum.Genres,

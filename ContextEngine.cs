@@ -508,11 +508,18 @@ public class ContextEngine
         }
 
         int? indexWrite = null;
+        int? discWrite = null;
         if (cfg.WriteTrackNumbers && assignment.TrackNumber > 0)
         {
             if (track.IndexNumber != assignment.TrackNumber)
             {
                 indexWrite = assignment.TrackNumber;
+            }
+
+            var wantDisc = assignment.DiscNumber > 0 ? assignment.DiscNumber : 1;
+            if (track.ParentIndexNumber != wantDisc)
+            {
+                discWrite = wantDisc;
             }
         }
 
@@ -562,7 +569,7 @@ public class ContextEngine
             yearWrite = assignment.Year;
         }
 
-        if (albumWrite is null && indexWrite is null && trackArtistsWrite is null && albumArtistsWrite is null &&
+        if (albumWrite is null && indexWrite is null && discWrite is null && trackArtistsWrite is null && albumArtistsWrite is null &&
             genreWrite is null && providerTrackIdWrite is null && yearWrite is null)
         {
             return null;
@@ -574,6 +581,7 @@ public class ContextEngine
             Item = track,
             Album = albumWrite,
             IndexNumber = indexWrite,
+            ParentIndexNumber = discWrite,
             Artists = trackArtistsWrite,
             AlbumArtists = albumArtistsWrite,
             Genres = genreWrite,
@@ -634,6 +642,12 @@ public class ContextEngine
             if (p.IndexNumber is not null && audio.IndexNumber != p.IndexNumber)
             {
                 audio.IndexNumber = p.IndexNumber;
+                dirty = true;
+            }
+
+            if (p.ParentIndexNumber is not null && audio.ParentIndexNumber != p.ParentIndexNumber)
+            {
+                audio.ParentIndexNumber = p.ParentIndexNumber;
                 dirty = true;
             }
 
@@ -717,6 +731,8 @@ public class ContextEngine
 
         public int? IndexNumber { get; init; }
 
+        public int? ParentIndexNumber { get; init; }
+
         public List<string>? Artists { get; init; }
 
         public List<string>? AlbumArtists { get; init; }
@@ -736,6 +752,7 @@ public class ContextEngine
             Name = src.Name ?? Name,
             Album = src.Album ?? Album,
             IndexNumber = src.IndexNumber ?? IndexNumber,
+            ParentIndexNumber = src.ParentIndexNumber ?? ParentIndexNumber,
             Artists = src.Artists ?? Artists,
             AlbumArtists = src.AlbumArtists ?? AlbumArtists,
             Genres = src.Genres ?? Genres,
