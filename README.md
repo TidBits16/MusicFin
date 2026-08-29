@@ -30,7 +30,7 @@ Dry run is on by default, so the first pass only logs what it would change.
 2. **Catalog** → refresh → install **MusicFin: Smarter Music Tagging** → restart when prompted.
 3. Open **Plugins → MusicFin: Smarter Music Tagging** to configure, or run it from **Scheduled Tasks**.
 
-(That same repository URL also lists ExplicitFin and LyricFin.)
+(That same repository URL also lists the other Fin plugins: MusicFin, ExplicitFin, LyricFin, and ArtistFin.)
 
 After a successful run, scan your music library so Jellyfin picks up the changes.
 
