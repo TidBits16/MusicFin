@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.6.0",
+        "changelog": "Write matched album covers from catalog providers (Deezer, iTunes, Discogs, MusicBrainz CAA).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.6.0/MusicFin_1.8.6.0.zip",
+        "checksum": "9b0fa1e8a8c67cec43784a5d9687c1f5",
+        "timestamp": "2026-08-29T18:51:13Z"
+      },
+      {
         "version": "1.8.5.0",
         "changelog": "Normalize arrow punctuation in UI copy and logs.",
         "targetAbi": "10.11.0.0",
