@@ -288,7 +288,9 @@ public sealed class MusicBrainzContextClient : IContextMetadataClient
             Tracks = tracks,
             ReleaseDate = group.ReleaseDate,
             RecordType = group.RecordType,
-            Source = "release-group:" + group.Id
+            Source = "release-group:" + group.Id,
+            // Cover Art Archive front art for the release-group (404 when none exists).
+            CoverUrl = "https://coverartarchive.org/release-group/" + group.Id + "/front-500"
         };
 
         lock (_gate)

@@ -14,6 +14,9 @@ public class PluginConfiguration : BasePluginConfiguration
 
     public bool WriteYear { get; set; } = true;
 
+    /// <summary>Download primary album art from the matched catalog release.</summary>
+    public bool WriteAlbumCovers { get; set; } = true;
+
     /// <summary>All providers in UI order (checked and unchecked).</summary>
     public MetadataProvider[] MetadataProviderOrder { get; set; } = [];
 

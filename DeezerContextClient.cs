@@ -283,7 +283,8 @@ public sealed class DeezerContextClient : IContextMetadataClient
             AlbumArtists = albumArtists,
             Tracks = tracks,
             ReleaseDate = ParseRelease(JsonUtil.Str(p, "release_date")),
-            RecordType = JsonUtil.Str(p, "record_type").Trim()
+            RecordType = JsonUtil.Str(p, "record_type").Trim(),
+            CoverUrl = CoverUrlFrom(p)
         };
 
         lock (_gate)
@@ -480,6 +481,20 @@ public sealed class DeezerContextClient : IContextMetadataClient
     private static string PictureUrl(JsonElement payload)
     {
         foreach (var k in new[] { "picture_xl", "picture_big", "picture" })
+        {
+            var s = JsonUtil.Str(payload, k).Trim();
+            if (s.Length > 0)
+            {
+                return s;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static string CoverUrlFrom(JsonElement payload)
+    {
+        foreach (var k in new[] { "cover_xl", "cover_big", "cover_medium", "cover" })
         {
             var s = JsonUtil.Str(payload, k).Trim();
             if (s.Length > 0)

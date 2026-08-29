@@ -35,6 +35,8 @@ public sealed class TrackAssignment
 
     public int? Year { get; init; }
 
+    public string CoverUrl { get; init; } = string.Empty;
+
     public bool IsSingleRelease { get; init; }
 }
 
@@ -217,6 +219,7 @@ public static class AlbumMatcher
             TrackArtists = ArtistsForTrack(bestTrack, bestAlbum, artist),
             AlbumArtists = AlbumArtistsFor(bestAlbum, artist),
             Year = bestAlbum.Year,
+            CoverUrl = bestAlbum.CoverUrl,
             IsSingleRelease = bestAlbum.IsSingle
         };
     }

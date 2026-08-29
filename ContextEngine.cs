@@ -5,6 +5,7 @@ using Jellyfin.Plugin.DeezerTagger.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
+using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -20,12 +21,18 @@ public class ContextEngine
     };
 
     private readonly ILibraryManager _library;
+    private readonly IProviderManager _providers;
     private readonly MetadataClientFactory _metadata;
     private readonly ILogger<ContextEngine> _logger;
 
-    public ContextEngine(ILibraryManager library, MetadataClientFactory metadata, ILogger<ContextEngine> logger)
+    public ContextEngine(
+        ILibraryManager library,
+        IProviderManager providers,
+        MetadataClientFactory metadata,
+        ILogger<ContextEngine> logger)
     {
         _library = library;
+        _providers = providers;
         _metadata = metadata;
         _logger = logger;
     }
@@ -393,6 +400,63 @@ public class ContextEngine
                 }
             }
         }
+
+        if (cfg.WriteAlbumCovers)
+        {
+            var coversByAlbum = new Dictionary<Guid, List<string>>();
+            foreach (var track in artistTracks)
+            {
+                if (!assignmentByTrack.TryGetValue(track.Id, out var assignment)
+                    || string.IsNullOrWhiteSpace(assignment.CoverUrl))
+                {
+                    continue;
+                }
+
+                if (track.GetParent() is not MusicAlbum parentAlbum)
+                {
+                    continue;
+                }
+
+                if (!coversByAlbum.TryGetValue(parentAlbum.Id, out var list))
+                {
+                    list = [];
+                    coversByAlbum[parentAlbum.Id] = list;
+                }
+
+                list.Add(assignment.CoverUrl);
+            }
+
+            foreach (var (albumId, urls) in coversByAlbum)
+            {
+                if (!albums.TryGetValue(albumId, out var albumItem) || albumItem is not MusicAlbum musicAlbum)
+                {
+                    continue;
+                }
+
+                var distinct = urls
+                    .Where(u => !string.IsNullOrWhiteSpace(u))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+                if (distinct.Count != 1)
+                {
+                    continue;
+                }
+
+                // Replace art when MusicFin is also renaming the album (reorganization); otherwise fill gaps only.
+                var force = albumPatches.TryGetValue(albumId, out var existing)
+                    && existing.Name is not null
+                    && !string.Equals(musicAlbum.Name, existing.Name, StringComparison.Ordinal);
+
+                var patch = new Patch
+                {
+                    ItemId = albumId,
+                    Item = musicAlbum,
+                    CoverUrl = distinct[0],
+                    CoverForce = force
+                };
+                albumPatches.AddOrUpdate(albumId, patch, (_, prev) => prev.Merge(patch));
+            }
+        }
     }
 
     private async Task<(CatalogArtistInfo Artist, List<CatalogAlbum> Discography, IContextMetadataClient Client)?> ResolveArtistDiscographyAsync(
@@ -680,6 +744,40 @@ public class ContextEngine
         {
             await _library.UpdateItemAsync(item, item.GetParent() ?? item, ItemUpdateType.MetadataEdit, cancellationToken).ConfigureAwait(false);
         }
+
+        if (item is MusicAlbum coverAlbum && !string.IsNullOrWhiteSpace(p.CoverUrl))
+        {
+            await TrySaveAlbumCoverAsync(coverAlbum, p.CoverUrl, p.CoverForce, cancellationToken)
+                .ConfigureAwait(false);
+        }
+    }
+
+    private async Task<bool> TrySaveAlbumCoverAsync(
+        MusicAlbum album,
+        string url,
+        bool force,
+        CancellationToken cancellationToken)
+    {
+        if (!force && album.HasImage(ImageType.Primary, 0))
+        {
+            return false;
+        }
+
+        try
+        {
+            await _providers.SaveImage(album, url, ImageType.Primary, null, cancellationToken)
+                .ConfigureAwait(false);
+            _logger.LogInformation(
+                "SmarterMusicTagging: saved album cover for {Album} ({Id})",
+                album.Name,
+                album.Id);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "SmarterMusicTagging: could not save album cover for {Album}", album.Name);
+            return false;
+        }
     }
 
     private static List<string>? GenreWant(IReadOnlyList<string> deezer, IReadOnlyList<string>? current)
@@ -745,6 +843,10 @@ public class ContextEngine
 
         public int? ProductionYear { get; init; }
 
+        public string? CoverUrl { get; init; }
+
+        public bool CoverForce { get; init; }
+
         public Patch Merge(Patch src) => new()
         {
             ItemId = ItemId,
@@ -758,7 +860,9 @@ public class ContextEngine
             Genres = src.Genres ?? Genres,
             ProviderKey = src.ProviderKey ?? ProviderKey,
             ProviderTrackId = src.ProviderTrackId ?? ProviderTrackId,
-            ProductionYear = src.ProductionYear ?? ProductionYear
+            ProductionYear = src.ProductionYear ?? ProductionYear,
+            CoverUrl = src.CoverUrl ?? CoverUrl,
+            CoverForce = CoverForce || src.CoverForce
         };
     }
 }

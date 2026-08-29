@@ -316,7 +316,8 @@ public sealed class ItunesContextClient : IContextMetadataClient
             Genres = genres,
             ReleaseDate = ParseRelease(JsonUtil.Str(header, "releaseDate")),
             RecordType = MapRecordType(JsonUtil.Str(header, "collectionType")),
-            Source = "itunes:" + collectionId
+            Source = "itunes:" + collectionId,
+            CoverUrl = ArtworkUrlFrom(header)
         };
 
         lock (_gate)
@@ -331,6 +332,25 @@ public sealed class ItunesContextClient : IContextMetadataClient
     {
         var genre = JsonUtil.Str(payload, "primaryGenreName").Trim();
         return genre.Length > 0 ? Genres.PrettyList([genre], 3) : [];
+    }
+
+    private static string ArtworkUrlFrom(JsonElement payload)
+    {
+        var url = JsonUtil.Str(payload, "artworkUrl100").Trim();
+        if (url.Length == 0)
+        {
+            url = JsonUtil.Str(payload, "artworkUrl60").Trim();
+        }
+
+        if (url.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        // iTunes serves larger art by swapping the size token in the URL.
+        return url
+            .Replace("100x100bb", "600x600bb", StringComparison.Ordinal)
+            .Replace("60x60bb", "600x600bb", StringComparison.Ordinal);
     }
 
     private static string MapRecordType(string collectionType)

@@ -44,6 +44,9 @@ public sealed class CatalogAlbum
 
     public string RecordType { get; init; } = string.Empty;
 
+    /// <summary>Primary album art URL from the catalog provider, when available.</summary>
+    public string CoverUrl { get; init; } = string.Empty;
+
     public bool IsCompilation => RecordType.Equals("compilation", StringComparison.OrdinalIgnoreCase);
 
     public bool IsSingle => RecordType.Equals("single", StringComparison.OrdinalIgnoreCase);

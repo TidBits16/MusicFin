@@ -284,7 +284,8 @@ public sealed class DiscogsContextClient : IContextMetadataClient
             Genres = GenresFrom(p),
             ReleaseDate = releaseDate,
             RecordType = MapRecordType(p),
-            Source = "discogs-master:" + masterId
+            Source = "discogs-master:" + masterId,
+            CoverUrl = CoverUrlFrom(p)
         };
 
         lock (_gate)
@@ -293,6 +294,30 @@ public sealed class DiscogsContextClient : IContextMetadataClient
         }
 
         return album;
+    }
+
+    private static string CoverUrlFrom(JsonElement payload)
+    {
+        string? primary = null;
+        string? any = null;
+        foreach (var img in JsonUtil.Arr(payload, "images"))
+        {
+            var uri = JsonUtil.Str(img, "uri").Trim();
+            if (uri.Length == 0)
+            {
+                continue;
+            }
+
+            any ??= uri;
+            var type = JsonUtil.Str(img, "type").Trim();
+            if (type.Equals("primary", StringComparison.OrdinalIgnoreCase))
+            {
+                primary = uri;
+                break;
+            }
+        }
+
+        return primary ?? any ?? string.Empty;
     }
 
     private static List<string> AlbumArtistsFrom(JsonElement payload)

@@ -64,6 +64,12 @@
                         </div>
                         <div class="checkboxContainer">
                             <label>
+                                <input is="emby-checkbox" type="checkbox" id="WriteAlbumCovers" />
+                                <span>Album covers</span>
+                            </label>
+                        </div>
+                        <div class="checkboxContainer">
+                            <label>
                                 <input is="emby-checkbox" type="checkbox" id="WriteGenres" />
                                 <span>Genres</span>
                             </label>
@@ -272,6 +278,7 @@
                 document.querySelector('#WriteTrackArtists').checked = config.WriteTrackArtists !== false;
                 document.querySelector('#WriteAlbumArtists').checked = config.WriteAlbumArtists !== false;
                 document.querySelector('#WriteYear').checked = config.WriteYear !== false;
+                document.querySelector('#WriteAlbumCovers').checked = config.WriteAlbumCovers !== false;
                 document.querySelector('#WriteGenres').checked = config.WriteGenres !== false;
                 document.querySelector('#ApplyAlbumGenresToTracks').checked = config.ApplyAlbumGenresToTracks !== false;
                 document.querySelector('#IgnoreTitleMarkers').value = config.IgnoreTitleMarkers ?? '🅴,[Explicit]';
@@ -294,6 +301,7 @@
                     config.WriteTrackArtists = document.querySelector('#WriteTrackArtists').checked;
                     config.WriteAlbumArtists = document.querySelector('#WriteAlbumArtists').checked;
                     config.WriteYear = document.querySelector('#WriteYear').checked;
+                    config.WriteAlbumCovers = document.querySelector('#WriteAlbumCovers').checked;
                     config.WriteGenres = document.querySelector('#WriteGenres').checked;
                     config.ApplyAlbumGenresToTracks = document.querySelector('#ApplyAlbumGenresToTracks').checked;
                     config.IgnoreTitleMarkers = document.querySelector('#IgnoreTitleMarkers').value;
