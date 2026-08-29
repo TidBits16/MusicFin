@@ -91,7 +91,7 @@ public static class Titles
         => norm.Replace(" ", "", StringComparison.Ordinal);
 
     /// <summary>
-    /// Maps digits commonly used as letter lookalikes in stylized titles (2econd → second).
+    /// Maps digits commonly used as letter lookalikes in stylized titles (2econd --> second).
     /// </summary>
     public static string FoldLeetDigits(string norm)
     {

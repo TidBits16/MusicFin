@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.4.0",
+  "version": "1.8.5.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Shorten catalog description.",
+  "changelog": "Normalize arrow punctuation in UI copy and logs.",
   "imagePath": "backdrop.svg"
 }

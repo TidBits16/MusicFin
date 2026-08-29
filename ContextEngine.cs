@@ -70,7 +70,7 @@ public class ContextEngine
             "SmarterMusicTagging: {Tracks} tracks, {Artists} artists, providers {Providers}, {Workers} workers",
             tracks.Count,
             grouped.Count,
-            string.Join(" → ", clients.Select(c => c.ProviderKey)),
+            string.Join(" --> ", clients.Select(c => c.ProviderKey)),
             workers);
 
         if (grouped.Count == 0)
