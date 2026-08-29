@@ -132,7 +132,7 @@ public static class Titles
             return t;
         }
 
-        foreach (var sep in new[] { " - ", " – ", " — ", " -- " })
+        foreach (var sep in new[] { " - ", " – ", " - ", " -- " })
         {
             var idx = t.LastIndexOf(sep, StringComparison.Ordinal);
             if (idx <= 0)

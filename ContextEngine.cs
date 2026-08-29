@@ -484,7 +484,7 @@ public class ContextEngine
         if (candidates[0].ArtistId != matchedArtist.ArtistId)
         {
             _logger.LogInformation(
-                "SmarterMusicTagging: {Artist}: using {Provider} id {Id} ({Name}) — id {SkippedId} had no usable releases",
+                "SmarterMusicTagging: {Artist}: using {Provider} id {Id} ({Name}) - id {SkippedId} had no usable releases",
                 artist,
                 metadataClient.ProviderKey,
                 matchedArtist.ArtistId,
@@ -706,7 +706,7 @@ public class ContextEngine
         => item.AlbumArtists.Count > 0 ? item.AlbumArtists[0]
             : item.Artists.Count > 0 ? item.Artists[0] : string.Empty;
 
-    /// <summary>Most common casing in the group — avoids "toby fox" winning over "Toby Fox".</summary>
+    /// <summary>Most common casing in the group - avoids "toby fox" winning over "Toby Fox".</summary>
     private static string PreferredArtistName(IGrouping<string, Audio> group)
         => group
             .Select(AlbumArtistOf)

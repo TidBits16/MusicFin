@@ -499,7 +499,7 @@ public static class AlbumMatcher
         }
 
         /// <summary>
-        /// matchCount * ratio^2 — rewards both owning more songs and covering the release.
+        /// matchCount * ratio^2 - rewards both owning more songs and covering the release.
         /// </summary>
         public double Fitness => Score * Ratio * Ratio;
     }
