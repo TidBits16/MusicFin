@@ -6,7 +6,7 @@
 
 # MusicFin: Smarter Music Tagging
 
-Problem: most music taggers ***kinda suck***.
+Problem: most music taggers <strong><em>kinda suck</em></strong>.
 
 They don't take into context the full album when identifying tracks so your music collection looks like this:
 
@@ -33,27 +33,27 @@ Auto sorts singles and EPs when an artist releases a new album!
 
 
 ## Installing
-**Step 1**
+<strong>Step 1</strong>
 <p align="center">
   <img src="repo_graphics/plugins.jpg" alt="Plugins Location" width="100%">
 </p>
 
-**Dashboard --> Plugins --> Manage Repositories** --> **+ New Repository**:
+<strong>Dashboard --> Plugins --> Manage Repositories</strong> --> <strong>+ New Repository</strong>:
    Name: `FinPlugins` (or whatever :P )
    URL: `https://raw.githubusercontent.com/TidBits16/FinPlugins/main/manifest.json`
    <br>
-   (p.s. this bundle includes my other FinPlugins since they are designed to work together. ***they are not required to install!***)
+   (p.s. this bundle includes my other FinPlugins since they are designed to work together. <strong><em>they are not required to install!</em></strong>)
 <br>
-<center><strong>**Then Restart JellyFin!**</strong></center>
+<center><strong>Then Restart JellyFin!</strong></center>
 
-**Step 2**
+<strong>Step 2</strong>
 <p align="center">
   <img src="repo_graphics/where_to_find.jpg" alt="Where To Find Repo" width="100%">
 </p>
 
-**Plugins** --> **All** --> **MusicFin: Smarter Music Tagging** --> **Install**
+<strong>Plugins</strong> --> <strong>All</strong> --> <strong>MusicFin: Smarter Music Tagging</strong> --> <strong>Install</strong>
 
-<center><strong>**Once Installed, Restart JellyFin Again!**</strong></center>
+<center><strong>Once Installed, Restart JellyFin Again!</strong></center>
 
 ## Build Locally
 
@@ -66,7 +66,7 @@ dotnet build Jellyfin.Plugin.DeezerTagger.csproj -c Release
 
 The release zip will be in `dist/`.
 
-Designed for **Jellyfin 10.11+** (you probably have this already :D)
+Designed for <strong>Jellyfin 10.11+</strong> (you probably have this already :D)
 <p align="center">
   <a href="https://github.com/TidBits16/FinPlugins">
     <img src="repo_graphics/fin-family.svg" alt="Fin plugins" width="360">
