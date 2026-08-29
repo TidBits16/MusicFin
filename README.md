@@ -1,4 +1,12 @@
+<p align="center">
+  <img src="logo.svg" alt="MusicFin" width="128" height="128">
+</p>
+
 # MusicFin: Smarter Music Tagging
+
+<p align="center">
+  <img src="backdrop.svg" alt="MusicFin backdrop" width="100%">
+</p>
 
 A Jellyfin plugin that fixes messy music libraries by matching your files against real artist discographies - not song-by-song guessing.
 
