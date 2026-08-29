@@ -21,15 +21,15 @@ I got tired of manually sorting tracks and made a plugin that identifies an arti
 </p>
 Finally, I have music that's sorted correctly!
 
-- Works with Singles & EPs!
+Works with Singles & EPs!
 
-- Works with combo-albums!
+Works with combo-albums!
 
-- Works even if you don't have the full album!
+Works even if you don't have the full album!
 
-- Works with "Live" albums!
+Works with "Live" albums!
 
-- Auto sorts singles and EPs when an artist releases a new album!
+Auto sorts singles and EPs when an artist releases a new album!
 
 
 ## Installing
@@ -39,8 +39,8 @@ Finally, I have music that's sorted correctly!
 </p>
 
 **Dashboard --> Plugins --> Manage Repositories** --> **+ New Repository**:
-   - Name: `FinPlugins` (or whatever :P )
-   - URL: `https://raw.githubusercontent.com/TidBits16/FinPlugins/main/manifest.json`
+   Name: `FinPlugins` (or whatever :P )
+   URL: `https://raw.githubusercontent.com/TidBits16/FinPlugins/main/manifest.json`
    <br>
    (p.s. this bundle includes my other FinPlugins since they are designed to work together. ***they are not required to install!***)
 <br>
