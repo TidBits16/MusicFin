@@ -5,8 +5,8 @@
     <AssemblyName>Jellyfin.Plugin.DeezerTagger</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.8.3</Version>
-    <FileVersion>1.8.3</FileVersion>
+    <Version>1.8.3.0</Version>
+    <FileVersion>1.8.3.0</FileVersion>
     <AssemblyVersion>1.8.3.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>

@@ -9,15 +9,15 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
-        "version": "1.8.3",
-        "changelog": "Use 1920x1080 backdrop SVG as the Jellyfin plugin catalog icon.",
+        "version": "1.8.3.0",
+        "changelog": "Normalize plugin version to four-part SemVer (1.8.3.0).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.3/MusicFin_1.8.3.zip",
-        "checksum": "d86c8d2596cd11387123dffc15bf3a49",
-        "timestamp": "2026-08-29T01:54:05Z"
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.3.0/MusicFin_1.8.3.0.zip",
+        "checksum": "24c14ba492a64a563bde7743c1853d7c",
+        "timestamp": "2026-08-29T01:58:22Z"
       },
       {
-        "version": "1.8.2",
+        "version": "1.8.2.0",
         "changelog": "Refresh branding: flatter logo + 1920x1080 backdrop assets.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.2/MusicFin_1.8.2.zip",
@@ -25,7 +25,7 @@
         "timestamp": "2026-08-29T01:46:58Z"
       },
       {
-        "version": "1.8.1",
+        "version": "1.8.1.0",
         "changelog": "Add plugin catalog icon.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.1/MusicFin_1.8.1.zip",
@@ -33,7 +33,7 @@
         "timestamp": "2026-08-29T01:39:21Z"
       },
       {
-        "version": "1.8",
+        "version": "1.8.0.0",
         "changelog": "Fetch real Deezer disc/track positions for multi-disc albums; tighten deluxe detection so album tracks are not stolen by singles (mxmtoon the masquerade).",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8/MusicFin_1.8.zip",
@@ -41,7 +41,7 @@
         "timestamp": "2026-08-28T19:03:22Z"
       },
       {
-        "version": "1.7",
+        "version": "1.7.0.0",
         "changelog": "Write disc numbers (ParentIndexNumber) from catalog sources including Deezer disk_number so tracks no longer float above Disc 1.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.7/MusicFin_1.7.zip",
@@ -49,7 +49,7 @@
         "timestamp": "2026-08-28T18:54:50Z"
       },
       {
-        "version": "1.6",
+        "version": "1.6.0.0",
         "changelog": "Smarter title folding (&/and, compound words, stylized digits) and title-band + fitness so short local titles land on the studio album instead of live/edit singles.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.6/MusicFin_1.6.zip",
@@ -57,7 +57,7 @@
         "timestamp": "2026-08-28T18:45:53Z"
       },
       {
-        "version": "1.5",
+        "version": "1.5.0.0",
         "changelog": "Album fitness = matchCount \u00d7 completion\u00b2 so full albums beat half-covered tour sets/collections while fully owned EPs still rank above sparse big releases.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.5/MusicFin_1.5.zip",
@@ -65,7 +65,7 @@
         "timestamp": "2026-08-28T18:31:58Z"
       },
       {
-        "version": "1.4",
+        "version": "1.4.0.0",
         "changelog": "Prefer album coverage ratio over raw hit count; keep base albums when bonus tracks are owned as singles (Dreamland / TobyMac Collection fixes).",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.4/MusicFin_1.4.zip",
@@ -73,7 +73,7 @@
         "timestamp": "2026-08-28T17:41:23Z"
       },
       {
-        "version": "1.3",
+        "version": "1.3.0.0",
         "changelog": "Singles compete with albums on coverage percent so a 1/1 single beats a 1/20 album hit.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.3/MusicFin_1.3.zip",
@@ -81,7 +81,7 @@
         "timestamp": "2026-08-28T16:53:07Z"
       },
       {
-        "version": "1.2",
+        "version": "1.2.0.0",
         "changelog": "Per-track album assignment: prefer exact studio titles over live variants; strip trailing artist from titles; case-insensitive artist grouping.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.2/MusicFin_1.2.zip",
@@ -89,7 +89,7 @@
         "timestamp": "2026-08-28T16:33:10Z"
       },
       {
-        "version": "1.1",
+        "version": "1.1.0.0",
         "changelog": "Separate plugin identity (new GUID) from the old Smarter Music Tagging install.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.1/MusicFin_1.1.zip",

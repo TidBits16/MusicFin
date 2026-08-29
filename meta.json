@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.3",
+  "version": "1.8.3.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Use 1920x1080 backdrop SVG as the Jellyfin plugin catalog icon.",
+  "changelog": "Normalize plugin version to four-part SemVer (1.8.3.0).",
   "imagePath": "backdrop.svg"
 }
