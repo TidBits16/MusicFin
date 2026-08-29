@@ -22,7 +22,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     public override string Name => "MusicFin: Smarter Music Tagging";
 
     public override string Description =>
-        "Context-based album assignment for Jellyfin music libraries - fixes album names, track numbers, years, and genres using artist-wide overlap matching. Deezer by default; MusicBrainz optional.";
+        "Context-based track & album recognition.";
 
     public override Guid Id => PluginGuid;
 
