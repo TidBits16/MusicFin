@@ -17,7 +17,7 @@ Dry run is on by default, so the first pass only logs what it would change.
 ## Install
 
 1. **Dashboard → Plugins → Repositories** → add:
-   - Name: `Fin Plugins`
+   - Name: `FinPlugins`
    - URL: `https://raw.githubusercontent.com/TidBits16/FinPlugins/main/manifest.json`
 2. **Catalog** → refresh → install **MusicFin: Smarter Music Tagging** → restart when prompted.
 3. Open **Plugins → MusicFin: Smarter Music Tagging** to configure, or run it from **Scheduled Tasks**.
