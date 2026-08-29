@@ -1,3 +1,5 @@
+<div align="center">
+
 <p align="center">
   <img src="backdrop.svg" alt="MusicFin backdrop" width="100%">
 </p>
@@ -71,3 +73,4 @@ Designed for **Jellyfin 10.11+** (you probably have this already :D)
   </a>
 </p>
 <p align="center"><a href="https://github.com/TidBits16/FinPlugins">Check out these other plugins!</a></p>
+</div>
