@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.5.0",
+        "changelog": "Normalize arrow punctuation in UI copy and logs.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.5.0/MusicFin_1.8.5.0.zip",
+        "checksum": "438e779754313b25306fe0c380eaf664",
+        "timestamp": "2026-08-29T16:26:23Z"
+      },
+      {
         "version": "1.8.4.0",
         "changelog": "Shorten catalog description.",
         "targetAbi": "10.11.0.0",
