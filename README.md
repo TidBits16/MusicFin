@@ -17,10 +17,12 @@ Dry run is on by default, so the first pass only logs what it would change.
 ## Install
 
 1. **Dashboard → Plugins → Repositories** → add:
-   - Name: `MusicFin`
-   - URL: `https://raw.githubusercontent.com/TidBits16/MusicFin/main/manifest.json`
-2. **Catalog** → install the plugin → restart when prompted.
+   - Name: `Fin Plugins`
+   - URL: `https://raw.githubusercontent.com/TidBits16/FinPlugins/main/manifest.json`
+2. **Catalog** → refresh → install **MusicFin: Smarter Music Tagging** → restart when prompted.
 3. Open **Plugins → MusicFin: Smarter Music Tagging** to configure, or run it from **Scheduled Tasks**.
+
+(That same repository URL also lists ExplicitFin and LyricFin.)
 
 After a successful run, scan your music library so Jellyfin picks up the changes.
 
