@@ -313,6 +313,8 @@
                 ApiClient.getPluginConfiguration(DtConfig.pluginUniqueId).then(function (config) {
                     applyConfig(config);
                     Dashboard.hideLoadingMsg();
+                }).catch(function () {
+                    Dashboard.hideLoadingMsg();
                 });
             });
 

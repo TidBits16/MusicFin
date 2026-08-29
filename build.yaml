@@ -1,6 +1,6 @@
 name: "MusicFin: Smarter Music Tagging"
 guid: "ade80bea-e92e-4f2c-9a42-f5bf88bffa98"
-version: "1.8"
+version: "1.8.1"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Context-based album assignment (Deezer, MusicBrainz, iTunes, Discogs, Open Opus)"
@@ -9,5 +9,6 @@ category: "Metadata"
 owner: "TidBits16"
 artifacts:
   - "Jellyfin.Plugin.DeezerTagger.dll"
+  - "logo.png"
 changelog: >
-  Fetch real Deezer disc/track positions for multi-disc albums; tighten deluxe detection so album tracks are not stolen by singles (mxmtoon the masquerade).
+  Add plugin catalog icon.

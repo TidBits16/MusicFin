@@ -9,6 +9,14 @@
     "imageUrl": "",
     "versions": [
       {
+        "version": "1.8.1",
+        "changelog": "Add plugin catalog icon.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.1/MusicFin_1.8.1.zip",
+        "checksum": "d83c8d1c09b2c9847cd253e828b4991f",
+        "timestamp": "2026-08-29T01:39:21Z"
+      },
+      {
         "version": "1.8",
         "changelog": "Fetch real Deezer disc/track positions for multi-disc albums; tighten deluxe detection so album tracks are not stolen by singles (mxmtoon the masquerade).",
         "targetAbi": "10.11.0.0",

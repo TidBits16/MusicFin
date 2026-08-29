@@ -5,8 +5,9 @@
   "overview": "Fixes album names, track numbers, years, and genres using artist-wide overlap matching.",
   "owner": "TidBits16",
   "category": "Metadata",
-  "imageUrl": "",
-  "version": "1.8",
+  "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/logo.png",
+  "version": "1.8.1",
   "targetAbi": "10.11.0.0",
-  "changelog": "Fetch real Deezer disc/track positions for multi-disc albums; tighten deluxe detection so album tracks are not stolen by singles (mxmtoon the masquerade)."
+  "changelog": "Add plugin catalog icon.",
+  "imagePath": "logo.png"
 }
