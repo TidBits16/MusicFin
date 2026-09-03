@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.7.0",
+        "changelog": "Default schedule: weekly, Sunday at 2:00 AM.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.7.0/MusicFin_1.8.7.0.zip",
+        "checksum": "bfbf7bc7181387b37aa594ad5edeafea",
+        "timestamp": "2026-09-03T01:39:08Z"
+      },
+      {
         "version": "1.8.6.0",
         "changelog": "Write matched album covers from catalog providers (Deezer, iTunes, Discogs, MusicBrainz CAA).",
         "targetAbi": "10.11.0.0",
