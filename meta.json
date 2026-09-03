@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.6.0",
+  "version": "1.8.7.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Write matched album covers from catalog providers (Deezer, iTunes, Discogs, MusicBrainz CAA).",
+  "changelog": "Default schedule: weekly, Sunday at 2:00 AM.",
   "imagePath": "backdrop.svg"
 }

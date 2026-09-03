@@ -46,8 +46,9 @@ public class ContextTaggerTask : IScheduledTask
         [
             new TaskTriggerInfo
             {
-                Type = TaskTriggerInfoType.IntervalTrigger,
-                IntervalTicks = TimeSpan.FromDays(7).Ticks
+                Type = TaskTriggerInfoType.WeeklyTrigger,
+                DayOfWeek = DayOfWeek.Sunday,
+                TimeOfDayTicks = TimeSpan.FromHours(2).Ticks
             }
         ];
     }
