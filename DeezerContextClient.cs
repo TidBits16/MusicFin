@@ -102,12 +102,13 @@ public sealed class DeezerContextClient : IContextMetadataClient
                 (int)JsonUtil.Num(raw, "nb_album")));
         }
 
-        return ranked
-            .OrderByDescending(x => x.Score)
-            .ThenByDescending(x => x.Fans)
-            .ThenByDescending(x => x.Albums)
-            .Select(x => x.Info)
-            .ToList();
+        return Titles.PreferExactArtistMatches(
+            ranked
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.Fans)
+                .ThenByDescending(x => x.Albums)
+                .Select(x => x.Info),
+            wantNorm);
     }
 
     public async Task<IReadOnlyList<CatalogAlbum>> GetArtistDiscographyAsync(

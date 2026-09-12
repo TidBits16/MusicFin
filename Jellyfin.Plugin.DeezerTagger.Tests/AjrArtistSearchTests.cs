@@ -12,6 +12,28 @@ public class AjrArtistSearchTests
     public AjrArtistSearchTests(ITestOutputHelper output) => _out = output;
 
     [Fact]
+    public void RankArtistSearchResults_DropsFentanylNearMissForFemtanyl()
+    {
+        using var doc = JsonDocument.Parse(
+            """
+            {
+              "data": [
+                { "id": 220484855, "name": "femtanyl", "nb_fan": 14309, "nb_album": 23 },
+                { "id": 1166093, "name": "Fentanyl", "nb_fan": 70, "nb_album": 22 },
+                { "id": 284960531, "name": "FXNTANYL", "nb_fan": 73, "nb_album": 4 }
+              ]
+            }
+            """);
+
+        var ranked = DeezerContextClient.RankArtistSearchResults(
+            JsonUtil.Arr(doc.RootElement, "data"),
+            Titles.Norm("Femtanyl"));
+
+        Assert.Single(ranked);
+        Assert.Equal("220484855", ranked[0].ArtistId);
+    }
+
+    [Fact]
     public void RankArtistSearchResults_PrefersPopularAjrOverHomonym()
     {
         using var doc = JsonDocument.Parse(

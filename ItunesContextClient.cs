@@ -109,10 +109,11 @@ public sealed class ItunesContextClient : IContextMetadataClient
                 score));
         }
 
-        return ranked
-            .OrderByDescending(x => x.Score)
-            .Select(x => x.Info)
-            .ToList();
+        return Titles.PreferExactArtistMatches(
+            ranked
+                .OrderByDescending(x => x.Score)
+                .Select(x => x.Info),
+            wantNorm);
     }
 
     public async Task<IReadOnlyList<CatalogAlbum>> GetArtistDiscographyAsync(

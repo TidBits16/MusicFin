@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.7.0",
+  "version": "1.8.8.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Default schedule: weekly, Sunday at 2:00 AM.",
+  "changelog": "Keep ExplicitFin album marks when writing names; prefer exact artist matches (Femtanyl vs Fentanyl).",
   "imagePath": "backdrop.svg"
 }

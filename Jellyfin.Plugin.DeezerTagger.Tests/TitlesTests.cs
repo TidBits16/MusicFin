@@ -22,6 +22,45 @@ public class TitlesTests
     public void StripMark_RemovesConfiguredExplicitMarkers(string input, string expected)
         => Assert.Equal(expected, Titles.StripMark(input, DefaultMarkers));
 
+    [Theory]
+    [InlineData("CHASER 🅴", "CHASER", true)]
+    [InlineData("🅴 CHASER", "CHASER", true)]
+    [InlineData("CHASER", "CHASER", true)]
+    [InlineData("REACTOR 🅴", "CHASER", false)]
+    [InlineData("chaser 🅴", "CHASER", false)]
+    public void SameTitleIgnoringMarks_PreservesExplicitFinAffix(string current, string catalog, bool expected)
+        => Assert.Equal(expected, Titles.SameTitleIgnoringMarks(current, catalog, DefaultMarkers));
+
+    [Fact]
+    public void PreferExactArtistMatches_DropsFentanylWhenFemtanylExactExists()
+    {
+        var ranked = new List<CatalogArtistInfo>
+        {
+            new() { Name = "femtanyl", ArtistId = "220484855" },
+            new() { Name = "Fentanyl", ArtistId = "1166093" },
+            new() { Name = "FXNTANYL", ArtistId = "284960531" },
+        };
+
+        var kept = Titles.PreferExactArtistMatches(ranked, Titles.Norm("Femtanyl"));
+
+        Assert.Single(kept);
+        Assert.Equal("220484855", kept[0].ArtistId);
+    }
+
+    [Fact]
+    public void PreferExactArtistMatches_KeepsNearMissesWhenNoExact()
+    {
+        var ranked = new List<CatalogArtistInfo>
+        {
+            new() { Name = "Fentanyl", ArtistId = "1166093" },
+            new() { Name = "FXNTANYL", ArtistId = "284960531" },
+        };
+
+        var kept = Titles.PreferExactArtistMatches(ranked, Titles.Norm("Femtanyl"));
+
+        Assert.Equal(2, kept.Count);
+    }
+
     [Fact]
     public void MatchTrack_IgnoresExplicitMarkerOnLocalTitle()
     {

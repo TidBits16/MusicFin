@@ -296,7 +296,8 @@ public class ContextEngine
 
                 var newName = titles[0];
                 var current = albumItem.Name ?? string.Empty;
-                if (current.Equals(newName, StringComparison.Ordinal))
+                // Do not clobber ExplicitFin marks (CHASER 🅴 vs CHASER).
+                if (Titles.SameTitleIgnoringMarks(current, newName, cfg.EffectiveIgnoreTitleMarkers))
                 {
                     continue;
                 }
@@ -565,7 +566,7 @@ public class ContextEngine
         if (cfg.WriteAlbumNames)
         {
             var current = track.Album ?? string.Empty;
-            if (!current.Equals(assignment.AlbumTitle, StringComparison.Ordinal))
+            if (!Titles.SameTitleIgnoringMarks(current, assignment.AlbumTitle, cfg.EffectiveIgnoreTitleMarkers))
             {
                 albumWrite = assignment.AlbumTitle;
             }

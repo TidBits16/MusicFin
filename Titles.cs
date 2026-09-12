@@ -91,6 +91,36 @@ public static class Titles
         => norm.Replace(" ", "", StringComparison.Ordinal);
 
     /// <summary>
+    /// When an exact normalized artist name is present, drop near-misses
+    /// (e.g. keep femtanyl, drop Fentanyl at 0.875 similarity).
+    /// </summary>
+    public static List<CatalogArtistInfo> PreferExactArtistMatches(
+        IEnumerable<CatalogArtistInfo> ranked,
+        string wantNorm)
+    {
+        var list = ranked as List<CatalogArtistInfo> ?? ranked.ToList();
+        if (list.Count == 0 || wantNorm.Length == 0)
+        {
+            return list;
+        }
+
+        var exact = list.Where(x => Norm(x.Name) == wantNorm).ToList();
+        return exact.Count > 0 ? exact : list;
+    }
+
+    /// <summary>
+    /// True when the only difference is an ignore marker (ExplicitFin 🅴 etc.).
+    /// </summary>
+    public static bool SameTitleIgnoringMarks(
+        string current,
+        string catalogTitle,
+        IReadOnlyList<string>? markers = null)
+    {
+        var clean = StripMark(current, markers);
+        return clean.Equals(catalogTitle, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// Maps digits commonly used as letter lookalikes in stylized titles (2econd --> second).
     /// </summary>
     public static string FoldLeetDigits(string norm)

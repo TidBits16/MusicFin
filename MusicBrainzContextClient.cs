@@ -110,11 +110,12 @@ public sealed class MusicBrainzContextClient : IContextMetadataClient
                 (int)mbScore));
         }
 
-        return ranked
-            .OrderByDescending(x => x.Score)
-            .ThenByDescending(x => x.RankHint)
-            .Select(x => x.Info)
-            .ToList();
+        return Titles.PreferExactArtistMatches(
+            ranked
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.RankHint)
+                .Select(x => x.Info),
+            wantNorm);
     }
 
     public async Task<IReadOnlyList<CatalogAlbum>> GetArtistDiscographyAsync(
