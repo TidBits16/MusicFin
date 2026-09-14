@@ -20,11 +20,15 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>All providers in UI order (checked and unchecked).</summary>
     public MetadataProvider[] MetadataProviderOrder { get; set; } = [];
 
-    /// <summary>Checked providers to try, in order.</summary>
-    public MetadataProvider[] MetadataProviders { get; set; } = [];
+    /// <summary>Checked providers to try, in order. Default: Discogs then Deezer fallback.</summary>
+    public MetadataProvider[] MetadataProviders { get; set; } =
+    [
+        MetadataProvider.Discogs,
+        MetadataProvider.Deezer
+    ];
 
     /// <summary>Legacy single provider; used only when <see cref="MetadataProviders"/> is empty.</summary>
-    public MetadataProvider MetadataProvider { get; set; } = MetadataProvider.Deezer;
+    public MetadataProvider MetadataProvider { get; set; } = MetadataProvider.Discogs;
 
     /// <summary>Legacy fallback toggle; used only when <see cref="MetadataProviders"/> is empty.</summary>
     public bool? FallbackToOtherProvider { get; set; }
@@ -117,8 +121,8 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool ApplyAlbumGenresToTracks { get; set; } = true;
 
     /// <summary>
-    /// When on, normalize messy existing genre tags (split compounds, fix casing/typos)
-    /// even when no provider genre list is available. Default on.
+    /// When on, overwrite existing genres with the first provider's genre list.
+    /// When off, only fill empty genre lists. Genres are never taken from fallback providers.
     /// </summary>
     public bool CleanOldMusicTags { get; set; } = true;
 

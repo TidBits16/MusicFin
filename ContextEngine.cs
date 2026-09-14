@@ -44,7 +44,11 @@ public class ContextEngine
         var clients = _metadata.GetClients(providerList);
         if (clients.Count == 0)
         {
-            clients = _metadata.GetClients([Configuration.MetadataProvider.Deezer]);
+            clients = _metadata.GetClients(
+            [
+                Configuration.MetadataProvider.Discogs,
+                Configuration.MetadataProvider.Deezer
+            ]);
         }
 
         var primaryClient = clients[0];
@@ -167,15 +171,12 @@ public class ContextEngine
             cancellationToken).ConfigureAwait(false);
         if (resolved is null)
         {
-            if (cfg.WriteGenres && cfg.CleanOldMusicTags)
-            {
-                CleanupLocalGenres(artistTracks, albums, patches, albumPatches);
-            }
-
             return;
         }
 
         var (matchedArtist, discography, metadataClient) = resolved.Value;
+        var writeGenresFromProvider = cfg.WriteGenres
+            && string.Equals(metadataClient.ProviderKey, primaryClient.ProviderKey, StringComparison.OrdinalIgnoreCase);
 
         var localTracks = artistTracks.Select(t => new LocalTrack
         {
@@ -237,13 +238,19 @@ public class ContextEngine
                 continue;
             }
 
-            var trackPatch = BuildTrackPatch(track, assignment, cfg, metadataClient.ProviderKey, matchedArtist.Name);
+            var trackPatch = BuildTrackPatch(
+                track,
+                assignment,
+                cfg,
+                metadataClient.ProviderKey,
+                matchedArtist.Name,
+                writeGenresFromProvider);
             if (trackPatch is not null)
             {
                 patches.AddOrUpdate(track.Id, trackPatch, (_, existing) => existing.Merge(trackPatch));
             }
 
-            if (assignment.Genres.Count > 0)
+            if (writeGenresFromProvider && assignment.Genres.Count > 0)
             {
                 albumGenres[assignment.AlbumTitle] = assignment.Genres.ToList();
             }
@@ -312,7 +319,7 @@ public class ContextEngine
             }
         }
 
-        if (cfg.WriteGenres)
+        if (writeGenresFromProvider)
         {
             foreach (var entry in albumGenres)
             {
@@ -331,7 +338,7 @@ public class ContextEngine
                         continue;
                     }
 
-                    if (GenreWant(entry.Value, albumItem.Genres) is not { } want)
+                    if (GenreWant(entry.Value, albumItem.Genres, cfg.CleanOldMusicTags) is not { } want)
                     {
                         continue;
                     }
@@ -339,11 +346,6 @@ public class ContextEngine
                     var patch = new Patch { ItemId = albumItem.Id, Item = albumItem, Genres = want };
                     albumPatches.AddOrUpdate(albumItem.Id, patch, (_, existing) => existing.Merge(patch));
                 }
-            }
-
-            if (cfg.CleanOldMusicTags)
-            {
-                CleanupLocalGenres(artistTracks, albums, patches, albumPatches);
             }
         }
 
@@ -570,7 +572,13 @@ public class ContextEngine
         return (matchedArtist, discography);
     }
 
-    private static Patch? BuildTrackPatch(Audio track, TrackAssignment assignment, PluginConfiguration cfg, string providerKey, string catalogArtistName)
+    private static Patch? BuildTrackPatch(
+        Audio track,
+        TrackAssignment assignment,
+        PluginConfiguration cfg,
+        string providerKey,
+        string catalogArtistName,
+        bool writeGenresFromProvider)
     {
         string? albumWrite = null;
         if (cfg.WriteAlbumNames)
@@ -620,20 +628,11 @@ public class ContextEngine
         }
 
         List<string>? genreWrite = null;
-        if (cfg.WriteGenres && cfg.ApplyAlbumGenresToTracks && assignment.Genres.Count > 0)
+        if (writeGenresFromProvider && cfg.ApplyAlbumGenresToTracks && assignment.Genres.Count > 0)
         {
-            if (GenreWant(assignment.Genres, track.Genres) is { } genres)
+            if (GenreWant(assignment.Genres, track.Genres, cfg.CleanOldMusicTags) is { } genres)
             {
                 genreWrite = genres;
-            }
-        }
-        else if (cfg.WriteGenres && cfg.CleanOldMusicTags &&
-                 (assignment.Genres.Count == 0 || !cfg.ApplyAlbumGenresToTracks))
-        {
-            // Provider list empty or not applied to tracks: still normalize messy local tags.
-            if (GenreWant([], track.Genres) is { } cleaned)
-            {
-                genreWrite = cleaned;
             }
         }
 
@@ -801,74 +800,23 @@ public class ContextEngine
     }
 
     /// <summary>
-    /// Normalize existing album/track genres when no provider genre list was written.
-    /// Provider patches (non-null Genres) win and are left alone.
+    /// Provider genres win when force is on (overwrite), or when current genres are empty.
+    /// Never invents genres from local cleanup alone.
     /// </summary>
-    private static void CleanupLocalGenres(
-        IReadOnlyList<Audio> artistTracks,
-        IReadOnlyDictionary<Guid, MusicAlbum> albums,
-        ConcurrentDictionary<Guid, Patch> patches,
-        ConcurrentDictionary<Guid, Patch> albumPatches)
+    private static List<string>? GenreWant(IReadOnlyList<string> provider, IReadOnlyList<string>? current, bool force)
     {
-        var trackAlbumIds = new HashSet<Guid>();
-        foreach (var track in artistTracks)
-        {
-            if (track.GetParent() is MusicAlbum parent)
-            {
-                trackAlbumIds.Add(parent.Id);
-            }
-
-            if (patches.TryGetValue(track.Id, out var trackPatch) && trackPatch.Genres is not null)
-            {
-                continue;
-            }
-
-            if (GenreWant([], track.Genres) is not { } trackWant)
-            {
-                continue;
-            }
-
-            var patch = new Patch { ItemId = track.Id, Item = track, Genres = trackWant };
-            patches.AddOrUpdate(track.Id, patch, (_, existing) => existing.Merge(patch));
-        }
-
-        foreach (var albumId in trackAlbumIds)
-        {
-            if (!albums.TryGetValue(albumId, out var albumItem))
-            {
-                continue;
-            }
-
-            if (albumPatches.TryGetValue(albumId, out var albumPatch) && albumPatch.Genres is not null)
-            {
-                continue;
-            }
-
-            if (GenreWant([], albumItem.Genres) is not { } albumWant)
-            {
-                continue;
-            }
-
-            var patch = new Patch { ItemId = albumId, Item = albumItem, Genres = albumWant };
-            albumPatches.AddOrUpdate(albumId, patch, (_, existing) => existing.Merge(patch));
-        }
-    }
-
-    private static List<string>? GenreWant(IReadOnlyList<string> deezer, IReadOnlyList<string>? current)
-    {
-        var raw = current ?? [];
-        if (deezer.Count > 0)
-        {
-            return NeedList(deezer, raw) || Genres.NeedsRewrite(raw) ? deezer.ToList() : null;
-        }
-
-        if (!Genres.NeedsRewrite(raw))
+        if (provider.Count == 0)
         {
             return null;
         }
 
-        var cleaned = Genres.PrettyList(raw, 0);
-        return cleaned.Count > 0 ? cleaned : null;
+        var raw = current ?? [];
+        if (!force && raw.Count > 0)
+        {
+            return null;
+        }
+
+        return NeedList(provider, raw) ? provider.ToList() : null;
     }
 
     private static bool NeedList(IReadOnlyList<string> want, IReadOnlyList<string> got)

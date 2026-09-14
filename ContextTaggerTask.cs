@@ -14,7 +14,7 @@ public class ContextTaggerTask : IScheduledTask
         _logger = logger;
     }
 
-    public string Name => "MusicFin: Smarter Music Tagging";
+    public string Name => "- MusicFin: Smarter Music Tagging";
 
     public string Key => "MusicFinLibrary";
 

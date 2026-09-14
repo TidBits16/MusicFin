@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>MusicFin: Smarter Music Tagging</title>
+    <title>- MusicFin: Smarter Music Tagging</title>
 </head>
 <body>
     <div id="DtConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select,paper-icon-button-light">
@@ -10,13 +10,13 @@
             <div class="content-primary">
                 <form id="DtConfigForm">
                     <div class="sectionTitleContainer flex align-items-center">
-                        <h2 class="sectionTitle">MusicFin: Smarter Music Tagging</h2>
+                        <h2 class="sectionTitle">- MusicFin: Smarter Music Tagging</h2>
                     </div>
                     <p>Context-based track &amp; album recognition.</p>
 
                     <div class="verticalSection">
                         <h3 class="checkboxListLabel">Metadata providers</h3>
-                        <div class="fieldDescription">Providers are checked in order. For consistency, its recommended to leave Deezer enabled and the rest disabled.</div>
+                        <div class="fieldDescription">Providers are tried in order. Default: Discogs first, Deezer as fallback. Genres only come from the first (top) provider.</div>
                         <div id="ProviderList" class="checkboxList paperList checkboxList-paperList"></div>
                         <div class="inputContainer" id="MusicBrainzContactRow">
                             <label class="inputLabel inputLabelUnfocused" for="MusicBrainzContact">MusicBrainz contact</label>
@@ -83,9 +83,9 @@
                         <div class="checkboxContainer">
                             <label>
                                 <input is="emby-checkbox" type="checkbox" id="CleanOldMusicTags" />
-                                <span>Clean old music tags</span>
+                                <span>Force rewrite genres</span>
                             </label>
-                            <div class="fieldDescription">Overwrites old music tags with standards from Deezer.</div>
+                            <div class="fieldDescription">Overwrite existing genres with tags from the first provider only. When off, only fill empty genre lists.</div>
                         </div>
                     </div>
 
@@ -132,12 +132,13 @@
             const DtConfig = { pluginUniqueId: 'ade80bea-e92e-4f2c-9a42-f5bf88bffa98' };
 
             const PROVIDER_CATALOG = [
+                { id: 'Discogs', name: 'Discogs' },
                 { id: 'Deezer', name: 'Deezer' },
                 { id: 'MusicBrainz', name: 'MusicBrainz' },
                 { id: 'Itunes', name: 'iTunes / Apple Music' },
-                { id: 'Discogs', name: 'Discogs' },
                 { id: 'OpenOpus', name: 'Open Opus (classical)' }
             ];
+            const DEFAULT_ENABLED_PROVIDERS = ['Discogs', 'Deezer'];
             const DEFAULT_PROVIDER_ORDER = PROVIDER_CATALOG.map(function (p) { return p.id; });
 
             function providerName(id) {
@@ -163,11 +164,15 @@
             }
 
             function legacyProviders(config) {
-                var primary = config.MetadataProvider || 'Deezer';
+                var primary = config.MetadataProvider || 'Discogs';
                 if (config.FallbackToOtherProvider === true) {
                     return [primary].concat(DEFAULT_PROVIDER_ORDER.filter(function (p) { return p !== primary; }));
                 }
                 return [primary];
+            }
+
+            function defaultEnabledProviders() {
+                return DEFAULT_ENABLED_PROVIDERS.slice();
             }
 
             function adjustSortableListElement(elem) {
@@ -276,7 +281,9 @@
                             : legacyProviders(config)));
                 var enabled = config.MetadataProviders && config.MetadataProviders.length
                     ? config.MetadataProviders
-                    : legacyProviders(config);
+                    : (config.MetadataProvider || config.FallbackToOtherProvider != null
+                        ? legacyProviders(config)
+                        : defaultEnabledProviders());
                 renderProviderList(order, enabled);
                 document.querySelector('#MusicBrainzContact').value = config.MusicBrainzContact || 'https://github.com/TidBits16/MusicFin';
                 document.querySelector('#DiscogsToken').value = config.DiscogsToken || '';
@@ -301,7 +308,7 @@
                 return ApiClient.getPluginConfiguration(DtConfig.pluginUniqueId).then(function (config) {
                     var enabled = readEnabledProviders();
                     config.MetadataProviderOrder = readProviderOrder();
-                    config.MetadataProviders = enabled.length ? enabled : ['Deezer'];
+                    config.MetadataProviders = enabled.length ? enabled : defaultEnabledProviders();
                     config.MusicBrainzContact = document.querySelector('#MusicBrainzContact').value;
                     config.DiscogsToken = document.querySelector('#DiscogsToken').value;
                     config.WriteAlbumNames = document.querySelector('#WriteAlbumNames').checked;

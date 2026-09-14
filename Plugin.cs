@@ -19,7 +19,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 
     public static Plugin? Instance { get; private set; }
 
-    public override string Name => "MusicFin: Smarter Music Tagging";
+    public override string Name => "- MusicFin: Smarter Music Tagging";
 
     public override string Description =>
         "Context-based track & album recognition.";
