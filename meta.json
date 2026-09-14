@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.20.0",
+  "version": "1.8.21.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Fix album title collapse: keep (Live) distinct from studio; prefer local album tags; don't demote THE X to X.",
+  "changelog": "Prefer studio albums over singles, compilations, live tours, and deluxe editions (fixes Classics Collection / SOUR / GUTS spilled / The Land live). Sorry \u2014 1.8.20.0 missed several of these secondary-release cases.",
   "imagePath": "backdrop.svg"
 }

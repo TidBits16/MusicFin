@@ -342,6 +342,14 @@ public class ContextEngine
                     continue;
                 }
 
+                // Do not replace a normal album/single name with a compilation or live-tour title.
+                if (current.Length > 0
+                    && !Titles.IsSecondaryAlbumTitle(current)
+                    && Titles.IsSecondaryAlbumTitle(newName))
+                {
+                    continue;
+                }
+
                 var patch = new Patch { ItemId = albumId, Item = albumItem, Name = newName };
                 albumPatches.AddOrUpdate(albumId, patch, (_, existing) => existing.Merge(patch));
             }
@@ -614,7 +622,10 @@ public class ContextEngine
         {
             var current = track.Album ?? string.Empty;
             if (!Titles.SameTitleIgnoringMarks(current, assignment.AlbumTitle, cfg.EffectiveIgnoreTitleMarkers)
-                && !Titles.IsMoreSpecificAlbumTitle(current, assignment.AlbumTitle, cfg.EffectiveIgnoreTitleMarkers))
+                && !Titles.IsMoreSpecificAlbumTitle(current, assignment.AlbumTitle, cfg.EffectiveIgnoreTitleMarkers)
+                && !(current.Length > 0
+                    && !Titles.IsSecondaryAlbumTitle(current)
+                    && Titles.IsSecondaryAlbumTitle(assignment.AlbumTitle)))
             {
                 albumWrite = assignment.AlbumTitle;
             }

@@ -139,7 +139,6 @@ public static class AlbumMatcher
         var bestTitleLength = int.MaxValue;
         var bestRatio = -1.0;
         var bestAlbumScore = -1;
-        var bestAlbumSize = int.MaxValue;
 
         foreach (var album in candidates)
         {
@@ -168,9 +167,12 @@ public static class AlbumMatcher
                 trackScore = Math.Max(trackScore, albumTitleScore);
             }
 
-            var localAlbumScore = local.Album is { Length: > 0 }
-                ? TrackMatcher.TitleMatchScore(local.Album, album.Title, markers, artist)
-                : 0.0;
+            var localAlbumScore = 0.0;
+            if (local.Album is { Length: > 0 } && !Titles.IsSecondaryAlbumTitle(local.Album))
+            {
+                // Ignore already-wrong compilation/live tags so recovery can prefer studio releases.
+                localAlbumScore = TrackMatcher.TitleMatchScore(local.Album, album.Title, markers, artist);
+            }
 
             var want = Titles.Norm(Titles.StripTrailingArtist(local.Title, artist), markers);
             var got = Titles.Norm(match.Title, markers);
@@ -184,7 +186,7 @@ public static class AlbumMatcher
                     albumScore.Score,
                     exact,
                     got.Length,
-                    album.Tracks.Count,
+                    album,
                     bestTrackScore,
                     bestLocalAlbumScore,
                     bestFitness,
@@ -192,7 +194,7 @@ public static class AlbumMatcher
                     bestAlbumScore,
                     bestExact,
                     bestTitleLength,
-                    bestAlbumSize))
+                    bestAlbum))
             {
                 bestAlbum = album;
                 bestTrack = match;
@@ -203,7 +205,6 @@ public static class AlbumMatcher
                 bestTitleLength = got.Length;
                 bestRatio = albumScore.Ratio;
                 bestAlbumScore = albumScore.Score;
-                bestAlbumSize = album.Tracks.Count;
             }
         }
 
@@ -240,7 +241,7 @@ public static class AlbumMatcher
         int albumScore,
         bool exact,
         int titleLength,
-        int albumSize,
+        CatalogAlbum album,
         double bestTrackScore,
         double bestLocalAlbumScore,
         double bestFitness,
@@ -248,7 +249,7 @@ public static class AlbumMatcher
         int bestAlbumScore,
         bool bestExact,
         int bestTitleLength,
-        int bestAlbumSize)
+        CatalogAlbum? bestAlbum)
     {
         if (TitleBand(trackScore) > TitleBand(bestTrackScore) + 0.0001)
         {
@@ -279,6 +280,61 @@ public static class AlbumMatcher
         if (Math.Abs(localAlbumScore - bestLocalAlbumScore) > 0.0001)
         {
             return false;
+        }
+
+        // Prefer studio/primary releases over compilations and live-tour sets.
+        var secondary = SecondaryPenalty(album);
+        var bestSecondary = bestAlbum is null ? int.MaxValue : SecondaryPenalty(bestAlbum);
+        if (secondary < bestSecondary)
+        {
+            return true;
+        }
+
+        if (secondary > bestSecondary)
+        {
+            return false;
+        }
+
+        // Prefer standard editions over deluxe/spilled/expanded when both match.
+        if (bestAlbum is not null)
+        {
+            if (TitlesSuggestExpansion(album.Title, bestAlbum.Title)
+                && album.Tracks.Count < bestAlbum.Tracks.Count
+                && Titles.LooksLikeDeluxeTitle(bestAlbum.Title))
+            {
+                return true;
+            }
+
+            if (TitlesSuggestExpansion(bestAlbum.Title, album.Title)
+                && bestAlbum.Tracks.Count < album.Tracks.Count
+                && Titles.LooksLikeDeluxeTitle(album.Title))
+            {
+                return false;
+            }
+
+            var deluxe = DeluxePenalty(album);
+            var bestDeluxe = DeluxePenalty(bestAlbum);
+            if (deluxe < bestDeluxe)
+            {
+                return true;
+            }
+
+            if (deluxe > bestDeluxe)
+            {
+                return false;
+            }
+        }
+
+        // Prefer a well-covered album/EP over a same-titled single (SOUR vs Drivers License).
+        // Keep singles winning for one-off ownership of a track on a huge unrelated album.
+        if (bestAlbum is not null && album.IsSingle != bestAlbum.IsSingle)
+        {
+            var albumStrong = IsStrongPrimary(album, ratio, albumScore, localAlbumScore);
+            var bestStrong = IsStrongPrimary(bestAlbum, bestRatio, bestAlbumScore, bestLocalAlbumScore);
+            if (albumStrong != bestStrong)
+            {
+                return albumStrong;
+            }
         }
 
         // Mixed size + completion: matchCount * ratio^2.
@@ -344,8 +400,33 @@ public static class AlbumMatcher
             return false;
         }
 
-        return albumSize < bestAlbumSize;
+        return album.Tracks.Count < (bestAlbum?.Tracks.Count ?? int.MaxValue);
     }
+
+    /// <summary>Compilations and live-tour albums that steal tracks from studio releases.</summary>
+    private static int SecondaryPenalty(CatalogAlbum album)
+    {
+        if (album.IsCompilation || Titles.LooksLikeCompilationTitle(album.Title))
+        {
+            return 2;
+        }
+
+        if (Titles.LooksLikeLiveTourTitle(album.Title))
+        {
+            return 2;
+        }
+
+        return 0;
+    }
+
+    private static int DeluxePenalty(CatalogAlbum album)
+        => Titles.LooksLikeDeluxeTitle(album.Title) ? 1 : 0;
+
+    private static bool IsStrongPrimary(CatalogAlbum album, double ratio, int score, double localAlbumScore)
+        => !album.IsSingle
+            && !album.IsCompilation
+            && SecondaryPenalty(album) == 0
+            && (ratio >= 0.5 || score >= 3 || localAlbumScore >= 0.999);
 
     /// <summary>
     /// Groups strong title matches so album fitness can decide between a live/edit single

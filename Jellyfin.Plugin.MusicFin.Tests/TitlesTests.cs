@@ -119,6 +119,28 @@ public class TitlesTests
         bool expected)
         => Assert.Equal(expected, Titles.IsMoreSpecificAlbumTitle(local, catalog));
 
+    [Theory]
+    [InlineData("Classics Collection", true)]
+    [InlineData("IVYCOMB: Classics Collection", true)]
+    [InlineData("Greatest Hits", true)]
+    [InlineData("Live in '25", true)]
+    [InlineData("Live from Athens Georgia", true)]
+    [InlineData("The Land: The Live Album", true)]
+    [InlineData("FNAFdom (Live)", false)]
+    [InlineData("SOUR", false)]
+    [InlineData("GUTS", false)]
+    [InlineData("Be the Cowboy", false)]
+    [InlineData("INFAMOUS", false)]
+    public void IsSecondaryAlbumTitle_DetectsCompilationsAndLiveTours(string title, bool expected)
+        => Assert.Equal(expected, Titles.IsSecondaryAlbumTitle(title));
+
+    [Theory]
+    [InlineData("GUTS (spilled)", true)]
+    [InlineData("GUTS (Deluxe)", true)]
+    [InlineData("GUTS", false)]
+    public void LooksLikeDeluxeTitle_DetectsExpandedEditions(string title, bool expected)
+        => Assert.Equal(expected, Titles.LooksLikeDeluxeTitle(title));
+
     [Fact]
     public void TitleMatchScore_DoesNotTreatLiveSuffixAsExactStudioMatch()
         => Assert.True(TrackMatcher.TitleMatchScore("Step On Up", "Step On Up (Live)") < 0.999);

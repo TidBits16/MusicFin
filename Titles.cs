@@ -313,6 +313,72 @@ public static class Titles
         return false;
     }
 
+    /// <summary>Greatest-hits / classics / best-of style titles that vacuum up singles.</summary>
+    public static bool LooksLikeCompilationTitle(string title)
+    {
+        var t = Norm(title);
+        if (t.Length == 0)
+        {
+            return false;
+        }
+
+        return t.Contains("greatest hits", StringComparison.Ordinal)
+            || t.Contains("classics collection", StringComparison.Ordinal)
+            || t.Contains("classic collection", StringComparison.Ordinal)
+            || t.Contains("best of", StringComparison.Ordinal)
+            || t.Contains(" anthology", StringComparison.Ordinal)
+            || t.StartsWith("anthology ", StringComparison.Ordinal)
+            || t.EndsWith(" collection", StringComparison.Ordinal)
+            || t.Contains(" the collection", StringComparison.Ordinal);
+    }
+
+    /// <summary>Live tour / concert album titles (e.g. Live in '25, The Land: The Live Album).</summary>
+    public static bool LooksLikeLiveTourTitle(string title)
+    {
+        var t = Norm(title);
+        if (t.Length == 0)
+        {
+            return false;
+        }
+
+        // Do not treat song/EP titles like "FNAFdom (Live)" as tour albums.
+        return t.StartsWith("live in ", StringComparison.Ordinal)
+            || t.StartsWith("live from ", StringComparison.Ordinal)
+            || t.StartsWith("live at ", StringComparison.Ordinal)
+            || t.Contains(" live in ", StringComparison.Ordinal)
+            || t.Contains(" live from ", StringComparison.Ordinal)
+            || t.Contains(" live at ", StringComparison.Ordinal)
+            || t.Contains("live album", StringComparison.Ordinal)
+            || t.EndsWith(" live album", StringComparison.Ordinal);
+    }
+
+    /// <summary>Deluxe / spilled / expanded edition markers in album titles.</summary>
+    public static bool LooksLikeDeluxeTitle(string title)
+    {
+        var t = Norm(title);
+        if (t.Length == 0)
+        {
+            return false;
+        }
+
+        return t.Contains("spilled", StringComparison.Ordinal)
+            || t.Contains("deluxe", StringComparison.Ordinal)
+            || t.Contains("expanded", StringComparison.Ordinal)
+            || t.Contains("extended edition", StringComparison.Ordinal)
+            || t.Contains("anniversary", StringComparison.Ordinal)
+            || t.Contains("super deluxe", StringComparison.Ordinal)
+            || t.Contains(" bonus", StringComparison.Ordinal)
+            || t.EndsWith(" bonus", StringComparison.Ordinal)
+            || t.Contains("complete edition", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Secondary album tags we should not lock onto during recovery
+    /// (compilations / live tours already written by a bad prior match).
+    /// </summary>
+    public static bool IsSecondaryAlbumTitle(string title)
+        => LooksLikeCompilationTitle(title) || LooksLikeLiveTourTitle(title);
+
     private static string FoldQuotes(string text)
     {
         return text

@@ -651,6 +651,230 @@ public class AlbumMatcherTests
             a => Assert.Equal("ANTIHUMAN", a.AlbumTitle));
     }
 
+    [Fact]
+    public void StudioAlbumBeatsSameTitledSingle_WhenAlbumIsWellCovered()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "brutal", "SOUR"),
+            Track("2", "traitor", "SOUR"),
+            Track("3", "drivers license", "SOUR"),
+            Track("4", "deja vu", "SOUR"),
+            Track("5", "good 4 u", "SOUR")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType(
+                "SOUR",
+                1,
+                "album",
+                "Olivia Rodrigo",
+                "brutal", "traitor", "drivers license", "1 step forward, 3 steps back",
+                "deja vu", "good 4 u", "enough for you", "happier",
+                "jealousy, jealousy", "favorite crime", "hope ur ok"),
+            AlbumWithType("drivers license", 2, "single", "Olivia Rodrigo", "drivers license"),
+            AlbumWithType("good 4 u", 3, "single", "Olivia Rodrigo", "good 4 u"),
+            AlbumWithType("traitor", 4, "single", "Olivia Rodrigo", "traitor")
+        };
+
+        var result = AlbumMatcher.Match("Olivia Rodrigo", local, albums, new AlbumMatcherOptions());
+
+        Assert.Equal(5, result.Assignments.Count);
+        Assert.All(result.Assignments, a => Assert.Equal("SOUR", a.AlbumTitle));
+        Assert.Equal(0, result.SingleReleaseCount);
+    }
+
+    [Fact]
+    public void StandardAlbumBeatsDeluxeSpilledEdition()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "vampire", "GUTS"),
+            Track("2", "bad idea right?", "GUTS"),
+            Track("3", "get him back!", "GUTS"),
+            Track("4", "teenage dream", "GUTS")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType(
+                "GUTS",
+                1,
+                "album",
+                "Olivia Rodrigo",
+                "all-american bitch", "bad idea right?", "vampire", "lacy",
+                "ballad of a homeschooled girl", "making the bed", "logical", "get him back!",
+                "love is embarrassing", "the grudge", "pretty isn't pretty", "teenage dream"),
+            AlbumWithType(
+                "GUTS (spilled)",
+                2,
+                "album",
+                "Olivia Rodrigo",
+                "all-american bitch", "bad idea right?", "vampire", "lacy",
+                "ballad of a homeschooled girl", "making the bed", "logical", "get him back!",
+                "love is embarrassing", "the grudge", "pretty isn't pretty", "teenage dream",
+                "obsessed", "girl i've always been", "scared of my guitar", "stranger", "so american")
+        };
+
+        var result = AlbumMatcher.Match("Olivia Rodrigo", local, albums, new AlbumMatcherOptions());
+
+        Assert.All(result.Assignments, a => Assert.Equal("GUTS", a.AlbumTitle));
+    }
+
+    [Fact]
+    public void OriginalSinglesBeatClassicsCollectionCompilation()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "INFAMOUS", "INFAMOUS"),
+            Track("2", "LDR", "LDR"),
+            Track("3", "Blue Bird", "Blue Bird"),
+            Track("4", "ANTIHUMAN", "ANTIHUMAN")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("INFAMOUS", 1, "single", "ivycomb", "INFAMOUS"),
+            AlbumWithType("LDR", 2, "single", "ivycomb", "LDR"),
+            AlbumWithType("Blue Bird", 3, "single", "ivycomb", "Blue Bird"),
+            AlbumWithType("ANTIHUMAN", 4, "single", "ivycomb", "ANTIHUMAN"),
+            AlbumWithType(
+                "Classics Collection",
+                5,
+                "album",
+                "ivycomb",
+                "INFAMOUS", "FALSE IDOL", "LDR", "DATA_REJECT", "LUMINESCENCE",
+                "NEVERLAND", "SUN SPOTS", "ANTIHUMAN", "TOKYO", "Soul Astray",
+                "ANTIVILLAIN", "MAKE BELIEVE", "Fratricide", "Blue Bird")
+        };
+
+        var result = AlbumMatcher.Match("ivycomb", local, albums, new AlbumMatcherOptions());
+
+        Assert.DoesNotContain(result.Assignments, a => a.AlbumTitle.Contains("Classics", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("INFAMOUS", result.Assignments.Single(a => a.TrackTitle == "INFAMOUS").AlbumTitle);
+        Assert.Equal("LDR", result.Assignments.Single(a => a.TrackTitle == "LDR").AlbumTitle);
+        Assert.Equal("Blue Bird", result.Assignments.Single(a => a.TrackTitle == "Blue Bird").AlbumTitle);
+        Assert.Equal("ANTIHUMAN", result.Assignments.Single(a => a.TrackTitle == "ANTIHUMAN").AlbumTitle);
+    }
+
+    [Fact]
+    public void ClassicsCollectionRename_RecoversToOriginalSingles()
+    {
+        // Local tags already wrong from a prior bad run.
+        var local = new List<LocalTrack>
+        {
+            Track("1", "INFAMOUS", "Classics Collection"),
+            Track("2", "LDR", "Classics Collection"),
+            Track("3", "Blue Bird", "Classics Collection")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("INFAMOUS", 1, "single", "ivycomb", "INFAMOUS"),
+            AlbumWithType("LDR", 2, "single", "ivycomb", "LDR"),
+            AlbumWithType("Blue Bird", 3, "single", "ivycomb", "Blue Bird"),
+            AlbumWithType(
+                "Classics Collection",
+                4,
+                "album",
+                "ivycomb",
+                "INFAMOUS", "LDR", "Blue Bird", "ANTIHUMAN", "TOKYO", "NEVERLAND")
+        };
+
+        var result = AlbumMatcher.Match("ivycomb", local, albums, new AlbumMatcherOptions());
+
+        Assert.DoesNotContain(result.Assignments, a => a.AlbumTitle == "Classics Collection");
+        Assert.Equal("INFAMOUS", result.Assignments.Single(a => a.TrackTitle == "INFAMOUS").AlbumTitle);
+        Assert.Equal("LDR", result.Assignments.Single(a => a.TrackTitle == "LDR").AlbumTitle);
+        Assert.Equal("Blue Bird", result.Assignments.Single(a => a.TrackTitle == "Blue Bird").AlbumTitle);
+    }
+
+    [Fact]
+    public void BeTheCowboyBeatsTheLandLiveAlbum_EvenWhenLiveHasSharedHits()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "Geyser", "Be the Cowboy"),
+            Track("2", "Nobody", "Be the Cowboy"),
+            Track("3", "Washing Machine Heart", "Be the Cowboy"),
+            Track("4", "Pink in the Night", "Be the Cowboy"),
+            Track("5", "A Pearl", "Be the Cowboy"),
+            Track("6", "Me and My Husband", "Be the Cowboy")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType(
+                "Be the Cowboy",
+                1,
+                "album",
+                "Mitski",
+                "Geyser", "Why Didn't You Stop Me?", "Old Friend", "A Pearl",
+                "Lonesome Love", "Remember My Name", "Me and My Husband", "Come into the Water",
+                "Nobody", "Pink in the Night", "A Horse Named Cold Air", "Washing Machine Heart",
+                "Blue Light", "Two Slow Dancers"),
+            AlbumWithType(
+                "The Land: The Live Album",
+                2,
+                "album",
+                "Mitski",
+                "Everyone", "Buffalo Replaced", "Working for the Knife", "The Deal",
+                "Valentine, TX", "I Bet on Losing Dogs", "Thursday Girl / Geyser",
+                "First Love / Late Spring", "Star", "Heaven", "I Don't Like My Mind",
+                "I Love Me After You", "Happy", "My Love Mine All Mine",
+                "Last Words of a Shooting Star", "Pink in the Night", "I Don't Smoke",
+                "I'm Your Man", "Fireworks", "Nobody", "Washing Machine Heart"),
+            AlbumWithType(
+                "The Land Is Inhospitable and So Are We",
+                3,
+                "album",
+                "Mitski",
+                "Bug Like an Angel", "Buffalo Replaced", "Heaven", "I Don't Like My Mind",
+                "The Deal", "When Memories Snow", "My Love Mine All Mine", "The Frost",
+                "Star", "I'm Your Man", "I Love Me After You")
+        };
+
+        var result = AlbumMatcher.Match("Mitski", local, albums, new AlbumMatcherOptions());
+
+        Assert.Equal(6, result.Assignments.Count);
+        Assert.All(result.Assignments, a => Assert.Equal("Be the Cowboy", a.AlbumTitle));
+    }
+
+    [Fact]
+    public void BeTheCowboyRecoversFromTheLandLiveAlbumRename()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "Nobody", "The Land: The Live Album"),
+            Track("2", "Washing Machine Heart", "The Land: The Live Album"),
+            Track("3", "Pink in the Night", "The Land: The Live Album"),
+            Track("4", "A Pearl", "The Land: The Live Album")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType(
+                "Be the Cowboy",
+                1,
+                "album",
+                "Mitski",
+                "Geyser", "A Pearl", "Nobody", "Pink in the Night", "Washing Machine Heart",
+                "Me and My Husband", "Two Slow Dancers"),
+            AlbumWithType(
+                "The Land: The Live Album",
+                2,
+                "album",
+                "Mitski",
+                "Everyone", "Thursday Girl / Geyser", "Pink in the Night", "Nobody",
+                "Washing Machine Heart", "My Love Mine All Mine", "Heaven")
+        };
+
+        var result = AlbumMatcher.Match("Mitski", local, albums, new AlbumMatcherOptions());
+
+        Assert.All(result.Assignments, a => Assert.Equal("Be the Cowboy", a.AlbumTitle));
+    }
+
     private static LocalTrack Track(string suffix, string title, string? album = null)
     {
         _ = suffix;
