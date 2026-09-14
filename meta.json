@@ -1,13 +1,13 @@
 {
   "guid": "ade80bea-e92e-4f2c-9a42-f5bf88bffa98",
-  "name": "- MusicFin: Smarter Music Tagging",
+  "name": "MusicFin: Smarter Music Tagging",
   "description": "Context-based track & album recognition.",
   "overview": "Context-based track & album recognition.",
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.10.0",
+  "version": "1.8.11.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Discogs-first lookup with Deezer fallback; genres only from the first provider (force rewrite); sort name with - prefix.",
+  "changelog": "Keep - prefix on scheduled task only; Discogs-first lookup and first-provider genre writes.",
   "imagePath": "backdrop.svg"
 }
