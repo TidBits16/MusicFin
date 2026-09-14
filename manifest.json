@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.13.0",
+        "changelog": "Add Force Refresh All Music (clears cache, overwrites genres/covers).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.13.0/MusicFin_1.8.13.0.zip",
+        "checksum": "772625d1f7c40330449fe34c073aa3f7",
+        "timestamp": "2026-09-14T16:08:12Z"
+      },
+      {
         "version": "1.8.12.0",
         "changelog": "Rename internal assembly/namespace from DeezerTagger to MusicFin; cache folder musicfin.",
         "targetAbi": "10.11.0.0",
