@@ -19,7 +19,7 @@ public class ContextTaggerTask : IScheduledTask
     public string Key => "MusicFinLibrary";
 
     public string Description =>
-        "Assigns albums, track numbers, years, and genres using context-based metadata matching (Deezer or MusicBrainz).";
+        "Assigns albums, track numbers, years, and genres using context-based metadata matching. Force refresh from plugin settings clears cache and overwrites genres/covers.";
 
     public string Category => "Library";
 

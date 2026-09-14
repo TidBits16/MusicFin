@@ -23,22 +23,40 @@ public class ContextEngine
     private readonly ILibraryManager _library;
     private readonly IProviderManager _providers;
     private readonly MetadataClientFactory _metadata;
+    private readonly HttpCache _cache;
     private readonly ILogger<ContextEngine> _logger;
+    private int _forceNext;
 
     public ContextEngine(
         ILibraryManager library,
         IProviderManager providers,
         MetadataClientFactory metadata,
+        HttpCache cache,
         ILogger<ContextEngine> logger)
     {
         _library = library;
         _providers = providers;
         _metadata = metadata;
+        _cache = cache;
         _logger = logger;
     }
 
-    public async Task RunAsync(IProgress<double> progress, CancellationToken cancellationToken)
+    public void RequestForce() => Interlocked.Exchange(ref _forceNext, 1);
+
+    public Task RunAsync(IProgress<double> progress, CancellationToken cancellationToken)
     {
+        var force = Interlocked.Exchange(ref _forceNext, 0) == 1;
+        return RunAsync(force, progress, cancellationToken);
+    }
+
+    public async Task RunAsync(bool force, IProgress<double> progress, CancellationToken cancellationToken)
+    {
+        if (force)
+        {
+            _cache.Clear();
+            _logger.LogInformation("SmarterMusicTagging: force refresh requested (cache cleared)");
+        }
+
         var cfg = Plugin.Instance?.Configuration ?? new PluginConfiguration();
         var providerList = cfg.EffectiveMetadataProviders;
         var clients = _metadata.GetClients(providerList);
@@ -78,11 +96,12 @@ public class ContextEngine
             .ToList();
 
         _logger.LogInformation(
-            "SmarterMusicTagging: {Tracks} tracks, {Artists} artists, providers {Providers}, {Workers} workers",
+            "SmarterMusicTagging: {Tracks} tracks, {Artists} artists, providers {Providers}, {Workers} workers ({Mode})",
             tracks.Count,
             grouped.Count,
             string.Join(" --> ", clients.Select(c => c.ProviderKey)),
-            workers);
+            workers,
+            force ? "force all" : "normal");
 
         if (grouped.Count == 0)
         {
@@ -108,6 +127,7 @@ public class ContextEngine
                     patches,
                     albumPatches,
                     albums,
+                    force,
                     cancellationToken).ConfigureAwait(false);
             }
             finally
@@ -160,6 +180,7 @@ public class ContextEngine
         ConcurrentDictionary<Guid, Patch> patches,
         ConcurrentDictionary<Guid, Patch> albumPatches,
         IReadOnlyDictionary<Guid, MusicAlbum> albums,
+        bool force,
         CancellationToken cancellationToken)
     {
         var resolved = await ResolveArtistDiscographyAsync(
@@ -244,7 +265,8 @@ public class ContextEngine
                 cfg,
                 metadataClient.ProviderKey,
                 matchedArtist.Name,
-                writeGenresFromProvider);
+                writeGenresFromProvider,
+                force);
             if (trackPatch is not null)
             {
                 patches.AddOrUpdate(track.Id, trackPatch, (_, existing) => existing.Merge(trackPatch));
@@ -338,7 +360,7 @@ public class ContextEngine
                         continue;
                     }
 
-                    if (GenreWant(entry.Value, albumItem.Genres, cfg.CleanOldMusicTags) is not { } want)
+                    if (GenreWant(entry.Value, albumItem.Genres, force || cfg.CleanOldMusicTags) is not { } want)
                     {
                         continue;
                     }
@@ -455,8 +477,8 @@ public class ContextEngine
                     continue;
                 }
 
-                // Replace art when MusicFin is also renaming the album (reorganization); otherwise fill gaps only.
-                var force = albumPatches.TryGetValue(albumId, out var existing)
+                // Force refresh always replaces art; otherwise only when renaming the album.
+                var renameForce = albumPatches.TryGetValue(albumId, out var existing)
                     && existing.Name is not null
                     && !string.Equals(musicAlbum.Name, existing.Name, StringComparison.Ordinal);
 
@@ -465,7 +487,7 @@ public class ContextEngine
                     ItemId = albumId,
                     Item = musicAlbum,
                     CoverUrl = distinct[0],
-                    CoverForce = force
+                    CoverForce = force || renameForce
                 };
                 albumPatches.AddOrUpdate(albumId, patch, (_, prev) => prev.Merge(patch));
             }
@@ -578,7 +600,8 @@ public class ContextEngine
         PluginConfiguration cfg,
         string providerKey,
         string catalogArtistName,
-        bool writeGenresFromProvider)
+        bool writeGenresFromProvider,
+        bool force)
     {
         string? albumWrite = null;
         if (cfg.WriteAlbumNames)
@@ -630,7 +653,7 @@ public class ContextEngine
         List<string>? genreWrite = null;
         if (writeGenresFromProvider && cfg.ApplyAlbumGenresToTracks && assignment.Genres.Count > 0)
         {
-            if (GenreWant(assignment.Genres, track.Genres, cfg.CleanOldMusicTags) is { } genres)
+            if (GenreWant(assignment.Genres, track.Genres, force || cfg.CleanOldMusicTags) is { } genres)
             {
                 genreWrite = genres;
             }

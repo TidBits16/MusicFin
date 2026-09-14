@@ -68,6 +68,29 @@ public class HttpCache
         }
     }
 
+    public void Clear()
+    {
+        lock (_gate)
+        {
+            if (!Directory.Exists(_dir))
+            {
+                return;
+            }
+
+            foreach (var file in Directory.EnumerateFiles(_dir, "*.json"))
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch
+                {
+                    // best-effort clear
+                }
+            }
+        }
+    }
+
     private static string Hash(string key)
     {
         var bytes = SHA1.HashData(Encoding.UTF8.GetBytes(key));

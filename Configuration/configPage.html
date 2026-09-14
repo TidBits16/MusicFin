@@ -120,6 +120,16 @@
                             <input is="emby-input" type="number" id="Workers" min="0" max="4" />
                             <div class="fieldDescription">Parallel artists. 0 = 1. Leave at 1 unless you know you need more.</div>
                         </div>
+                        <div class="verticalSection" style="margin-top:1.5em">
+                            <h3 class="checkboxListLabel">Force refresh</h3>
+                            <button is="emby-button" type="button" id="RefreshAllBtn" class="raised block button-delete">
+                                <span>Force Refresh All Music</span>
+                            </button>
+                            <div class="fieldDescription" style="margin-top:0.5em">
+                                Clears the provider cache and overwrites genres/covers from the first provider. Don't use unless you know what you're doing!
+                            </div>
+                            <div class="fieldDescription" id="RefreshAllStatus" style="margin-top:0.5em"></div>
+                        </div>
                     </details>
 
                     <button is="emby-button" type="submit" class="raised button-submit block">
@@ -329,8 +339,36 @@
                 });
             }
 
+            function refreshAll() {
+                var status = document.querySelector('#RefreshAllStatus');
+                var btn = document.querySelector('#RefreshAllBtn');
+                btn.disabled = true;
+                status.textContent = 'Queueing force refresh…';
+                Dashboard.showLoadingMsg();
+                return ApiClient.ajax({
+                    type: 'POST',
+                    url: ApiClient.getUrl('MusicFin/RefreshAll'),
+                    contentType: 'application/json',
+                    dataType: 'json'
+                }).then(function () {
+                    status.textContent = 'Queued. Watch Scheduled Tasks for - MusicFin: Smarter Music Tagging.';
+                    Dashboard.hideLoadingMsg();
+                }).catch(function (err) {
+                    var detail = (err && (err.message || err.statusText)) || 'unknown error';
+                    status.textContent = 'Could not queue refresh (' + detail + '). Check the Jellyfin log.';
+                    Dashboard.hideLoadingMsg();
+                }).then(function () {
+                    btn.disabled = false;
+                });
+            }
+
             document.querySelector('#ProviderList').addEventListener('click', onProviderListClick);
             document.querySelector('#ProviderList').addEventListener('change', syncProviderUi);
+
+            document.querySelector('#RefreshAllBtn').addEventListener('click', function (e) {
+                e.preventDefault();
+                refreshAll();
+            });
 
             document.querySelector('#DtConfigPage').addEventListener('pageshow', function () {
                 Dashboard.showLoadingMsg();

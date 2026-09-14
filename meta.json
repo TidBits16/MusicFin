@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.12.0",
+  "version": "1.8.13.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Rename internal assembly/namespace from DeezerTagger to MusicFin; cache folder musicfin.",
+  "changelog": "Add Force Refresh All Music (clears cache, overwrites genres/covers).",
   "imagePath": "backdrop.svg"
 }
