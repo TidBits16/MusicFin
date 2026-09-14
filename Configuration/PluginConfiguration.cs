@@ -116,6 +116,12 @@ public class PluginConfiguration : BasePluginConfiguration
     /// </summary>
     public bool ApplyAlbumGenresToTracks { get; set; } = true;
 
+    /// <summary>
+    /// When on, normalize messy existing genre tags (split compounds, fix casing/typos)
+    /// even when no provider genre list is available. Default on.
+    /// </summary>
+    public bool CleanOldMusicTags { get; set; } = true;
+
     public double MinTitleSimilarity { get; set; } = 0.72;
 
     /// <summary>Comma-separated suffix/prefix markers stripped from titles before matching (e.g. explicit tags).</summary>

@@ -1,9 +1,10 @@
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace Jellyfin.Plugin.DeezerTagger;
 
-public static class Genres
+public static partial class Genres
 {
     private static readonly Dictionary<string, string> PrettyMap;
     private static readonly HashSet<string> SmallWords;
@@ -30,8 +31,13 @@ public static class Genres
         ["singer & songwriter"] = "singer songwriter",
         ["rap/hip hop"] = "hip hop",
         ["soul & funk"] = "soul",
-        ["films/games"] = "soundtrack"
+        ["films/games"] = "soundtrack",
+        ["elecronic"] = "electronic",
     };
+
+    // Split on ; | , / : always; split on & only when spaced (keeps R&B / D&B).
+    [GeneratedRegex(@"\s*[;|,/:]\s*|\s+&\s+", RegexOptions.CultureInvariant)]
+    private static partial Regex GenreSplitRegex();
 
     static Genres()
     {
@@ -70,7 +76,7 @@ public static class Genres
 
     public static string NormKey(string name)
     {
-        var s = name.Trim().ToLowerInvariant().Replace('_', ' ').Replace('-', ' ');
+        var s = SoftKey(name).Replace('-', ' ');
         while (s.Contains("  ", StringComparison.Ordinal))
         {
             s = s.Replace("  ", " ", StringComparison.Ordinal);
@@ -147,11 +153,14 @@ public static class Genres
                 }
 
                 output.Add(p);
-                if (max > 0 && output.Count >= max)
-                {
-                    return output;
-                }
             }
+        }
+
+        ReuniteKnownPairs(output);
+
+        if (max > 0 && output.Count > max)
+        {
+            return output.Take(max).ToList();
         }
 
         return output;
@@ -165,15 +174,24 @@ public static class Genres
             yield break;
         }
 
-        if (raw.IndexOfAny([';', '|']) < 0)
+        if (IsProtectedCompound(raw) || !HasGenreDelimiter(raw))
         {
             yield return raw;
             yield break;
         }
 
-        foreach (var part in raw.Split([';', '|'], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        foreach (var part in GenreSplitRegex().Split(raw))
         {
-            yield return part;
+            var trimmed = part.Trim();
+            if (trimmed.Length == 0)
+            {
+                continue;
+            }
+
+            foreach (var nested in SplitParts(trimmed))
+            {
+                yield return nested;
+            }
         }
     }
 
@@ -199,5 +217,88 @@ public static class Genres
         }
 
         return false;
+    }
+
+    private static string SoftKey(string name)
+    {
+        var s = name.Trim().ToLowerInvariant().Replace('_', ' ');
+        while (s.Contains("  ", StringComparison.Ordinal))
+        {
+            s = s.Replace("  ", " ", StringComparison.Ordinal);
+        }
+
+        return s;
+    }
+
+    private static bool HasGenreDelimiter(string raw)
+    {
+        for (var i = 0; i < raw.Length; i++)
+        {
+            var c = raw[i];
+            if (c is ';' or '|' or ',' or '/' or ':')
+            {
+                return true;
+            }
+
+            // "&" only counts with surrounding whitespace (keeps R&B / D&B intact).
+            if (c == '&' && i > 0 && i + 1 < raw.Length &&
+                char.IsWhiteSpace(raw[i - 1]) && char.IsWhiteSpace(raw[i + 1]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsProtectedCompound(string raw)
+    {
+        var soft = SoftKey(raw);
+        if (Equivalents.ContainsKey(soft))
+        {
+            return true;
+        }
+
+        // Intrinsic compounds in the pretty map (R&B, Contemporary R&B) must not be shredded.
+        var key = NormKey(raw);
+        if (!PrettyMap.ContainsKey(key))
+        {
+            return false;
+        }
+
+        return soft.Contains('&', StringComparison.Ordinal) || soft.Contains('/', StringComparison.Ordinal);
+    }
+
+    private static void ReuniteKnownPairs(List<string> output)
+    {
+        var drumIdx = -1;
+        var bassIdx = -1;
+        for (var i = 0; i < output.Count; i++)
+        {
+            var key = NormKey(output[i]);
+            if (key == "drum")
+            {
+                drumIdx = i;
+            }
+            else if (key == "bass")
+            {
+                bassIdx = i;
+            }
+        }
+
+        if (drumIdx < 0 || bassIdx < 0)
+        {
+            return;
+        }
+
+        var first = Math.Min(drumIdx, bassIdx);
+        var second = Math.Max(drumIdx, bassIdx);
+        output.RemoveAt(second);
+        output.RemoveAt(first);
+
+        var merged = Pretty("drum and bass");
+        var mergedKey = NormKey(merged);
+        output.RemoveAll(g => NormKey(g) == mergedKey);
+        output.Insert(Math.Min(first, output.Count), merged);
     }
 }

@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.8.0",
+  "version": "1.8.9.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Keep ExplicitFin album marks when writing names; prefer exact artist matches (Femtanyl vs Fentanyl).",
+  "changelog": "Normalize messy genre tags (split compounds, fix casing/typos) and clean local genres when WriteGenres is on.",
   "imagePath": "backdrop.svg"
 }

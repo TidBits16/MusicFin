@@ -80,6 +80,13 @@
                                 <span>Keep album and track genres consistent</span>
                             </label>
                         </div>
+                        <div class="checkboxContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="CleanOldMusicTags" />
+                                <span>Clean old music tags</span>
+                            </label>
+                            <div class="fieldDescription">Overwrites old music tags with standards from Deezer.</div>
+                        </div>
                     </div>
 
                     <div class="verticalSection">
@@ -281,6 +288,7 @@
                 document.querySelector('#WriteAlbumCovers').checked = config.WriteAlbumCovers !== false;
                 document.querySelector('#WriteGenres').checked = config.WriteGenres !== false;
                 document.querySelector('#ApplyAlbumGenresToTracks').checked = config.ApplyAlbumGenresToTracks !== false;
+                document.querySelector('#CleanOldMusicTags').checked = config.CleanOldMusicTags !== false;
                 document.querySelector('#IgnoreTitleMarkers').value = config.IgnoreTitleMarkers ?? '🅴,[Explicit]';
                 document.querySelector('#MinTitleSimilarity').value = config.MinTitleSimilarity || 0.72;
                 document.querySelector('#SkipArtists').value = config.SkipArtists || '';
@@ -304,6 +312,7 @@
                     config.WriteAlbumCovers = document.querySelector('#WriteAlbumCovers').checked;
                     config.WriteGenres = document.querySelector('#WriteGenres').checked;
                     config.ApplyAlbumGenresToTracks = document.querySelector('#ApplyAlbumGenresToTracks').checked;
+                    config.CleanOldMusicTags = document.querySelector('#CleanOldMusicTags').checked;
                     config.IgnoreTitleMarkers = document.querySelector('#IgnoreTitleMarkers').value;
                     config.MinTitleSimilarity = parseFloat(document.querySelector('#MinTitleSimilarity').value) || 0.72;
                     config.SkipArtists = document.querySelector('#SkipArtists').value;

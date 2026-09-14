@@ -167,6 +167,11 @@ public class ContextEngine
             cancellationToken).ConfigureAwait(false);
         if (resolved is null)
         {
+            if (cfg.WriteGenres && cfg.CleanOldMusicTags)
+            {
+                CleanupLocalGenres(artistTracks, albums, patches, albumPatches);
+            }
+
             return;
         }
 
@@ -334,6 +339,11 @@ public class ContextEngine
                     var patch = new Patch { ItemId = albumItem.Id, Item = albumItem, Genres = want };
                     albumPatches.AddOrUpdate(albumItem.Id, patch, (_, existing) => existing.Merge(patch));
                 }
+            }
+
+            if (cfg.CleanOldMusicTags)
+            {
+                CleanupLocalGenres(artistTracks, albums, patches, albumPatches);
             }
         }
 
@@ -617,6 +627,15 @@ public class ContextEngine
                 genreWrite = genres;
             }
         }
+        else if (cfg.WriteGenres && cfg.CleanOldMusicTags &&
+                 (assignment.Genres.Count == 0 || !cfg.ApplyAlbumGenresToTracks))
+        {
+            // Provider list empty or not applied to tracks: still normalize messy local tags.
+            if (GenreWant([], track.Genres) is { } cleaned)
+            {
+                genreWrite = cleaned;
+            }
+        }
 
         string? providerTrackIdWrite = null;
         if (assignment.ProviderTrackId.Length > 0)
@@ -778,6 +797,60 @@ public class ContextEngine
         {
             _logger.LogDebug(ex, "SmarterMusicTagging: could not save album cover for {Album}", album.Name);
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Normalize existing album/track genres when no provider genre list was written.
+    /// Provider patches (non-null Genres) win and are left alone.
+    /// </summary>
+    private static void CleanupLocalGenres(
+        IReadOnlyList<Audio> artistTracks,
+        IReadOnlyDictionary<Guid, MusicAlbum> albums,
+        ConcurrentDictionary<Guid, Patch> patches,
+        ConcurrentDictionary<Guid, Patch> albumPatches)
+    {
+        var trackAlbumIds = new HashSet<Guid>();
+        foreach (var track in artistTracks)
+        {
+            if (track.GetParent() is MusicAlbum parent)
+            {
+                trackAlbumIds.Add(parent.Id);
+            }
+
+            if (patches.TryGetValue(track.Id, out var trackPatch) && trackPatch.Genres is not null)
+            {
+                continue;
+            }
+
+            if (GenreWant([], track.Genres) is not { } trackWant)
+            {
+                continue;
+            }
+
+            var patch = new Patch { ItemId = track.Id, Item = track, Genres = trackWant };
+            patches.AddOrUpdate(track.Id, patch, (_, existing) => existing.Merge(patch));
+        }
+
+        foreach (var albumId in trackAlbumIds)
+        {
+            if (!albums.TryGetValue(albumId, out var albumItem))
+            {
+                continue;
+            }
+
+            if (albumPatches.TryGetValue(albumId, out var albumPatch) && albumPatch.Genres is not null)
+            {
+                continue;
+            }
+
+            if (GenreWant([], albumItem.Genres) is not { } albumWant)
+            {
+                continue;
+            }
+
+            var patch = new Patch { ItemId = albumId, Item = albumItem, Genres = albumWant };
+            albumPatches.AddOrUpdate(albumId, patch, (_, existing) => existing.Merge(patch));
         }
     }
 
