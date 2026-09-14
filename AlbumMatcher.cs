@@ -133,6 +133,7 @@ public static class AlbumMatcher
         CatalogAlbum? bestAlbum = null;
         CatalogTrack? bestTrack = null;
         var bestTrackScore = -1.0;
+        var bestLocalAlbumScore = -1.0;
         var bestFitness = -1.0;
         var bestExact = false;
         var bestTitleLength = int.MaxValue;
@@ -167,12 +168,17 @@ public static class AlbumMatcher
                 trackScore = Math.Max(trackScore, albumTitleScore);
             }
 
+            var localAlbumScore = local.Album is { Length: > 0 }
+                ? TrackMatcher.TitleMatchScore(local.Album, album.Title, markers, artist)
+                : 0.0;
+
             var want = Titles.Norm(Titles.StripTrailingArtist(local.Title, artist), markers);
             var got = Titles.Norm(match.Title, markers);
             var exact = got == want;
 
             if (IsBetterCandidate(
                     trackScore,
+                    localAlbumScore,
                     albumScore.Fitness,
                     albumScore.Ratio,
                     albumScore.Score,
@@ -180,6 +186,7 @@ public static class AlbumMatcher
                     got.Length,
                     album.Tracks.Count,
                     bestTrackScore,
+                    bestLocalAlbumScore,
                     bestFitness,
                     bestRatio,
                     bestAlbumScore,
@@ -190,6 +197,7 @@ public static class AlbumMatcher
                 bestAlbum = album;
                 bestTrack = match;
                 bestTrackScore = trackScore;
+                bestLocalAlbumScore = localAlbumScore;
                 bestFitness = albumScore.Fitness;
                 bestExact = exact;
                 bestTitleLength = got.Length;
@@ -226,6 +234,7 @@ public static class AlbumMatcher
 
     private static bool IsBetterCandidate(
         double trackScore,
+        double localAlbumScore,
         double fitness,
         double ratio,
         int albumScore,
@@ -233,6 +242,7 @@ public static class AlbumMatcher
         int titleLength,
         int albumSize,
         double bestTrackScore,
+        double bestLocalAlbumScore,
         double bestFitness,
         double bestRatio,
         int bestAlbumScore,
@@ -246,6 +256,27 @@ public static class AlbumMatcher
         }
 
         if (Math.Abs(TitleBand(trackScore) - TitleBand(bestTrackScore)) > 0.0001)
+        {
+            return false;
+        }
+
+        // Prefer catalog albums whose title matches the local album tag (THE ANTIHUMAN vs ANTIHUMAN).
+        if (TitleBand(localAlbumScore) > TitleBand(bestLocalAlbumScore) + 0.0001)
+        {
+            return true;
+        }
+
+        if (Math.Abs(TitleBand(localAlbumScore) - TitleBand(bestLocalAlbumScore)) > 0.0001)
+        {
+            return false;
+        }
+
+        if (localAlbumScore > bestLocalAlbumScore + 0.0001)
+        {
+            return true;
+        }
+
+        if (Math.Abs(localAlbumScore - bestLocalAlbumScore) > 0.0001)
         {
             return false;
         }

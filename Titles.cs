@@ -189,7 +189,8 @@ public static class Titles
 
     /// <summary>
     /// Strips a short trailing parenthetical alternate title (e.g. "Sailboat"), but leaves
-    /// longer descriptors like "Live from Athens Georgia" intact for scoring.
+    /// version markers like (Live)/(Remix) and longer descriptors like
+    /// "Live from Athens Georgia" intact for scoring.
     /// </summary>
     public static string StripShortParenthetical(string title)
     {
@@ -207,6 +208,11 @@ public static class Titles
 
         var inner = t[(open + 1)..^1].Trim();
         if (inner.Length == 0)
+        {
+            return t;
+        }
+
+        if (IsVersionParenthetical(inner))
         {
             return t;
         }
@@ -235,6 +241,76 @@ public static class Titles
         }
 
         return t[..open].TrimEnd();
+    }
+
+    /// <summary>
+    /// True when parenthetical text marks a recording version/edition rather than an alternate title.
+    /// </summary>
+    public static bool IsVersionParenthetical(string inner)
+    {
+        var s = inner.Trim().ToLowerInvariant();
+        if (s.Length == 0)
+        {
+            return false;
+        }
+
+        // Single-token version markers.
+        if (s is "live" or "remix" or "acoustic" or "instrumental" or "demo"
+            or "remaster" or "remastered" or "edit" or "mix" or "cover"
+            or "karaoke" or "clean" or "explicit")
+        {
+            return true;
+        }
+
+        // Short multi-word version phrases.
+        if (s.StartsWith("live ", StringComparison.Ordinal)
+            || s.StartsWith("remix ", StringComparison.Ordinal)
+            || s.EndsWith(" remix", StringComparison.Ordinal)
+            || s.EndsWith(" mix", StringComparison.Ordinal)
+            || s.EndsWith(" edit", StringComparison.Ordinal)
+            || s.EndsWith(" remaster", StringComparison.Ordinal)
+            || s.EndsWith(" remastered", StringComparison.Ordinal)
+            || s is "radio edit" or "live edit" or "acoustic version"
+            || s is "instrumental version" or "deluxe edition" or "bonus track")
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// True when <paramref name="localAlbum"/> is a more-specific variant of <paramref name="catalogAlbum"/>
+    /// (e.g. "THE ANTIHUMAN" vs "ANTIHUMAN") and should not be demoted on write.
+    /// </summary>
+    public static bool IsMoreSpecificAlbumTitle(
+        string localAlbum,
+        string catalogAlbum,
+        IReadOnlyList<string>? markers = null)
+    {
+        var local = Norm(localAlbum, markers);
+        var catalog = Norm(catalogAlbum, markers);
+        if (local.Length == 0 || catalog.Length == 0 || local == catalog)
+        {
+            return false;
+        }
+
+        if (local.Length <= catalog.Length)
+        {
+            return false;
+        }
+
+        // Local contains catalog as a whole-token phrase (leading "the ", trailing words, etc.).
+        if (local.Contains(catalog, StringComparison.Ordinal))
+        {
+            var idx = local.IndexOf(catalog, StringComparison.Ordinal);
+            var beforeOk = idx == 0 || local[idx - 1] == ' ';
+            var after = idx + catalog.Length;
+            var afterOk = after == local.Length || local[after] == ' ';
+            return beforeOk && afterOk;
+        }
+
+        return false;
     }
 
     private static string FoldQuotes(string text)

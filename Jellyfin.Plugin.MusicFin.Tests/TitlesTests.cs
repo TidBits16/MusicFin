@@ -101,9 +101,27 @@ public class TitlesTests
     [Theory]
     [InlineData("All That and More (Sailboat)", "All That and More")]
     [InlineData("That's My Shit (Live from Athens Georgia)", "That's My Shit (Live from Athens Georgia)")]
+    [InlineData("Step On Up (Live)", "Step On Up (Live)")]
+    [InlineData("Song (Remix)", "Song (Remix)")]
+    [InlineData("Song (Radio Edit)", "Song (Radio Edit)")]
     [InlineData("Betty", "Betty")]
     public void StripShortParenthetical_OnlyRemovesShortSuffixes(string input, string expected)
         => Assert.Equal(expected, Titles.StripShortParenthetical(input));
+
+    [Theory]
+    [InlineData("THE ANTIHUMAN", "ANTIHUMAN", true)]
+    [InlineData("ANTIHUMAN", "ANTIHUMAN", false)]
+    [InlineData("ANTIHUMAN", "THE ANTIHUMAN", false)]
+    [InlineData("Live in '25", "Step On Up", false)]
+    public void IsMoreSpecificAlbumTitle_DetectsLeadingArticleVariants(
+        string local,
+        string catalog,
+        bool expected)
+        => Assert.Equal(expected, Titles.IsMoreSpecificAlbumTitle(local, catalog));
+
+    [Fact]
+    public void TitleMatchScore_DoesNotTreatLiveSuffixAsExactStudioMatch()
+        => Assert.True(TrackMatcher.TitleMatchScore("Step On Up", "Step On Up (Live)") < 0.999);
 
     [Theory]
     [InlineData("Outliars & Hyppocrates", "outliars and hyppocrates")]

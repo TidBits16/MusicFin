@@ -541,10 +541,120 @@ public class AlbumMatcherTests
         Assert.True(assignment.IsSingleRelease);
     }
 
-    private static LocalTrack Track(string suffix, string title)
+    [Fact]
+    public void StudioSinglesBeatLiveTourAlbum_WhenCatalogHasLiveSuffixTracks()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "Step On Up", "Step On Up"),
+            Track("2", "I Got No Time", "I Got No Time"),
+            Track("3", "Die In A Fire", "Die In A Fire")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("Step On Up", 1, "single", "The Living Tombstone", "Step On Up"),
+            AlbumWithType("I Got No Time", 2, "single", "The Living Tombstone", "I Got No Time"),
+            AlbumWithType("Die In A Fire", 3, "single", "The Living Tombstone", "Die In A Fire"),
+            AlbumWithType(
+                "Live in '25",
+                4,
+                "album",
+                "The Living Tombstone",
+                "Step On Up (Live)",
+                "I Got No Time (Live)",
+                "Die In A Fire (Live)",
+                "Five Nights at Freddy's (Live)",
+                "It's Been So Long (Live)",
+                "My Ordinary Life (Live)",
+                "This Comes From Inside (Live)",
+                "I Can't Fix You (Live)")
+        };
+
+        var result = AlbumMatcher.Match("The Living Tombstone", local, albums, new AlbumMatcherOptions());
+
+        Assert.Equal(3, result.Assignments.Count);
+        Assert.DoesNotContain(result.Assignments, a => a.AlbumTitle == "Live in '25");
+        Assert.Equal("Step On Up", result.Assignments.Single(a => a.TrackTitle == "Step On Up").AlbumTitle);
+        Assert.Equal("I Got No Time", result.Assignments.Single(a => a.TrackTitle == "I Got No Time").AlbumTitle);
+        Assert.Equal("Die In A Fire", result.Assignments.Single(a => a.TrackTitle == "Die In A Fire").AlbumTitle);
+    }
+
+    [Fact]
+    public void StudioSinglesBeatLiveTourAlbum_EvenWhenLocalAlbumAlreadyRenamedToLive()
+    {
+        // Recovery path: album names already wrong, track titles still studio.
+        var local = new List<LocalTrack>
+        {
+            Track("1", "Step On Up", "Live in '25"),
+            Track("2", "I Got No Time", "Live in '25")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType("Step On Up", 1, "single", "The Living Tombstone", "Step On Up"),
+            AlbumWithType("I Got No Time", 2, "single", "The Living Tombstone", "I Got No Time"),
+            AlbumWithType(
+                "Live in '25",
+                3,
+                "album",
+                "The Living Tombstone",
+                "Step On Up (Live)",
+                "I Got No Time (Live)",
+                "Die In A Fire (Live)",
+                "Five Nights at Freddy's (Live)")
+        };
+
+        var result = AlbumMatcher.Match("The Living Tombstone", local, albums, new AlbumMatcherOptions());
+
+        Assert.DoesNotContain(result.Assignments, a => a.AlbumTitle == "Live in '25");
+        Assert.Equal("Step On Up", result.Assignments.Single(a => a.TrackTitle == "Step On Up").AlbumTitle);
+        Assert.Equal("I Got No Time", result.Assignments.Single(a => a.TrackTitle == "I Got No Time").AlbumTitle);
+    }
+
+    [Fact]
+    public void DistinctNearDuplicateAlbumTitles_StayDistinct_WhenLocalAlbumTagsDiffer()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("t1", "THE ANTIHUMAN", "THE ANTIHUMAN"),
+            Track("t2", "THE ANTIHUMAN - Instrumental", "THE ANTIHUMAN"),
+            Track("a1", "ANTIHUMAN (feat. Stephanafro)", "ANTIHUMAN"),
+            Track("a2", "ANTIHUMAN (Instrumental)", "ANTIHUMAN")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType(
+                "THE ANTIHUMAN",
+                1,
+                "album",
+                "ivycomb",
+                "THE ANTIHUMAN",
+                "THE ANTIHUMAN - Instrumental"),
+            AlbumWithType(
+                "ANTIHUMAN",
+                2,
+                "album",
+                "ivycomb",
+                "ANTIHUMAN (feat. Stephanafro)",
+                "ANTIHUMAN (Instrumental)")
+        };
+
+        var result = AlbumMatcher.Match("ivycomb", local, albums, new AlbumMatcherOptions());
+
+        Assert.All(
+            result.Assignments.Where(a => a.TrackTitle.StartsWith("THE ANTIHUMAN", StringComparison.Ordinal)),
+            a => Assert.Equal("THE ANTIHUMAN", a.AlbumTitle));
+        Assert.All(
+            result.Assignments.Where(a => a.TrackTitle.StartsWith("ANTIHUMAN", StringComparison.Ordinal)),
+            a => Assert.Equal("ANTIHUMAN", a.AlbumTitle));
+    }
+
+    private static LocalTrack Track(string suffix, string title, string? album = null)
     {
         _ = suffix;
-        return new LocalTrack { Id = Guid.NewGuid(), Title = title };
+        return new LocalTrack { Id = Guid.NewGuid(), Title = title, Album = album };
     }
 
     [Fact]

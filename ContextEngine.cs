@@ -336,6 +336,12 @@ public class ContextEngine
                     continue;
                 }
 
+                // Do not demote a more-specific local album title (THE ANTIHUMAN -> ANTIHUMAN).
+                if (Titles.IsMoreSpecificAlbumTitle(current, newName, cfg.EffectiveIgnoreTitleMarkers))
+                {
+                    continue;
+                }
+
                 var patch = new Patch { ItemId = albumId, Item = albumItem, Name = newName };
                 albumPatches.AddOrUpdate(albumId, patch, (_, existing) => existing.Merge(patch));
             }
@@ -607,7 +613,8 @@ public class ContextEngine
         if (cfg.WriteAlbumNames)
         {
             var current = track.Album ?? string.Empty;
-            if (!Titles.SameTitleIgnoringMarks(current, assignment.AlbumTitle, cfg.EffectiveIgnoreTitleMarkers))
+            if (!Titles.SameTitleIgnoringMarks(current, assignment.AlbumTitle, cfg.EffectiveIgnoreTitleMarkers)
+                && !Titles.IsMoreSpecificAlbumTitle(current, assignment.AlbumTitle, cfg.EffectiveIgnoreTitleMarkers))
             {
                 albumWrite = assignment.AlbumTitle;
             }
