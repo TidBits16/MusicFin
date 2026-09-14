@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.12.0",
+        "changelog": "Rename internal assembly/namespace from DeezerTagger to MusicFin; cache folder musicfin.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.12.0/MusicFin_1.8.12.0.zip",
+        "checksum": "712bce57d1f14b24ae4bab17b92168d5",
+        "timestamp": "2026-09-14T15:52:02Z"
+      },
+      {
         "version": "1.8.11.0",
         "changelog": "Keep - prefix on scheduled task only; Discogs-first lookup and first-provider genre writes.",
         "targetAbi": "10.11.0.0",
