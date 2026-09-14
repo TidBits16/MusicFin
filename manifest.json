@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.9.0",
+        "changelog": "Normalize messy genre tags (split compounds, fix casing/typos) and clean local genres when WriteGenres is on.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.9.0/MusicFin_1.8.9.0.zip",
+        "checksum": "47267ba7a1ba2200e40da9b4cc71e99b",
+        "timestamp": "2026-09-14T15:15:16Z"
+      },
+      {
         "version": "1.8.8.0",
         "changelog": "Keep ExplicitFin album marks when writing names; prefer exact artist matches (Femtanyl vs Fentanyl).",
         "targetAbi": "10.11.0.0",
