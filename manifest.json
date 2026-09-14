@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.22.0",
+        "changelog": "Prefer studio-album consensus inside multi-track folders so lead singles (e.g. drivers license, the cure) do not steal track numbers, album titles, or covers; standalone single folders stay singles.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.22.0/MusicFin_1.8.22.0.zip",
+        "checksum": "95bc270cc6ddac5edbf65cd66575a71d",
+        "timestamp": "2026-09-14T19:01:28Z"
+      },
+      {
         "version": "1.8.21.0",
         "changelog": "Prefer studio albums over singles, compilations, live tours, and deluxe editions (fixes Classics Collection / SOUR / GUTS spilled / The Land live). Sorry \u2014 1.8.20.0 missed several of these secondary-release cases.",
         "targetAbi": "10.11.0.0",

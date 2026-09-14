@@ -1,6 +1,6 @@
 name: "MusicFin: Smarter Music Tagging"
 guid: "ade80bea-e92e-4f2c-9a42-f5bf88bffa98"
-version: "1.8.21.0"
+version: "1.8.22.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Context-based track & album recognition."
@@ -11,4 +11,4 @@ artifacts:
   - "Jellyfin.Plugin.MusicFin.dll"
   - "backdrop.svg"
 changelog: >
-  Prefer studio albums over singles, compilations, live tours, and deluxe editions (fixes Classics Collection / SOUR / GUTS spilled / The Land live). Sorry — 1.8.20.0 missed several of these secondary-release cases.
+  Prefer studio-album consensus inside multi-track folders so lead singles (e.g. drivers license, the cure) do not steal track numbers, album titles, or covers; standalone single folders stay singles.

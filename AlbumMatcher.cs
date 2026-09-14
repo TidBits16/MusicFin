@@ -9,6 +9,9 @@ public sealed class LocalTrack
     public string? Album { get; init; }
 
     public int? IndexNumber { get; init; }
+
+    /// <summary>Jellyfin MusicAlbum parent id; used for folder consensus over lead singles.</summary>
+    public Guid? ParentAlbumId { get; init; }
 }
 
 public sealed class TrackAssignment
@@ -82,7 +85,6 @@ public static class AlbumMatcher
         var minSim = options.MinTitleSimilarity;
         var markers = options.IgnoreTitleMarkers;
 
-        // Candidates compete on title fit, then fitness = matchCount * ratio^2.
         var candidates = catalogAlbums.ToList();
         var scored = candidates
             .Select(album => new ScoredAlbum(
@@ -91,17 +93,39 @@ public static class AlbumMatcher
             .Where(x => x.Score > 0)
             .ToDictionary(x => x.Album.AlbumId, StringComparer.Ordinal);
 
+        var parentSizes = localTracks
+            .Where(t => t.ParentAlbumId is { } id && id != Guid.Empty)
+            .GroupBy(t => t.ParentAlbumId!.Value)
+            .ToDictionary(g => g.Key, g => g.Count());
+
         var assignments = new List<TrackAssignment>();
-        var albumCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var local in localTracks)
         {
-            if (TryAssignAlbum(local, artist, candidates, scored, minSim, markers) is not { } assignment)
+            var parentSize = local.ParentAlbumId is { } pid && parentSizes.TryGetValue(pid, out var n)
+                ? n
+                : 0;
+            if (TryAssignAlbum(local, artist, candidates, scored, minSim, markers, parentSize) is not { } assignment)
             {
                 continue;
             }
 
             assignments.Add(assignment);
+        }
+
+        assignments = ReconcileParentConsensus(
+            localTracks,
+            assignments,
+            candidates,
+            scored,
+            artist,
+            minSim,
+            markers,
+            parentSizes);
+
+        var albumCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var assignment in assignments)
+        {
             albumCounts[assignment.AlbumTitle] = albumCounts.GetValueOrDefault(assignment.AlbumTitle) + 1;
         }
 
@@ -122,13 +146,140 @@ public static class AlbumMatcher
         };
     }
 
+    /// <summary>
+    /// Inside a multi-track Jellyfin album folder, pull lead-single outliers onto the
+    /// majority studio/primary release when the song appears on that release.
+    /// </summary>
+    private static List<TrackAssignment> ReconcileParentConsensus(
+        IReadOnlyList<LocalTrack> localTracks,
+        List<TrackAssignment> assignments,
+        IReadOnlyList<CatalogAlbum> candidates,
+        IReadOnlyDictionary<string, ScoredAlbum> scored,
+        string artist,
+        double minSimilarity,
+        IReadOnlyList<string> markers,
+        IReadOnlyDictionary<Guid, int> parentSizes)
+    {
+        var assignmentIndex = assignments
+            .Select((a, i) => (a, i))
+            .ToDictionary(x => x.a.TrackId, x => x.i);
+
+        foreach (var group in localTracks
+                     .Where(t => t.ParentAlbumId is { } id && id != Guid.Empty)
+                     .GroupBy(t => t.ParentAlbumId!.Value))
+        {
+            if (!parentSizes.TryGetValue(group.Key, out var parentSize) || parentSize < 3)
+            {
+                continue;
+            }
+
+            var groupAssignments = new List<TrackAssignment>();
+            foreach (var local in group)
+            {
+                if (assignmentIndex.TryGetValue(local.Id, out var idx))
+                {
+                    groupAssignments.Add(assignments[idx]);
+                }
+            }
+
+            if (groupAssignments.Count == 0)
+            {
+                continue;
+            }
+
+            // Majority non-single primary among matched tracks in this folder.
+            var primaryVotes = groupAssignments
+                .Where(a => !a.IsSingleRelease)
+                .GroupBy(a => a.AlbumTitle, StringComparer.OrdinalIgnoreCase)
+                .Select(g => (Title: g.Key, Count: g.Count(), ProviderAlbumId: g.First().ProviderAlbumId))
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            if (primaryVotes.Count == 0)
+            {
+                continue;
+            }
+
+            var winner = primaryVotes[0];
+            if (winner.Count * 2 < groupAssignments.Count)
+            {
+                continue;
+            }
+
+            if (primaryVotes.Count > 1 && primaryVotes[1].Count == winner.Count)
+            {
+                continue;
+            }
+
+            var winAlbum = candidates.FirstOrDefault(c =>
+                string.Equals(c.AlbumId, winner.ProviderAlbumId, StringComparison.Ordinal)
+                || string.Equals(c.Title, winner.Title, StringComparison.OrdinalIgnoreCase));
+            if (winAlbum is null || winAlbum.IsSingle || !scored.ContainsKey(winAlbum.AlbumId))
+            {
+                continue;
+            }
+
+            foreach (var local in group)
+            {
+                if (!assignmentIndex.TryGetValue(local.Id, out var idx))
+                {
+                    continue;
+                }
+
+                var current = assignments[idx];
+                if (!current.IsSingleRelease
+                    && string.Equals(current.AlbumTitle, winAlbum.Title, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var match = TrackMatcher.MatchTrack(local.Title, winAlbum.Tracks, minSimilarity, markers, artist);
+                if (match is null)
+                {
+                    continue;
+                }
+
+                assignments[idx] = BuildAssignment(local, winAlbum, match, artist);
+            }
+        }
+
+        return assignments;
+    }
+
+    private static TrackAssignment BuildAssignment(
+        LocalTrack local,
+        CatalogAlbum album,
+        CatalogTrack match,
+        string artist)
+    {
+        var trackNumber = match.TrackPosition > 0 ? match.TrackPosition : 1;
+        var discNumber = match.DiskNumber > 0 ? match.DiskNumber : 1;
+        return new TrackAssignment
+        {
+            TrackId = local.Id,
+            TrackTitle = local.Title,
+            AlbumTitle = album.Title,
+            TrackNumber = trackNumber,
+            DiscNumber = discNumber,
+            ProviderAlbumId = album.AlbumId,
+            ProviderTrackId = match.TrackId,
+            Genres = album.Genres,
+            TrackArtists = ArtistsForTrack(match, album, artist),
+            AlbumArtists = AlbumArtistsFor(album, artist),
+            Year = album.Year,
+            CoverUrl = album.CoverUrl,
+            IsSingleRelease = album.IsSingle
+        };
+    }
+
     private static TrackAssignment? TryAssignAlbum(
         LocalTrack local,
         string artist,
         IReadOnlyList<CatalogAlbum> candidates,
         IReadOnlyDictionary<string, ScoredAlbum> scored,
         double minSimilarity,
-        IReadOnlyList<string> markers)
+        IReadOnlyList<string> markers,
+        int parentSize)
     {
         CatalogAlbum? bestAlbum = null;
         CatalogTrack? bestTrack = null;
@@ -194,7 +345,8 @@ public static class AlbumMatcher
                     bestAlbumScore,
                     bestExact,
                     bestTitleLength,
-                    bestAlbum))
+                    bestAlbum,
+                    parentSize))
             {
                 bestAlbum = album;
                 bestTrack = match;
@@ -213,24 +365,7 @@ public static class AlbumMatcher
             return null;
         }
 
-        var trackNumber = bestTrack.TrackPosition > 0 ? bestTrack.TrackPosition : 1;
-        var discNumber = bestTrack.DiskNumber > 0 ? bestTrack.DiskNumber : 1;
-        return new TrackAssignment
-        {
-            TrackId = local.Id,
-            TrackTitle = local.Title,
-            AlbumTitle = bestAlbum.Title,
-            TrackNumber = trackNumber,
-            DiscNumber = discNumber,
-            ProviderAlbumId = bestAlbum.AlbumId,
-            ProviderTrackId = bestTrack.TrackId,
-            Genres = bestAlbum.Genres,
-            TrackArtists = ArtistsForTrack(bestTrack, bestAlbum, artist),
-            AlbumArtists = AlbumArtistsFor(bestAlbum, artist),
-            Year = bestAlbum.Year,
-            CoverUrl = bestAlbum.CoverUrl,
-            IsSingleRelease = bestAlbum.IsSingle
-        };
+        return BuildAssignment(local, bestAlbum, bestTrack, artist);
     }
 
     private static bool IsBetterCandidate(
@@ -249,7 +384,8 @@ public static class AlbumMatcher
         int bestAlbumScore,
         bool bestExact,
         int bestTitleLength,
-        CatalogAlbum? bestAlbum)
+        CatalogAlbum? bestAlbum,
+        int parentSize)
     {
         if (TitleBand(trackScore) > TitleBand(bestTrackScore) + 0.0001)
         {
@@ -259,6 +395,21 @@ public static class AlbumMatcher
         if (Math.Abs(TitleBand(trackScore) - TitleBand(bestTrackScore)) > 0.0001)
         {
             return false;
+        }
+
+        // Multi-track folders: prefer a well-covered primary over a same-titled single
+        // even when a poisoned local album tag names the single (drivers license in SOUR).
+        // Standalone 1–2 track single folders keep localAlbumScore precedence below.
+        if (parentSize >= 3
+            && bestAlbum is not null
+            && album.IsSingle != bestAlbum.IsSingle)
+        {
+            var albumStrong = IsStrongPrimary(album, ratio, albumScore, localAlbumScore);
+            var bestStrong = IsStrongPrimary(bestAlbum, bestRatio, bestAlbumScore, bestLocalAlbumScore);
+            if (albumStrong != bestStrong)
+            {
+                return albumStrong;
+            }
         }
 
         // Prefer catalog albums whose title matches the local album tag (THE ANTIHUMAN vs ANTIHUMAN).

@@ -875,10 +875,154 @@ public class AlbumMatcherTests
         Assert.All(result.Assignments, a => Assert.Equal("Be the Cowboy", a.AlbumTitle));
     }
 
-    private static LocalTrack Track(string suffix, string title, string? album = null)
+    [Fact]
+    public void FullStudioAlbumBeatsLeadSingle_OliviaYouSeemPrettySad()
+    {
+        var local = new List<LocalTrack>
+        {
+            Track("1", "drop dead", "you seem pretty sad for a girl so in love"),
+            Track("2", "stupid song", "you seem pretty sad for a girl so in love"),
+            Track("3", "honeybee", "you seem pretty sad for a girl so in love"),
+            Track("4", "maggots for brains", "you seem pretty sad for a girl so in love"),
+            Track("5", "u + me = <3", "you seem pretty sad for a girl so in love"),
+            Track("6", "my way", "you seem pretty sad for a girl so in love"),
+            Track("7", "purple", "you seem pretty sad for a girl so in love"),
+            Track("8", "the cure", "you seem pretty sad for a girl so in love"),
+            Track("9", "begged", "you seem pretty sad for a girl so in love"),
+            Track("10", "what's wrong with me", "you seem pretty sad for a girl so in love"),
+            Track("11", "less", "you seem pretty sad for a girl so in love"),
+            Track("12", "expectations", "you seem pretty sad for a girl so in love"),
+            Track("13", "cigarette smoke", "you seem pretty sad for a girl so in love")
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType(
+                "you seem pretty sad for a girl so in love",
+                1,
+                "album",
+                "Olivia Rodrigo",
+                "drop dead", "stupid song", "honeybee", "maggots for brains",
+                "u + me = <3", "my way", "purple", "the cure", "begged",
+                "what's wrong with me", "less", "expectations", "cigarette smoke"),
+            new()
+            {
+                AlbumId = "2",
+                Title = "the cure",
+                RecordType = "single",
+                AlbumArtists = ["Olivia Rodrigo"],
+                Tracks =
+                [
+                    new CatalogTrack { Title = "the cure", TrackPosition = 1, TrackId = "c1" },
+                    new CatalogTrack { Title = "Never Do (Demo)", TrackPosition = 2, TrackId = "c2" }
+                ]
+            }
+        };
+
+        var result = AlbumMatcher.Match("Olivia Rodrigo", local, albums, new AlbumMatcherOptions());
+
+        Assert.Equal(13, result.Assignments.Count);
+        Assert.All(
+            result.Assignments,
+            a => Assert.Equal("you seem pretty sad for a girl so in love", a.AlbumTitle));
+        Assert.Equal(0, result.SingleReleaseCount);
+        Assert.Equal(
+            8,
+            result.Assignments.Single(a => a.TrackTitle == "the cure").TrackNumber);
+    }
+
+    [Fact]
+    public void ParentConsensus_HealsPoisonedSingleTagInsideStudioAlbumFolder()
+    {
+        var parentId = Guid.NewGuid();
+        var local = new List<LocalTrack>
+        {
+            Track("1", "brutal", "SOUR", parentId),
+            Track("2", "traitor", "SOUR", parentId),
+            Track("3", "drivers license", "drivers license", parentId),
+            Track("4", "1 step forward, 3 steps back", "SOUR", parentId),
+            Track("5", "deja vu", "SOUR", parentId),
+            Track("6", "good 4 u", "SOUR", parentId),
+            Track("7", "enough for you", "SOUR", parentId),
+            Track("8", "happier", "SOUR", parentId),
+            Track("9", "jealousy, jealousy", "SOUR", parentId),
+            Track("10", "favorite crime", "SOUR", parentId),
+            Track("11", "hope ur ok", "SOUR", parentId)
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType(
+                "SOUR",
+                1,
+                "album",
+                "Olivia Rodrigo",
+                "brutal", "traitor", "drivers license", "1 step forward, 3 steps back",
+                "deja vu", "good 4 u", "enough for you", "happier",
+                "jealousy, jealousy", "favorite crime", "hope ur ok"),
+            AlbumWithType("drivers license", 2, "single", "Olivia Rodrigo", "drivers license"),
+            AlbumWithType("good 4 u", 3, "single", "Olivia Rodrigo", "good 4 u")
+        };
+
+        var result = AlbumMatcher.Match("Olivia Rodrigo", local, albums, new AlbumMatcherOptions());
+
+        Assert.Equal(11, result.Assignments.Count);
+        Assert.All(result.Assignments, a => Assert.Equal("SOUR", a.AlbumTitle));
+        Assert.Equal(0, result.SingleReleaseCount);
+        Assert.Equal(3, result.Assignments.Single(a => a.TrackTitle == "drivers license").TrackNumber);
+    }
+
+    [Fact]
+    public void StandaloneSingleFolder_KeepsSingleWhenParentHasFewTracks()
+    {
+        var singleParent = Guid.NewGuid();
+        var sourParent = Guid.NewGuid();
+        var local = new List<LocalTrack>
+        {
+            Track("s1", "drivers license", "drivers license", singleParent),
+            Track("1", "brutal", "SOUR", sourParent),
+            Track("2", "traitor", "SOUR", sourParent),
+            Track("3", "drivers license", "SOUR", sourParent),
+            Track("4", "deja vu", "SOUR", sourParent),
+            Track("5", "good 4 u", "SOUR", sourParent)
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType(
+                "SOUR",
+                1,
+                "album",
+                "Olivia Rodrigo",
+                "brutal", "traitor", "drivers license", "1 step forward, 3 steps back",
+                "deja vu", "good 4 u", "enough for you", "happier",
+                "jealousy, jealousy", "favorite crime", "hope ur ok"),
+            AlbumWithType("drivers license", 2, "single", "Olivia Rodrigo", "drivers license")
+        };
+
+        var result = AlbumMatcher.Match("Olivia Rodrigo", local, albums, new AlbumMatcherOptions());
+
+        var standalone = Assert.Single(
+            result.Assignments,
+            a => a.TrackTitle == "drivers license" && a.IsSingleRelease);
+        Assert.Equal("drivers license", standalone.AlbumTitle);
+        Assert.Equal(1, standalone.TrackNumber);
+
+        Assert.All(
+            result.Assignments.Where(a => !a.IsSingleRelease),
+            a => Assert.Equal("SOUR", a.AlbumTitle));
+    }
+
+    private static LocalTrack Track(string suffix, string title, string? album = null, Guid? parentAlbumId = null)
     {
         _ = suffix;
-        return new LocalTrack { Id = Guid.NewGuid(), Title = title, Album = album };
+        return new LocalTrack
+        {
+            Id = Guid.NewGuid(),
+            Title = title,
+            Album = album,
+            ParentAlbumId = parentAlbumId
+        };
     }
 
     [Fact]

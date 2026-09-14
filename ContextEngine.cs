@@ -204,7 +204,8 @@ public class ContextEngine
             Id = t.Id,
             Title = t.Name ?? string.Empty,
             Album = t.Album,
-            IndexNumber = t.IndexNumber
+            IndexNumber = t.IndexNumber,
+            ParentAlbumId = t.GetParent() is MusicAlbum parent ? parent.Id : null
         }).ToList();
 
         var result = AlbumMatcher.Match(
@@ -319,16 +320,14 @@ public class ContextEngine
                     continue;
                 }
 
-                var titles = assignments
-                    .Select(a => a.AlbumTitle)
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .ToList();
-                if (titles.Count != 1)
+                var parentTrackCount = artistTracks.Count(t =>
+                    t.GetParent() is MusicAlbum parent && parent.Id == albumId);
+                if (!AlbumRename.ShouldRenameAlbumEntity(parentTrackCount, assignments))
                 {
                     continue;
                 }
 
-                var newName = titles[0];
+                var newName = assignments[0].AlbumTitle;
                 var current = albumItem.Name ?? string.Empty;
                 // Do not clobber ExplicitFin marks (CHASER 🅴 vs CHASER).
                 if (Titles.SameTitleIgnoringMarks(current, newName, cfg.EffectiveIgnoreTitleMarkers))
@@ -478,6 +477,16 @@ public class ContextEngine
             foreach (var (albumId, urls) in coversByAlbum)
             {
                 if (!albums.TryGetValue(albumId, out var albumItem) || albumItem is not MusicAlbum musicAlbum)
+                {
+                    continue;
+                }
+
+                // Same minority-hit problem as rename: one track matched to a single
+                // must not paste that single's cover onto a 13-track studio folder.
+                var parentTrackCount = musicAlbum.GetRecursiveChildren()
+                    .OfType<Audio>()
+                    .Count(t => t.IsFileProtocol);
+                if (urls.Count * 2 < parentTrackCount)
                 {
                     continue;
                 }
