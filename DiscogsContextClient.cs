@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
-using Jellyfin.Plugin.DeezerTagger.Configuration;
+using Jellyfin.Plugin.MusicFin.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public sealed class DiscogsContextClient : IContextMetadataClient
 {

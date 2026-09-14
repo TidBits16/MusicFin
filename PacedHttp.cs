@@ -1,7 +1,7 @@
 using System.Net.Http;
 using System.Text.Json;
 
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public class PacedHttp
 {
@@ -21,7 +21,7 @@ public class PacedHttp
         var agent = userAgent?.Trim();
         if (string.IsNullOrEmpty(agent))
         {
-            agent = "deezertagger/1.0 (jellyfin-plugin)";
+            agent = "musicfin/1.0 (jellyfin-plugin)";
         }
 
         if (!_http.DefaultRequestHeaders.UserAgent.Any())

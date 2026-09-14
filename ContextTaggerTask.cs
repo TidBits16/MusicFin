@@ -1,7 +1,7 @@
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public class ContextTaggerTask : IScheduledTask
 {

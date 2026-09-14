@@ -62,7 +62,7 @@ For just <strong>MusicFin</strong> you can use this URL: <code>https://raw.githu
 For development or packaging your own build:
 
 ```bash
-dotnet build Jellyfin.Plugin.DeezerTagger.csproj -c Release
+dotnet build Jellyfin.Plugin.MusicFin.csproj -c Release
 ./scripts/package.sh
 ```
 

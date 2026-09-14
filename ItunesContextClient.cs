@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public sealed class ItunesContextClient : IContextMetadataClient
 {

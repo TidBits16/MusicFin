@@ -1,6 +1,6 @@
-using Jellyfin.Plugin.DeezerTagger.Configuration;
+using Jellyfin.Plugin.MusicFin.Configuration;
 
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public class MetadataClientFactory
 {

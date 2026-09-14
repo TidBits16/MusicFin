@@ -1,13 +1,13 @@
 using System.Net.Http;
-using Jellyfin.Plugin.DeezerTagger;
+using Jellyfin.Plugin.MusicFin;
 
-namespace Jellyfin.Plugin.DeezerTagger.Tests;
+namespace Jellyfin.Plugin.MusicFin.Tests;
 
 internal static class TestDeezer
 {
     public static DeezerContextClient CreateClient()
     {
-        var cacheDir = Path.Combine(Path.GetTempPath(), "deezertagger-tests", Guid.NewGuid().ToString("N"));
+        var cacheDir = Path.Combine(Path.GetTempPath(), "musicfin-tests", Guid.NewGuid().ToString("N"));
         return new DeezerContextClient(new DefaultHttpClientFactory(), new HttpCache(cacheDir), new NullDeezerLogger());
     }
 

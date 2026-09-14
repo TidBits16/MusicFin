@@ -1,6 +1,6 @@
 using MediaBrowser.Model.Plugins;
 
-namespace Jellyfin.Plugin.DeezerTagger.Configuration;
+namespace Jellyfin.Plugin.MusicFin.Configuration;
 
 public class PluginConfiguration : BasePluginConfiguration
 {

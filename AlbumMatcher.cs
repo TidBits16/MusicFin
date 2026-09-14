@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public sealed class LocalTrack
 {

@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using MediaBrowser.Common.Configuration;
 
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public class HttpCache
 {
@@ -11,7 +11,7 @@ public class HttpCache
     private readonly object _gate = new();
 
     public HttpCache(IApplicationPaths paths)
-        : this(Path.Combine(paths.CachePath, "deezertagger"))
+        : this(Path.Combine(paths.CachePath, "musicfin"))
     {
     }
 

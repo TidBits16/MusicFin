@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public static class Titles
 {

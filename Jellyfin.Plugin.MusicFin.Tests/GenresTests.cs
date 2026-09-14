@@ -1,7 +1,7 @@
-using Jellyfin.Plugin.DeezerTagger;
+using Jellyfin.Plugin.MusicFin;
 using Xunit;
 
-namespace Jellyfin.Plugin.DeezerTagger.Tests;
+namespace Jellyfin.Plugin.MusicFin.Tests;
 
 public class GenresTests
 {

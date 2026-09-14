@@ -1,7 +1,7 @@
 using System.Net.Http;
-using Jellyfin.Plugin.DeezerTagger;
+using Jellyfin.Plugin.MusicFin;
 
-namespace Jellyfin.Plugin.DeezerTagger.Tests;
+namespace Jellyfin.Plugin.MusicFin.Tests;
 
 internal static class TestMetadata
 {

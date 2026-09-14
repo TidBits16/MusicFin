@@ -1,11 +1,11 @@
 using System.Globalization;
-using Jellyfin.Plugin.DeezerTagger.Configuration;
+using Jellyfin.Plugin.MusicFin.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {

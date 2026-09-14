@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.11.0",
+  "version": "1.8.12.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Keep - prefix on scheduled task only; Discogs-first lookup and first-provider genre writes.",
+  "changelog": "Rename internal assembly/namespace from DeezerTagger to MusicFin; cache folder musicfin.",
   "imagePath": "backdrop.svg"
 }

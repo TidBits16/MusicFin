@@ -17,6 +17,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Jellyfin.Plugin.DeezerTagger.csproj" />
+    <ProjectReference Include="..\Jellyfin.Plugin.MusicFin.csproj" />
   </ItemGroup>
 </Project>

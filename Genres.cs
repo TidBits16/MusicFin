@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace Jellyfin.Plugin.DeezerTagger;
+namespace Jellyfin.Plugin.MusicFin;
 
 public static partial class Genres
 {
@@ -42,7 +42,7 @@ public static partial class Genres
     static Genres()
     {
         using var stream = Assembly.GetExecutingAssembly()
-            .GetManifestResourceStream("Jellyfin.Plugin.DeezerTagger.Resources.genres.json")
+            .GetManifestResourceStream("Jellyfin.Plugin.MusicFin.Resources.genres.json")
             ?? throw new InvalidOperationException("genres.json missing");
         using var doc = JsonDocument.Parse(stream);
         var root = doc.RootElement;

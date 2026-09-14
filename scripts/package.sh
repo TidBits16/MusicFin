@@ -7,7 +7,7 @@ cd "$root"
 version="$(python3 - <<'PY'
 import re
 from pathlib import Path
-text = Path("Jellyfin.Plugin.DeezerTagger.csproj").read_text()
+text = Path("Jellyfin.Plugin.MusicFin.csproj").read_text()
 raw = re.search(r"<Version>([^<]+)</Version>", text).group(1).strip()
 parts = [p for p in raw.split(".") if p != ""]
 while len(parts) < 4:
@@ -17,11 +17,11 @@ PY
 )"
 
 export PATH="${HOME}/.dotnet:${PATH}"
-dotnet build Jellyfin.Plugin.DeezerTagger.csproj -c Release --nologo
+dotnet build Jellyfin.Plugin.MusicFin.csproj -c Release --nologo
 
 stage="$(mktemp -d)"
 trap 'rm -rf "$stage"' EXIT
-cp "bin/Release/net9.0/Jellyfin.Plugin.DeezerTagger.dll" "$stage/"
+cp "bin/Release/net9.0/Jellyfin.Plugin.MusicFin.dll" "$stage/"
 cp meta.json "$stage/"
 cp backdrop.svg "$stage/"
 
@@ -33,7 +33,7 @@ import sys, zipfile
 from pathlib import Path
 stage, zip_path = sys.argv[1], sys.argv[2]
 with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-    for name in ("Jellyfin.Plugin.DeezerTagger.dll", "meta.json", "backdrop.svg"):
+    for name in ("Jellyfin.Plugin.MusicFin.dll", "meta.json", "backdrop.svg"):
         zf.write(Path(stage) / name, name)
 PY
 

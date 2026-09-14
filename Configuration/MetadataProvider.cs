@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.DeezerTagger.Configuration;
+namespace Jellyfin.Plugin.MusicFin.Configuration;
 
 public enum MetadataProvider
 {

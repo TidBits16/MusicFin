@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <RootNamespace>Jellyfin.Plugin.DeezerTagger</RootNamespace>
-    <AssemblyName>Jellyfin.Plugin.DeezerTagger</AssemblyName>
+    <RootNamespace>Jellyfin.Plugin.MusicFin</RootNamespace>
+    <AssemblyName>Jellyfin.Plugin.MusicFin</AssemblyName>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.8.11.0</Version>
-    <FileVersion>1.8.11.0</FileVersion>
-    <AssemblyVersion>1.8.11.0</AssemblyVersion>
+    <Version>1.8.12.0</Version>
+    <FileVersion>1.8.12.0</FileVersion>
+    <AssemblyVersion>1.8.12.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Jellyfin.Controller" Version="10.11.0">
@@ -26,10 +26,10 @@
     <EmbeddedResource Include="Resources\genres.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Jellyfin.Plugin.DeezerTagger.Tests/**" />
-    <None Remove="Jellyfin.Plugin.DeezerTagger.Tests/**" />
+    <Compile Remove="Jellyfin.Plugin.MusicFin.Tests/**" />
+    <None Remove="Jellyfin.Plugin.MusicFin.Tests/**" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Jellyfin.Plugin.DeezerTagger.Tests" />
+    <InternalsVisibleTo Include="Jellyfin.Plugin.MusicFin.Tests" />
   </ItemGroup>
 </Project>
