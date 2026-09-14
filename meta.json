@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.15.0",
+  "version": "1.8.16.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Add FinFamily tagline under logo on backdrop.",
+  "changelog": "Clarify Force Refresh copy: wipes cache; normal runs reuse provider cache.",
   "imagePath": "backdrop.svg"
 }
