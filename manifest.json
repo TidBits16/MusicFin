@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.19.0",
+        "changelog": "Solid primary backdrop; horizontal logo+title lockup; italic FinFamily tagline.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.19.0/MusicFin_1.8.19.0.zip",
+        "checksum": "fc554e2cecb35fc88a623ea68349336c",
+        "timestamp": "2026-09-14T16:30:30Z"
+      },
+      {
         "version": "1.8.18.0",
         "changelog": "Horizontal logo+title lockup; full-opacity FinFamily tagline under title.",
         "targetAbi": "10.11.0.0",
