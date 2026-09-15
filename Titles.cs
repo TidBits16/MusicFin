@@ -112,7 +112,8 @@ public static class Titles
     /// <summary>
     /// Whether WriteAlbumNames should replace <paramref name="current"/> with
     /// <paramref name="catalogTitle"/>. False when they only differ by ignore markers,
-    /// when local is more specific, or when catalog is a secondary (comp/live) demotion.
+    /// when local is more specific, when catalog is a combo expansion (Seven → Seven + Mary),
+    /// or when catalog is a secondary (comp/live) demotion.
     /// </summary>
     public static bool ShouldReplaceAlbumTitle(
         string current,
@@ -120,10 +121,60 @@ public static class Titles
         IReadOnlyList<string>? markers = null)
         => !SameTitleIgnoringMarks(current, catalogTitle, markers)
             && !IsMoreSpecificAlbumTitle(current, catalogTitle, markers)
+            && !IsComboExpansionOf(current, catalogTitle, markers)
             && !(current.Length > 0
                 && !IsSecondaryAlbumTitle(current)
                 && IsSecondaryAlbumTitle(catalogTitle));
 
+    /// <summary>
+    /// Prefer a non-secondary folder/EP title over a catalog combo that merely contains it
+    /// (e.g. keep <c>Seven</c> / <c>Mary</c> instead of writing <c>Seven + Mary</c>).
+    /// </summary>
+    public static string PreferredAlbumWriteTitle(
+        string folderOrLocalTitle,
+        string catalogTitle,
+        IReadOnlyList<string>? markers = null)
+    {
+        var local = (folderOrLocalTitle ?? string.Empty).Trim();
+        var catalog = (catalogTitle ?? string.Empty).Trim();
+        if (local.Length > 0
+            && catalog.Length > 0
+            && !IsSecondaryAlbumTitle(local)
+            && IsComboExpansionOf(local, catalog, markers))
+        {
+            return local;
+        }
+
+        return catalog.Length > 0 ? catalog : local;
+    }
+
+    /// <summary>
+    /// True when <paramref name="part"/> is a whole-token phrase inside a longer
+    /// <paramref name="whole"/> (Seven ⊂ Seven + Mary / Mary ⊂ Seven + Mary).
+    /// </summary>
+    public static bool IsComboExpansionOf(
+        string part,
+        string whole,
+        IReadOnlyList<string>? markers = null)
+    {
+        var a = Norm(part, markers);
+        var b = Norm(whole, markers);
+        if (a.Length == 0 || b.Length <= a.Length)
+        {
+            return false;
+        }
+
+        var idx = b.IndexOf(a, StringComparison.Ordinal);
+        if (idx < 0)
+        {
+            return false;
+        }
+
+        var beforeOk = idx == 0 || b[idx - 1] == ' ';
+        var after = idx + a.Length;
+        var afterOk = after == b.Length || b[after] == ' ';
+        return beforeOk && afterOk;
+    }
     /// <summary>
     /// Maps digits commonly used as letter lookalikes in stylized titles (2econd --> second).
     /// </summary>

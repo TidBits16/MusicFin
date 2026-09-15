@@ -371,21 +371,51 @@ public class ContextEngine
                     continue;
                 }
 
-                var parentTrackCount = artistTracks.Count(t =>
-                    t.GetParent() is MusicAlbum parent && parent.Id == albumId);
-                if (!AlbumRename.ShouldRenameAlbumEntity(parentTrackCount, assignments))
+                var parentTracks = artistTracks
+                    .Where(t => t.GetParent() is MusicAlbum parent && parent.Id == albumId)
+                    .ToList();
+                if (!AlbumRename.ShouldRenameAlbumEntity(parentTracks.Count, assignments))
                 {
                     continue;
                 }
 
-                var newName = assignments[0].AlbumTitle;
+                var markers = cfg.EffectiveIgnoreTitleMarkers;
+                var catalogTitle = assignments[0].AlbumTitle;
                 var current = albumItem.Name ?? string.Empty;
-                if (!Titles.ShouldReplaceAlbumTitle(current, newName, cfg.EffectiveIgnoreTitleMarkers))
+                var folderTitle = string.Empty;
+                foreach (var track in parentTracks)
+                {
+                    if (!track.IsFileProtocol)
+                    {
+                        continue;
+                    }
+
+                    folderTitle = Titles.AlbumFromStoragePath(track.Path, artist);
+                    if (folderTitle.Length > 0)
+                    {
+                        break;
+                    }
+                }
+
+                // Catalog may only have the combo (Seven + Mary); keep each EP folder's name.
+                var desired = Titles.PreferredAlbumWriteTitle(
+                    folderTitle.Length > 0 ? folderTitle : current,
+                    catalogTitle,
+                    markers);
+
+                if (Titles.SameTitleIgnoringMarks(current, desired, markers))
                 {
                     continue;
                 }
 
-                var patch = new Patch { ItemId = albumId, Item = albumItem, Name = newName };
+                // Restoring folder EP over an already-written combo, or normal catalog replace.
+                if (Titles.SameTitleIgnoringMarks(desired, catalogTitle, markers)
+                    && !Titles.ShouldReplaceAlbumTitle(current, catalogTitle, markers))
+                {
+                    continue;
+                }
+
+                var patch = new Patch { ItemId = albumId, Item = albumItem, Name = desired };
                 albumPatches.AddOrUpdate(albumId, patch, (_, existing) => existing.Merge(patch));
             }
         }
@@ -749,13 +779,23 @@ public class ContextEngine
         bool force)
     {
         string? albumWrite = null;
-        if (cfg.WriteAlbumNames
-            && Titles.ShouldReplaceAlbumTitle(
-                track.Album ?? string.Empty,
-                assignment.AlbumTitle,
-                cfg.EffectiveIgnoreTitleMarkers))
+        if (cfg.WriteAlbumNames)
         {
-            albumWrite = assignment.AlbumTitle;
+            var markers = cfg.EffectiveIgnoreTitleMarkers;
+            var current = track.Album ?? string.Empty;
+            var folderTitle = track.IsFileProtocol
+                ? Titles.AlbumFromStoragePath(track.Path, catalogArtistName)
+                : string.Empty;
+            var desired = Titles.PreferredAlbumWriteTitle(
+                folderTitle.Length > 0 ? folderTitle : current,
+                assignment.AlbumTitle,
+                markers);
+            if (!Titles.SameTitleIgnoringMarks(current, desired, markers)
+                && (!Titles.SameTitleIgnoringMarks(desired, assignment.AlbumTitle, markers)
+                    || Titles.ShouldReplaceAlbumTitle(current, assignment.AlbumTitle, markers)))
+            {
+                albumWrite = desired;
+            }
         }
 
         int? indexWrite = null;

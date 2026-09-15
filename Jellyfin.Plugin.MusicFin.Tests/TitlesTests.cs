@@ -43,11 +43,25 @@ public class TitlesTests
     [InlineData("THE ANTIHUMAN", "ANTIHUMAN", false)]
     [InlineData("Step On Up", "Live in '25", false)]
     [InlineData("Wrong Name", "Right Name", true)]
+    [InlineData("Seven", "Seven + Mary", false)]
+    [InlineData("Mary", "Seven + Mary", false)]
     public void ShouldReplaceAlbumTitle_Guards(
         string current,
         string catalog,
         bool expected)
         => Assert.Equal(expected, Titles.ShouldReplaceAlbumTitle(current, catalog, DefaultMarkers));
+
+    [Theory]
+    [InlineData("Seven", "Seven + Mary", "Seven")]
+    [InlineData("Mary", "Seven + Mary", "Mary")]
+    [InlineData("Seven + Mary", "Seven + Mary", "Seven + Mary")]
+    [InlineData("SOUR", "SOUR", "SOUR")]
+    [InlineData("", "Seven + Mary", "Seven + Mary")]
+    public void PreferredAlbumWriteTitle_KeepsEpFolderOverCombo(
+        string local,
+        string catalog,
+        string expected)
+        => Assert.Equal(expected, Titles.PreferredAlbumWriteTitle(local, catalog, DefaultMarkers));
     [Fact]
     public void PreferExactArtistMatches_DropsFentanylWhenFemtanylExactExists()
     {
