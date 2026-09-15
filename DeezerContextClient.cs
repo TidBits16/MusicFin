@@ -17,7 +17,12 @@ public sealed class DeezerContextClient : IContextMetadataClient
     public DeezerContextClient(IHttpClientFactory factory, HttpCache cache, ILogger<DeezerContextClient> logger)
     {
         _ = logger;
-        _http = new PacedHttp(factory, cache, TimeSpan.FromMilliseconds(120), maxInFlight: 4);
+        _http = new PacedHttp(
+            factory,
+            cache,
+            TimeSpan.FromMilliseconds(120),
+            maxInFlight: 4,
+            skipCacheOnErrorProperty: true);
     }
 
     public string ProviderKey => "Deezer";

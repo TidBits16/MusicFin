@@ -5,6 +5,10 @@ namespace Jellyfin.Plugin.MusicFin;
 /// </summary>
 public static class AlbumRename
 {
+    /// <summary>True when <paramref name="hitCount"/> covers at least half of <paramref name="parentTrackCount"/>.</summary>
+    public static bool HasMajorityCoverage(int parentTrackCount, int hitCount)
+        => parentTrackCount > 0 && hitCount * 2 >= parentTrackCount;
+
     /// <summary>
     /// True when matched assignments are unanimous and cover enough of the parent album
     /// to safely rename the Jellyfin MusicAlbum entity.
@@ -13,40 +17,27 @@ public static class AlbumRename
         int parentTrackCount,
         IReadOnlyList<TrackAssignment> assignments)
     {
-        if (assignments.Count == 0 || parentTrackCount <= 0)
+        if (assignments.Count == 0 || !HasMajorityCoverage(parentTrackCount, assignments.Count))
         {
             return false;
         }
 
-        var titles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var a in assignments)
+        var title = assignments[0].AlbumTitle.Trim();
+        if (title.Length == 0)
         {
-            var title = a.AlbumTitle.Trim();
-            if (title.Length == 0)
+            return false;
+        }
+
+        for (var i = 1; i < assignments.Count; i++)
+        {
+            if (!title.Equals(assignments[i].AlbumTitle.Trim(), StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
-
-            titles.Add(title);
-        }
-
-        if (titles.Count != 1)
-        {
-            return false;
-        }
-
-        // Need at least half the folder matched (and never rename from a single hit on a big album).
-        if (assignments.Count * 2 < parentTrackCount)
-        {
-            return false;
         }
 
         // A multi-track folder must not be renamed to a single just because the lead single matched.
-        if (assignments.All(a => a.IsSingleRelease) && parentTrackCount > Math.Max(2, assignments.Count))
-        {
-            return false;
-        }
-
-        return true;
+        return !assignments.All(a => a.IsSingleRelease)
+            || parentTrackCount <= Math.Max(2, assignments.Count);
     }
 }

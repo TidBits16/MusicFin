@@ -27,10 +27,27 @@ public class TitlesTests
     [InlineData("🅴 CHASER", "CHASER", true)]
     [InlineData("CHASER", "CHASER", true)]
     [InlineData("REACTOR 🅴", "CHASER", false)]
-    [InlineData("chaser 🅴", "CHASER", false)]
-    public void SameTitleIgnoringMarks_PreservesExplicitFinAffix(string current, string catalog, bool expected)
+    [InlineData("chaser 🅴", "CHASER", true)]
+    [InlineData("how to: friend, love, freefall 🅴", "How To: Friend, Love, Freefall", true)]
+    [InlineData("Love Hate Music Box 🅴", "Love Hate Music Box", true)]
+    [InlineData("love hate music box 🅴", "Love Hate Music Box", true)]
+    [InlineData("CHASER [Explicit]", "CHASER", true)]
+    public void SameTitleIgnoringMarks_IgnoresConfiguredMarkers(
+        string current,
+        string catalog,
+        bool expected)
         => Assert.Equal(expected, Titles.SameTitleIgnoringMarks(current, catalog, DefaultMarkers));
 
+    [Theory]
+    [InlineData("how to: friend, love, freefall 🅴", "How To: Friend, Love, Freefall", false)]
+    [InlineData("THE ANTIHUMAN", "ANTIHUMAN", false)]
+    [InlineData("Step On Up", "Live in '25", false)]
+    [InlineData("Wrong Name", "Right Name", true)]
+    public void ShouldReplaceAlbumTitle_Guards(
+        string current,
+        string catalog,
+        bool expected)
+        => Assert.Equal(expected, Titles.ShouldReplaceAlbumTitle(current, catalog, DefaultMarkers));
     [Fact]
     public void PreferExactArtistMatches_DropsFentanylWhenFemtanylExactExists()
     {

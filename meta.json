@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.25.0",
+  "version": "1.8.26.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Separate Artist genres toggle; remove Force rewrite genres checkbox (overwrite only via Force Refresh).",
+  "changelog": "Keep ExplicitFin marks when album titles only differ by IgnoreTitleMarkers; shared FinCommon HTTP; rename-guard cleanup.",
   "imagePath": "backdrop.svg"
 }

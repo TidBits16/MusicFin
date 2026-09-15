@@ -25,7 +25,8 @@ public sealed class DiscogsContextClient : IContextMetadataClient
             TimeSpan.FromMilliseconds(1100),
             maxInFlight: 1,
             userAgent: "MusicFin/1.0 +https://github.com/TidBits16/MusicFin",
-            extraHeaders: BuildAuthHeaders());
+            extraHeaders: BuildAuthHeaders(),
+            skipCacheOnErrorProperty: true);
     }
 
     public string ProviderKey => "Discogs";

@@ -23,7 +23,8 @@ public sealed class MusicBrainzContextClient : IContextMetadataClient
             cache,
             TimeSpan.FromMilliseconds(1100),
             maxInFlight: 1,
-            userAgent: BuildUserAgent());
+            userAgent: BuildUserAgent(),
+            skipCacheOnErrorProperty: true);
     }
 
     public string ProviderKey => "MusicBrainz";

@@ -351,22 +351,7 @@ public class ContextEngine
 
                 var newName = assignments[0].AlbumTitle;
                 var current = albumItem.Name ?? string.Empty;
-                // Do not clobber ExplicitFin marks (CHASER 🅴 vs CHASER).
-                if (Titles.SameTitleIgnoringMarks(current, newName, cfg.EffectiveIgnoreTitleMarkers))
-                {
-                    continue;
-                }
-
-                // Do not demote a more-specific local album title (THE ANTIHUMAN -> ANTIHUMAN).
-                if (Titles.IsMoreSpecificAlbumTitle(current, newName, cfg.EffectiveIgnoreTitleMarkers))
-                {
-                    continue;
-                }
-
-                // Do not replace a normal album/single name with a compilation or live-tour title.
-                if (current.Length > 0
-                    && !Titles.IsSecondaryAlbumTitle(current)
-                    && Titles.IsSecondaryAlbumTitle(newName))
+                if (!Titles.ShouldReplaceAlbumTitle(current, newName, cfg.EffectiveIgnoreTitleMarkers))
                 {
                     continue;
                 }
@@ -380,21 +365,9 @@ public class ContextEngine
         {
             foreach (var entry in albumGenres)
             {
-                foreach (var albumItem in albums.Values)
+                foreach (var albumItem in AlbumsMatchingName(
+                             albums.Values, artist, entry.Key, cfg.EffectiveIgnoreTitleMarkers))
                 {
-                    var albumArtists = albumItem.AlbumArtists;
-                    if (albumArtists.Count > 0 &&
-                        !albumArtists.Any(a => a.Equals(artist, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        continue;
-                    }
-
-                    var name = Titles.StripMark(albumItem.Name ?? string.Empty, cfg.EffectiveIgnoreTitleMarkers);
-                    if (!name.Equals(entry.Key, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
                     if (GenreWant(entry.Value, albumItem.Genres, force) is not { } want)
                     {
                         continue;
@@ -410,21 +383,9 @@ public class ContextEngine
         {
             foreach (var entry in albumYears)
             {
-                foreach (var albumItem in albums.Values)
+                foreach (var albumItem in AlbumsMatchingName(
+                             albums.Values, artist, entry.Key, cfg.EffectiveIgnoreTitleMarkers))
                 {
-                    var albumArtists = albumItem.AlbumArtists;
-                    if (albumArtists.Count > 0 &&
-                        !albumArtists.Any(a => a.Equals(artist, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        continue;
-                    }
-
-                    var name = Titles.StripMark(albumItem.Name ?? string.Empty, cfg.EffectiveIgnoreTitleMarkers);
-                    if (!name.Equals(entry.Key, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
                     if (albumItem.ProductionYear == entry.Value)
                     {
                         continue;
@@ -440,33 +401,16 @@ public class ContextEngine
         {
             foreach (var entry in albumArtistWrites)
             {
-                foreach (var albumItem in albums.Values)
+                foreach (var albumItem in AlbumsMatchingName(
+                             albums.Values, artist, entry.Key, cfg.EffectiveIgnoreTitleMarkers))
                 {
-                    if (albumItem is not MusicAlbum musicAlbum)
+                    if (ArtistWant(entry.Value, albumItem.AlbumArtists) is not { } want)
                     {
                         continue;
                     }
 
-                    var albumArtists = musicAlbum.AlbumArtists;
-                    if (albumArtists.Count > 0 &&
-                        !albumArtists.Any(a => a.Equals(artist, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        continue;
-                    }
-
-                    var name = Titles.StripMark(musicAlbum.Name ?? string.Empty, cfg.EffectiveIgnoreTitleMarkers);
-                    if (!name.Equals(entry.Key, StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    if (ArtistWant(entry.Value, musicAlbum.AlbumArtists) is not { } want)
-                    {
-                        continue;
-                    }
-
-                    var patch = new Patch { ItemId = musicAlbum.Id, Item = musicAlbum, AlbumArtists = want };
-                    albumPatches.AddOrUpdate(musicAlbum.Id, patch, (_, existing) => existing.Merge(patch));
+                    var patch = new Patch { ItemId = albumItem.Id, Item = albumItem, AlbumArtists = want };
+                    albumPatches.AddOrUpdate(albumItem.Id, patch, (_, existing) => existing.Merge(patch));
                 }
             }
         }
@@ -503,12 +447,9 @@ public class ContextEngine
                     continue;
                 }
 
-                // Same minority-hit problem as rename: one track matched to a single
-                // must not paste that single's cover onto a 13-track studio folder.
-                var parentTrackCount = musicAlbum.GetRecursiveChildren()
-                    .OfType<Audio>()
-                    .Count(t => t.IsFileProtocol);
-                if (urls.Count * 2 < parentTrackCount)
+                if (!AlbumRename.HasMajorityCoverage(
+                        musicAlbum.GetRecursiveChildren().OfType<Audio>().Count(t => t.IsFileProtocol),
+                        urls.Count))
                 {
                     continue;
                 }
@@ -706,17 +647,13 @@ public class ContextEngine
         bool force)
     {
         string? albumWrite = null;
-        if (cfg.WriteAlbumNames)
+        if (cfg.WriteAlbumNames
+            && Titles.ShouldReplaceAlbumTitle(
+                track.Album ?? string.Empty,
+                assignment.AlbumTitle,
+                cfg.EffectiveIgnoreTitleMarkers))
         {
-            var current = track.Album ?? string.Empty;
-            if (!Titles.SameTitleIgnoringMarks(current, assignment.AlbumTitle, cfg.EffectiveIgnoreTitleMarkers)
-                && !Titles.IsMoreSpecificAlbumTitle(current, assignment.AlbumTitle, cfg.EffectiveIgnoreTitleMarkers)
-                && !(current.Length > 0
-                    && !Titles.IsSecondaryAlbumTitle(current)
-                    && Titles.IsSecondaryAlbumTitle(assignment.AlbumTitle)))
-            {
-                albumWrite = assignment.AlbumTitle;
-            }
+            albumWrite = assignment.AlbumTitle;
         }
 
         int? indexWrite = null;
@@ -954,6 +891,29 @@ public class ContextEngine
     private static string AlbumArtistOf(Audio item)
         => item.AlbumArtists.Count > 0 ? item.AlbumArtists[0]
             : item.Artists.Count > 0 ? item.Artists[0] : string.Empty;
+
+    private static IEnumerable<MusicAlbum> AlbumsMatchingName(
+        IEnumerable<MusicAlbum> albums,
+        string artist,
+        string albumKey,
+        IReadOnlyList<string> markers)
+    {
+        foreach (var albumItem in albums)
+        {
+            var albumArtists = albumItem.AlbumArtists;
+            if (albumArtists.Count > 0
+                && !albumArtists.Any(a => a.Equals(artist, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            var name = Titles.StripMark(albumItem.Name ?? string.Empty, markers);
+            if (name.Equals(albumKey, StringComparison.OrdinalIgnoreCase))
+            {
+                yield return albumItem;
+            }
+        }
+    }
 
     /// <summary>Most common casing in the group - avoids "toby fox" winning over "Toby Fox".</summary>
     private static string PreferredArtistName(IGrouping<string, Audio> group)

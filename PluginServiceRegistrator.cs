@@ -1,3 +1,4 @@
+using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,7 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddSingleton<DiscogsContextClient>();
         serviceCollection.AddSingleton<OpenOpusContextClient>();
         serviceCollection.AddSingleton<MetadataClientFactory>();
-        serviceCollection.AddSingleton<HttpCache>();
+        serviceCollection.AddSingleton(sp =>
+            new HttpCache(sp.GetRequiredService<IApplicationPaths>(), "musicfin"));
     }
 }

@@ -17,7 +17,13 @@ public sealed class ItunesContextClient : IContextMetadataClient
     public ItunesContextClient(IHttpClientFactory factory, HttpCache cache, ILogger<ItunesContextClient> logger)
     {
         _ = logger;
-        _http = new PacedHttp(factory, cache, TimeSpan.FromMilliseconds(200), maxInFlight: 2, userAgent: "MusicFin/1.0");
+        _http = new PacedHttp(
+            factory,
+            cache,
+            TimeSpan.FromMilliseconds(200),
+            maxInFlight: 2,
+            userAgent: "MusicFin/1.0",
+            skipCacheOnErrorProperty: true);
     }
 
     public string ProviderKey => "iTunes";

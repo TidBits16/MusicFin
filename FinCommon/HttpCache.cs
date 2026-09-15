@@ -3,15 +3,15 @@ using System.Text;
 using System.Text.Json;
 using MediaBrowser.Common.Configuration;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.FinCommon;
 
-public class HttpCache
+public sealed class HttpCache
 {
     private readonly string _dir;
     private readonly object _gate = new();
 
-    public HttpCache(IApplicationPaths paths)
-        : this(Path.Combine(paths.CachePath, "musicfin"))
+    public HttpCache(IApplicationPaths paths, string cacheFolderName)
+        : this(Path.Combine(paths.CachePath, cacheFolderName))
     {
     }
 

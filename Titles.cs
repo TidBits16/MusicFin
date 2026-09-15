@@ -26,25 +26,17 @@ public static class Titles
         }
 
         var s = name;
-        foreach (var edge in new[] { mark, mark + " ", " " + mark })
+        if (s.StartsWith(mark, StringComparison.Ordinal))
         {
-            if (s.StartsWith(edge, StringComparison.Ordinal))
-            {
-                s = s[edge.Length..].TrimStart();
-                break;
-            }
+            s = s[mark.Length..];
         }
 
-        foreach (var edge in new[] { mark, " " + mark, mark + " " })
+        if (s.EndsWith(mark, StringComparison.Ordinal))
         {
-            if (s.EndsWith(edge, StringComparison.Ordinal))
-            {
-                s = s[..^edge.Length].TrimEnd();
-                break;
-            }
+            s = s[..^mark.Length];
         }
 
-        return s;
+        return s.Trim();
     }
 
     public static string Norm(string text, IReadOnlyList<string>? markers = null)
@@ -109,16 +101,28 @@ public static class Titles
     }
 
     /// <summary>
-    /// True when the only difference is an ignore marker (ExplicitFin 🅴 etc.).
+    /// True when local and catalog match after stripping IgnoreTitleMarkers and normalizing.
     /// </summary>
     public static bool SameTitleIgnoringMarks(
         string current,
         string catalogTitle,
         IReadOnlyList<string>? markers = null)
-    {
-        var clean = StripMark(current, markers);
-        return clean.Equals(catalogTitle, StringComparison.Ordinal);
-    }
+        => Norm(current, markers) == Norm(catalogTitle, markers);
+
+    /// <summary>
+    /// Whether WriteAlbumNames should replace <paramref name="current"/> with
+    /// <paramref name="catalogTitle"/>. False when they only differ by ignore markers,
+    /// when local is more specific, or when catalog is a secondary (comp/live) demotion.
+    /// </summary>
+    public static bool ShouldReplaceAlbumTitle(
+        string current,
+        string catalogTitle,
+        IReadOnlyList<string>? markers = null)
+        => !SameTitleIgnoringMarks(current, catalogTitle, markers)
+            && !IsMoreSpecificAlbumTitle(current, catalogTitle, markers)
+            && !(current.Length > 0
+                && !IsSecondaryAlbumTitle(current)
+                && IsSecondaryAlbumTitle(catalogTitle));
 
     /// <summary>
     /// Maps digits commonly used as letter lookalikes in stylized titles (2econd --> second).
@@ -290,27 +294,20 @@ public static class Titles
     {
         var local = Norm(localAlbum, markers);
         var catalog = Norm(catalogAlbum, markers);
-        if (local.Length == 0 || catalog.Length == 0 || local == catalog)
+        if (catalog.Length == 0 || local.Length <= catalog.Length)
         {
             return false;
         }
 
-        if (local.Length <= catalog.Length)
+        var idx = local.IndexOf(catalog, StringComparison.Ordinal);
+        if (idx < 0)
         {
             return false;
         }
 
-        // Local contains catalog as a whole-token phrase (leading "the ", trailing words, etc.).
-        if (local.Contains(catalog, StringComparison.Ordinal))
-        {
-            var idx = local.IndexOf(catalog, StringComparison.Ordinal);
-            var beforeOk = idx == 0 || local[idx - 1] == ' ';
-            var after = idx + catalog.Length;
-            var afterOk = after == local.Length || local[after] == ' ';
-            return beforeOk && afterOk;
-        }
-
-        return false;
+        var beforeOk = idx == 0 || local[idx - 1] == ' ';
+        var after = idx + catalog.Length;
+        return beforeOk && (after == local.Length || local[after] == ' ');
     }
 
     /// <summary>Greatest-hits / classics / best-of style titles that vacuum up singles.</summary>

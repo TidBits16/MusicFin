@@ -17,7 +17,13 @@ public sealed class OpenOpusContextClient : IContextMetadataClient
     public OpenOpusContextClient(IHttpClientFactory factory, HttpCache cache, ILogger<OpenOpusContextClient> logger)
     {
         _ = logger;
-        _http = new PacedHttp(factory, cache, TimeSpan.FromMilliseconds(250), maxInFlight: 2, userAgent: "MusicFin/1.0");
+        _http = new PacedHttp(
+            factory,
+            cache,
+            TimeSpan.FromMilliseconds(250),
+            maxInFlight: 2,
+            userAgent: "MusicFin/1.0",
+            skipCacheOnErrorProperty: true);
     }
 
     public string ProviderKey => "OpenOpus";
