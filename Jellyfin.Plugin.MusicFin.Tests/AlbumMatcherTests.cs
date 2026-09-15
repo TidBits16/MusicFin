@@ -6,20 +6,21 @@ namespace Jellyfin.Plugin.MusicFin.Tests;
 public class AlbumMatcherTests
 {
     [Fact]
-    public void CombinedAlbumWinsWhenLocalTracksSpanBothAlbums()
+    public void CombinedAlbumWinsWhenBothHalvesShareOneFolder()
     {
+        var parent = Guid.NewGuid();
         var local = new List<LocalTrack>
         {
-            Track("mary-1", "All That And More"),
-            Track("mary-2", "Mary"),
-            Track("mary-3", "Hey Pretty Momma"),
-            Track("mary-4", "Black and White"),
-            Track("seven-1", "Devil Like Me"),
-            Track("seven-2", "Seven"),
-            Track("seven-3", "Mr. Redundant"),
-            Track("seven-4", "Folk Machine"),
-            Track("seven-5", "Goodnight Chicago"),
-            Track("seven-6", "Wasted")
+            Track("mary-1", "All That And More", parentAlbumId: parent),
+            Track("mary-2", "Mary", parentAlbumId: parent),
+            Track("mary-3", "Hey Pretty Momma", parentAlbumId: parent),
+            Track("mary-4", "Black and White", parentAlbumId: parent),
+            Track("seven-1", "Devil Like Me", parentAlbumId: parent),
+            Track("seven-2", "Seven", parentAlbumId: parent),
+            Track("seven-3", "Mr. Redundant", parentAlbumId: parent),
+            Track("seven-4", "Folk Machine", parentAlbumId: parent),
+            Track("seven-5", "Goodnight Chicago", parentAlbumId: parent),
+            Track("seven-6", "Wasted", parentAlbumId: parent)
         };
 
         var albums = new List<CatalogAlbum>
@@ -42,29 +43,72 @@ public class AlbumMatcherTests
     }
 
     [Fact]
-    public void StudioAlbumBeatsSprawlingCollectionDespiteFewerLibraryHits()
+    public void SeparateFolders_MaryAndSevenStayAsTheirOwnEps()
     {
+        var maryParent = Guid.NewGuid();
+        var sevenParent = Guid.NewGuid();
         var local = new List<LocalTrack>
         {
-            Track("e1", "I just need U."),
-            Track("e2", "Overflow"),
-            Track("e3", "Edge of My Seat"),
-            Track("e4", "scars"),
-            Track("e5", "Everything"),
-            Track("e6", "The Element"),
-            Track("e7", "Horizon"),
-            Track("e8", "See You Again"),
-            Track("e9", "Starts With Me"),
-            Track("e10", "It's All About You"),
-            Track("e11", "Outro"),
-            Track("hits1", "Speak Life"),
-            Track("hits2", "Feel It"),
-            Track("hits3", "City on Our Knees"),
-            Track("hits4", "Made to Love"),
-            Track("hits5", "Me Without You"),
-            Track("hits6", "Steal My Show"),
-            Track("hits7", "Irene"),
-            Track("hits8", "Diverse City")
+            Track("mary-1", "All That And More", parentAlbumId: maryParent),
+            Track("mary-2", "Mary", parentAlbumId: maryParent),
+            Track("mary-3", "Hey Pretty Momma", parentAlbumId: maryParent),
+            Track("mary-4", "Black and White", parentAlbumId: maryParent),
+            Track("seven-1", "Devil Like Me", parentAlbumId: sevenParent),
+            Track("seven-2", "Seven", parentAlbumId: sevenParent),
+            Track("seven-3", "Mr. Redundant", parentAlbumId: sevenParent),
+            Track("seven-4", "Folk Machine", parentAlbumId: sevenParent),
+            Track("seven-5", "Goodnight Chicago", parentAlbumId: sevenParent),
+            Track("seven-6", "Wasted", parentAlbumId: sevenParent)
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            Album("Mary", 1,
+                "All That And More", "Mary", "Hey Pretty Momma", "Black and White"),
+            Album("Seven", 2,
+                "Devil Like Me", "Seven", "Mr. Redundant", "Folk Machine", "Goodnight Chicago", "Wasted"),
+            Album("Seven + Mary", 3,
+                "Devil Like Me", "Seven", "Mr. Redundant", "Folk Machine", "Goodnight Chicago", "Wasted",
+                "All That And More", "Mary", "Hey Pretty Momma", "Black and White")
+        };
+
+        var result = AlbumMatcher.Match("Rainbow Kitten Surprise", local, albums, new AlbumMatcherOptions());
+
+        Assert.Equal(10, result.Assignments.Count);
+        Assert.All(
+            result.Assignments.Where(a => a.TrackTitle is "All That And More" or "Mary" or "Hey Pretty Momma" or "Black and White"),
+            a => Assert.Equal("Mary", a.AlbumTitle));
+        Assert.All(
+            result.Assignments.Where(a => a.TrackTitle is "Devil Like Me" or "Seven" or "Mr. Redundant" or "Folk Machine" or "Goodnight Chicago" or "Wasted"),
+            a => Assert.Equal("Seven", a.AlbumTitle));
+        Assert.DoesNotContain(result.Assignments, a => a.AlbumTitle == "Seven + Mary");
+    }
+
+    [Fact]
+    public void StudioAlbumBeatsSprawlingCollectionDespiteFewerLibraryHits()
+    {
+        var parent = Guid.NewGuid();
+        var local = new List<LocalTrack>
+        {
+            Track("e1", "I just need U.", parentAlbumId: parent),
+            Track("e2", "Overflow", parentAlbumId: parent),
+            Track("e3", "Edge of My Seat", parentAlbumId: parent),
+            Track("e4", "scars", parentAlbumId: parent),
+            Track("e5", "Everything", parentAlbumId: parent),
+            Track("e6", "The Element", parentAlbumId: parent),
+            Track("e7", "Horizon", parentAlbumId: parent),
+            Track("e8", "See You Again", parentAlbumId: parent),
+            Track("e9", "Starts With Me", parentAlbumId: parent),
+            Track("e10", "It's All About You", parentAlbumId: parent),
+            Track("e11", "Outro", parentAlbumId: parent),
+            Track("hits1", "Speak Life", parentAlbumId: parent),
+            Track("hits2", "Feel It", parentAlbumId: parent),
+            Track("hits3", "City on Our Knees", parentAlbumId: parent),
+            Track("hits4", "Made to Love", parentAlbumId: parent),
+            Track("hits5", "Me Without You", parentAlbumId: parent),
+            Track("hits6", "Steal My Show", parentAlbumId: parent),
+            Track("hits7", "Irene", parentAlbumId: parent),
+            Track("hits8", "Diverse City", parentAlbumId: parent)
         };
 
         var albums = new List<CatalogAlbum>
@@ -101,18 +145,19 @@ public class AlbumMatcherTests
     [Fact]
     public void StudioAlbumBeatsTourSetAndFullyOwnedEpOnFitness()
     {
+        var parent = Guid.NewGuid();
         var local = new List<LocalTrack>
         {
-            Track("1", "Song A"),
-            Track("2", "Song B"),
-            Track("3", "Song C"),
-            Track("4", "Song D"),
-            Track("5", "Song E"),
-            Track("6", "Song F"),
-            Track("7", "Song G"),
-            Track("8", "Song H"),
-            Track("9", "Song I"),
-            Track("10", "Song J")
+            Track("1", "Song A", parentAlbumId: parent),
+            Track("2", "Song B", parentAlbumId: parent),
+            Track("3", "Song C", parentAlbumId: parent),
+            Track("4", "Song D", parentAlbumId: parent),
+            Track("5", "Song E", parentAlbumId: parent),
+            Track("6", "Song F", parentAlbumId: parent),
+            Track("7", "Song G", parentAlbumId: parent),
+            Track("8", "Song H", parentAlbumId: parent),
+            Track("9", "Song I", parentAlbumId: parent),
+            Track("10", "Song J", parentAlbumId: parent)
         };
 
         var albums = new List<CatalogAlbum>

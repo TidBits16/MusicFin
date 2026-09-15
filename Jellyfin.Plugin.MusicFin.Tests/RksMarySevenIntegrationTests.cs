@@ -51,7 +51,10 @@ public class RksMarySevenIntegrationTests
             "That's My Shit"
         };
 
-        var local = localTitles.Select(t => new LocalTrack { Id = Guid.NewGuid(), Title = t }).ToList();
+        var parent = Guid.NewGuid();
+        var local = localTitles
+            .Select(t => new LocalTrack { Id = Guid.NewGuid(), Title = t, ParentAlbumId = parent })
+            .ToList();
         var result = AlbumMatcher.Match("Rainbow Kitten Surprise", local, discography, new AlbumMatcherOptions());
 
         _out.WriteLine($"Summaries: {string.Join(", ", result.AlbumSummaries.Select(s => $"{s.AlbumTitle} ({s.TrackCount})"))}");

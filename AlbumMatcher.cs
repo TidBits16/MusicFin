@@ -10,7 +10,7 @@ public sealed class LocalTrack
 
     public int? IndexNumber { get; init; }
 
-    /// <summary>Jellyfin MusicAlbum parent id; used for folder consensus over lead singles.</summary>
+    /// <summary>Jellyfin MusicAlbum parent id; folder-scoped matching and consensus.</summary>
     public Guid? ParentAlbumId { get; init; }
 }
 
@@ -84,44 +84,15 @@ public static class AlbumMatcher
     {
         var minSim = options.MinTitleSimilarity;
         var markers = options.IgnoreTitleMarkers;
-
         var candidates = catalogAlbums.ToList();
-        var scored = candidates
-            .Select(album => new ScoredAlbum(
-                album,
-                ScoreAlbum(localTracks, album, candidates, artist, minSim, markers)))
-            .Where(x => x.Score > 0)
-            .ToDictionary(x => x.Album.AlbumId, StringComparer.Ordinal);
 
-        var parentSizes = localTracks
-            .Where(t => t.ParentAlbumId is { } id && id != Guid.Empty)
-            .GroupBy(t => t.ParentAlbumId!.Value)
-            .ToDictionary(g => g.Key, g => g.Count());
-
+        // Folder is album identity: score and assign each Jellyfin MusicAlbum parent
+        // on its own tracks so separate Seven / Mary folders do not both rename to the combo.
         var assignments = new List<TrackAssignment>();
-
-        foreach (var local in localTracks)
+        foreach (var group in FolderGroups(localTracks))
         {
-            var parentSize = local.ParentAlbumId is { } pid && parentSizes.TryGetValue(pid, out var n)
-                ? n
-                : 0;
-            if (TryAssignAlbum(local, artist, candidates, scored, minSim, markers, parentSize) is not { } assignment)
-            {
-                continue;
-            }
-
-            assignments.Add(assignment);
+            assignments.AddRange(MatchFolderGroup(artist, group, candidates, minSim, markers));
         }
-
-        assignments = ReconcileParentConsensus(
-            localTracks,
-            assignments,
-            candidates,
-            scored,
-            artist,
-            minSim,
-            markers,
-            parentSizes);
 
         var albumCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var assignment in assignments)
@@ -144,6 +115,80 @@ public static class AlbumMatcher
             SingleReleaseCount = assignments.Count(x => x.IsSingleRelease),
             UnmatchedCount = localTracks.Count - assignments.Count
         };
+    }
+
+    /// <summary>
+    /// Groups tracks by Jellyfin MusicAlbum parent. Tracks with no parent are each
+    /// their own group (standalone / unparented files).
+    /// </summary>
+    private static IEnumerable<IReadOnlyList<LocalTrack>> FolderGroups(IReadOnlyList<LocalTrack> localTracks)
+    {
+        var withParent = new Dictionary<Guid, List<LocalTrack>>();
+        foreach (var track in localTracks)
+        {
+            if (track.ParentAlbumId is { } pid && pid != Guid.Empty)
+            {
+                if (!withParent.TryGetValue(pid, out var list))
+                {
+                    list = [];
+                    withParent[pid] = list;
+                }
+
+                list.Add(track);
+                continue;
+            }
+
+            yield return [track];
+        }
+
+        foreach (var group in withParent.Values)
+        {
+            yield return group;
+        }
+    }
+
+    private static List<TrackAssignment> MatchFolderGroup(
+        string artist,
+        IReadOnlyList<LocalTrack> folderTracks,
+        IReadOnlyList<CatalogAlbum> candidates,
+        double minSim,
+        IReadOnlyList<string> markers)
+    {
+        var scored = candidates
+            .Select(album => new ScoredAlbum(
+                album,
+                ScoreAlbum(folderTracks, album, candidates, artist, minSim, markers)))
+            .Where(x => x.Score > 0)
+            .ToDictionary(x => x.Album.AlbumId, StringComparer.Ordinal);
+
+        var parentSizes = folderTracks
+            .Where(t => t.ParentAlbumId is { } id && id != Guid.Empty)
+            .GroupBy(t => t.ParentAlbumId!.Value)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var assignments = new List<TrackAssignment>();
+        foreach (var local in folderTracks)
+        {
+            var parentSize = local.ParentAlbumId is { } pid && parentSizes.TryGetValue(pid, out var n)
+                ? n
+                : folderTracks.Count;
+            if (TryAssignAlbum(local, artist, candidates, scored, minSim, markers, parentSize) is not { } assignment)
+            {
+                continue;
+            }
+
+            assignments.Add(assignment);
+        }
+
+        return ReconcileParentConsensus(
+            folderTracks,
+            assignments,
+            candidates,
+            scored,
+            artist,
+            minSim,
+            markers,
+            parentSizes);
     }
 
     /// <summary>

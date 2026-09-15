@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.22.0",
+  "version": "1.8.23.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Prefer studio-album consensus inside multi-track folders so lead singles (e.g. drivers license, the cure) do not steal track numbers, album titles, or covers; standalone single folders stay singles.",
+  "changelog": "Match each album folder on its own tracks (Seven/Mary stay separate EPs; a single-track folder stays a single). Combo releases only win when both halves share one folder.",
   "imagePath": "backdrop.svg"
 }

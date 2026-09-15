@@ -6,8 +6,9 @@ namespace Jellyfin.Plugin.MusicFin.Tests;
 public class RksMarySevenMatcherTests
 {
     [Fact]
-    public void MusicBrainzCatalog_SevenPlusMaryWinsOverEps()
+    public void MusicBrainzCatalog_SevenPlusMaryWinsOverEps_WhenHalvesShareOneFolder()
     {
+        var parent = Guid.NewGuid();
         var localTitles = new[]
         {
             "Fail!",
@@ -23,7 +24,9 @@ public class RksMarySevenMatcherTests
             "That's My Shit"
         };
 
-        var local = localTitles.Select(t => new LocalTrack { Id = Guid.NewGuid(), Title = t }).ToList();
+        var local = localTitles
+            .Select(t => new LocalTrack { Id = Guid.NewGuid(), Title = t, ParentAlbumId = parent })
+            .ToList();
         var discography = new List<CatalogAlbum>
         {
             MbAlbum("Mary", "8ee338b5-380a-4541-8728-450d3fa63a19", "ep",
@@ -40,6 +43,50 @@ public class RksMarySevenMatcherTests
         Assert.Equal(0, result.UnmatchedCount);
         Assert.All(result.Assignments, a => Assert.Equal("Seven + Mary", a.AlbumTitle));
         Assert.Equal(Enumerable.Range(1, 11), result.Assignments.Select(a => a.TrackNumber).OrderBy(x => x));
+    }
+
+    [Fact]
+    public void MusicBrainzCatalog_SeparateFolders_KeepMaryAndSevenEps()
+    {
+        var maryParent = Guid.NewGuid();
+        var sevenParent = Guid.NewGuid();
+        var maryTitles = new[] { "All That And More", "Hey Pretty Momma", "Black and White", "That's My Shit" };
+        var sevenTitles = new[]
+        {
+            "Fail!", "Mr. Redundant", "First Class", "Shameful Company", "Seven", "Devil Like Me", "American Hero"
+        };
+
+        var local = maryTitles
+            .Select(t => new LocalTrack { Id = Guid.NewGuid(), Title = t, ParentAlbumId = maryParent })
+            .Concat(sevenTitles.Select(t => new LocalTrack
+            {
+                Id = Guid.NewGuid(),
+                Title = t,
+                ParentAlbumId = sevenParent
+            }))
+            .ToList();
+
+        var discography = new List<CatalogAlbum>
+        {
+            MbAlbum("Mary", "8ee338b5-380a-4541-8728-450d3fa63a19", "ep",
+                "All That And More", "Hey Pretty Momma", "Black and White", "That's My Shit"),
+            MbAlbum("Seven", "afdca811-5150-4e1a-b5f8-a439ed4c8f75", "ep",
+                "Fail!", "Mr. Redundant", "First Class", "Shameful Company", "Seven", "Devil Like Me", "American Hero"),
+            MbAlbum("Seven + Mary", "e29b63e5-f93e-46e0-8d29-3e7c86d390d8", "album",
+                "Fail!", "Mr. Redundant", "First Class", "Shameful Company", "Seven", "Devil Like Me", "American Hero",
+                "All That and More (Sailboat)", "Hey Pretty Momma", "Black and White", "That's My Shit")
+        };
+
+        var result = AlbumMatcher.Match("Rainbow Kitten Surprise", local, discography, new AlbumMatcherOptions());
+
+        Assert.Equal(0, result.UnmatchedCount);
+        Assert.All(
+            result.Assignments.Where(a => maryTitles.Contains(a.TrackTitle)),
+            a => Assert.Equal("Mary", a.AlbumTitle));
+        Assert.All(
+            result.Assignments.Where(a => sevenTitles.Contains(a.TrackTitle)),
+            a => Assert.Equal("Seven", a.AlbumTitle));
+        Assert.DoesNotContain(result.Assignments, a => a.AlbumTitle == "Seven + Mary");
     }
 
     [Fact]
