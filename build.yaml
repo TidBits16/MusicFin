@@ -1,6 +1,6 @@
 name: "MusicFin: Smarter Music Tagging"
 guid: "ade80bea-e92e-4f2c-9a42-f5bf88bffa98"
-version: "1.8.26.0"
+version: "1.8.27.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Context-based track & album recognition."
@@ -11,4 +11,4 @@ artifacts:
   - "Jellyfin.Plugin.MusicFin.dll"
   - "backdrop.svg"
 changelog: >
-  Keep ExplicitFin marks when album titles only differ by IgnoreTitleMarkers; shared FinCommon HTTP; rename-guard cleanup.
+  Match using on-disk file/folder names so wrong Jellyfin tags (e.g. Live in '25) can self-heal.

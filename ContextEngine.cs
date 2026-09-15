@@ -221,13 +221,19 @@ public class ContextEngine
         var writeGenresFromProvider = cfg.WriteGenres
             && string.Equals(metadataClient.ProviderKey, primaryClient.ProviderKey, StringComparison.OrdinalIgnoreCase);
 
-        var localTracks = artistTracks.Select(t => new LocalTrack
+        var localTracks = artistTracks.Select(t =>
         {
-            Id = t.Id,
-            Title = t.Name ?? string.Empty,
-            Album = t.Album,
-            IndexNumber = t.IndexNumber,
-            ParentAlbumId = t.GetParent() is MusicAlbum parent ? parent.Id : null
+            var pathTitle = t.IsFileProtocol ? Titles.TitleFromStoragePath(t.Path) : string.Empty;
+            var pathAlbum = t.IsFileProtocol ? Titles.AlbumFromStoragePath(t.Path, artist) : string.Empty;
+            return new LocalTrack
+            {
+                Id = t.Id,
+                // Prefer on-disk names so a bad Jellyfin tag (e.g. Live in '25 / Control) can self-heal.
+                Title = pathTitle.Length > 0 ? pathTitle : (t.Name ?? string.Empty),
+                Album = pathAlbum.Length > 0 ? pathAlbum : t.Album,
+                IndexNumber = t.IndexNumber,
+                ParentAlbumId = t.GetParent() is MusicAlbum parent ? parent.Id : null
+            };
         }).ToList();
 
         var result = AlbumMatcher.Match(

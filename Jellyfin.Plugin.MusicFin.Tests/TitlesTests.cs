@@ -168,6 +168,40 @@ public class TitlesTests
     public void Norm_FoldsAmpersandAndKeepsWords(string input, string expected)
         => Assert.Equal(expected, Titles.Norm(input));
 
+    [Theory]
+    [InlineData("01-07 Stressed Out", "Stressed Out")]
+    [InlineData("01.07 Stressed Out", "Stressed Out")]
+    [InlineData("07 - Ride", "Ride")]
+    [InlineData("07. Fairly Local", "Fairly Local")]
+    [InlineData("07 Fairly Local", "Fairly Local")]
+    [InlineData("Heavydirtysoul", "Heavydirtysoul")]
+    [InlineData("99 Problems", "99 Problems")]
+    [InlineData("7 Years", "7 Years")]
+    public void TitleFromFileName_StripsTrackPrefixes(string input, string expected)
+        => Assert.Equal(expected, Titles.TitleFromFileName(input));
+
+    [Theory]
+    [InlineData("Blurry Face - Twenty One Pilots", "Twenty One Pilots", "Blurry Face")]
+    [InlineData("Twenty One Pilots - Blurryface", "Twenty One Pilots", "Blurryface")]
+    [InlineData("Live in '25", "The Living Tombstone", "Live in '25")]
+    [InlineData("SOUR", "Olivia Rodrigo", "SOUR")]
+    public void AlbumFromDirectoryName_StripsArtist(string dir, string artist, string expected)
+        => Assert.Equal(expected, Titles.AlbumFromDirectoryName(dir, artist));
+
+    [Fact]
+    public void TitleFromStoragePath_UsesFileStem()
+        => Assert.Equal(
+            "Stressed Out",
+            Titles.TitleFromStoragePath("/media/music/admin/Blurry Face - Twenty One Pilots/01-07 Stressed Out.flac"));
+
+    [Fact]
+    public void AlbumFromStoragePath_UsesParentFolder()
+        => Assert.Equal(
+            "Blurry Face",
+            Titles.AlbumFromStoragePath(
+                "/media/music/admin/Blurry Face - Twenty One Pilots/01-07 Stressed Out.flac",
+                "Twenty One Pilots"));
+
     [Fact]
     public void FoldLeetDigits_MapsStylizedSecondSightSeer()
         => Assert.Equal("second sight seer", Titles.FoldLeetDigits(Titles.Norm("2econd 2ight 2eer")));

@@ -154,6 +154,219 @@ public static class Titles
     }
 
     /// <summary>
+    /// Track title from a storage file name: strips leading disc/track prefixes
+    /// (<c>01-07 Stressed Out</c>, <c>07 - Ride</c>, <c>07. Fairly Local</c>).
+    /// </summary>
+    public static string TitleFromFileName(string fileNameWithoutExtension)
+    {
+        var s = (fileNameWithoutExtension ?? string.Empty).Trim();
+        if (s.Length == 0)
+        {
+            return s;
+        }
+
+        if (TryStripDiscTrackPrefix(s, out var discTrack))
+        {
+            return discTrack;
+        }
+
+        if (TryStripNumberDashPrefix(s, out var dashed))
+        {
+            return dashed;
+        }
+
+        if (TryStripPaddedTrackPrefix(s, out var padded))
+        {
+            return padded;
+        }
+
+        return s;
+    }
+
+    /// <summary>Album title from a folder name, removing leading/trailing artist when known.</summary>
+    public static string AlbumFromDirectoryName(string directoryName, string? artist = null)
+    {
+        var s = (directoryName ?? string.Empty).Trim();
+        if (s.Length == 0 || string.IsNullOrWhiteSpace(artist))
+        {
+            return s;
+        }
+
+        s = StripTrailingArtist(s, artist);
+        return StripLeadingArtist(s, artist);
+    }
+
+    public static string TitleFromStoragePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return string.Empty;
+        }
+
+        return TitleFromFileName(System.IO.Path.GetFileNameWithoutExtension(path));
+    }
+
+    public static string AlbumFromStoragePath(string? path, string? artist = null)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return string.Empty;
+        }
+
+        var dir = System.IO.Path.GetDirectoryName(path);
+        if (string.IsNullOrWhiteSpace(dir))
+        {
+            return string.Empty;
+        }
+
+        var name = System.IO.Path.GetFileName(
+            dir.TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar));
+        return AlbumFromDirectoryName(name ?? string.Empty, artist);
+    }
+
+    /// <summary>
+    /// Strips a leading "Artist - " when the prefix matches the album artist.
+    /// </summary>
+    public static string StripLeadingArtist(string title, string artist)
+    {
+        var t = title.Trim();
+        var a = artist.Trim();
+        if (t.Length == 0 || a.Length == 0)
+        {
+            return t;
+        }
+
+        foreach (var sep in new[] { " - ", " – ", " -- " })
+        {
+            var idx = t.IndexOf(sep, StringComparison.Ordinal);
+            if (idx <= 0)
+            {
+                continue;
+            }
+
+            var prefix = t[..idx].Trim();
+            if (prefix.Length == 0)
+            {
+                continue;
+            }
+
+            var want = Norm(a);
+            var got = Norm(prefix);
+            if (got == want || Similarity.Ratio(got, want) >= 0.82)
+            {
+                return t[(idx + sep.Length)..].TrimStart();
+            }
+        }
+
+        return t;
+    }
+
+    private static bool TryStripDiscTrackPrefix(string s, out string rest)
+    {
+        rest = s;
+        var i = 0;
+        if (!TakeDigits(s, ref i, 1, 2))
+        {
+            return false;
+        }
+
+        if (i >= s.Length || s[i] is not ('-' or '_' or '.'))
+        {
+            return false;
+        }
+
+        i++;
+        if (!TakeDigits(s, ref i, 1, 3))
+        {
+            return false;
+        }
+
+        if (i >= s.Length || s[i] is not (' ' or '-' or '_' or '.'))
+        {
+            return false;
+        }
+
+        while (i < s.Length && s[i] is ' ' or '-' or '_' or '.')
+        {
+            i++;
+        }
+
+        if (i >= s.Length)
+        {
+            return false;
+        }
+
+        rest = s[i..].Trim();
+        return rest.Length > 0;
+    }
+
+    private static bool TryStripNumberDashPrefix(string s, out string rest)
+    {
+        rest = s;
+        var i = 0;
+        if (!TakeDigits(s, ref i, 1, 3))
+        {
+            return false;
+        }
+
+        // Require " - " (or en-dash) so "99 Problems" / "7 Years" stay intact.
+        if (i + 2 < s.Length && s[i] == ' ' && s[i + 1] is '-' or '–' && s[i + 2] == ' ')
+        {
+            rest = s[(i + 3)..].Trim();
+            return rest.Length > 0;
+        }
+
+        return false;
+    }
+
+    private static bool TryStripPaddedTrackPrefix(string s, out string rest)
+    {
+        rest = s;
+        // Exactly two digits (01 Title / 07. Title).
+        if (s.Length < 3 || !char.IsDigit(s[0]) || !char.IsDigit(s[1]))
+        {
+            return false;
+        }
+
+        var i = 2;
+        var sep = s[i];
+        if (sep is not (' ' or '-' or '_' or '.'))
+        {
+            return false;
+        }
+
+        // Bare "NN Title" (single space) only when zero-padded — keeps "99 Problems".
+        if (sep == ' ' && s[0] != '0')
+        {
+            return false;
+        }
+
+        while (i < s.Length && s[i] is ' ' or '-' or '_' or '.')
+        {
+            i++;
+        }
+
+        if (i >= s.Length || char.IsDigit(s[i]))
+        {
+            return false;
+        }
+
+        rest = s[i..].Trim();
+        return rest.Length > 0;
+    }
+
+    private static bool TakeDigits(string s, ref int i, int min, int max)
+    {
+        var start = i;
+        while (i < s.Length && i - start < max && char.IsDigit(s[i]))
+        {
+            i++;
+        }
+
+        return i - start >= min;
+    }
+
+    /// <summary>
     /// Strips a trailing " - Artist" (or similar dash) when the suffix matches the album artist,
     /// including close typos like "Rainbow Kitten Suprise".
     /// </summary>
