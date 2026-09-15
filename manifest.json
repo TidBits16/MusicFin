@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.29.0",
+        "changelog": "Keep separate EP folder names (Seven / Mary) when catalog only has a combo like Seven + Mary.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.29.0/MusicFin_1.8.29.0.zip",
+        "checksum": "b4a8dafe6ec434890e2ac41fec961b8a",
+        "timestamp": "2026-09-15T20:26:16Z"
+      },
+      {
         "version": "1.8.28.0",
         "changelog": "Faster scheduled runs: parallel Discogs/MusicBrainz fetches, skip settled artists, cache empty provider lookups, cheaper cover majority checks.",
         "targetAbi": "10.11.0.0",
