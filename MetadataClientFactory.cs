@@ -6,8 +6,8 @@ public class MetadataClientFactory
 {
     public static readonly MetadataProvider[] AllProvidersInOrder =
     [
-        MetadataProvider.Discogs,
         MetadataProvider.Deezer,
+        MetadataProvider.Discogs,
         MetadataProvider.MusicBrainz,
         MetadataProvider.Itunes,
         MetadataProvider.OpenOpus

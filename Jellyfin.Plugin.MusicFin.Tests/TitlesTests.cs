@@ -226,4 +226,13 @@ public class TitlesTests
     [InlineData("Outliars & Hyppocrates", "Outliars and Hyppocrates: a fun fact about apples")]
     public void TitleMatchScore_HandlesCompoundAndLeetTitles(string local, string catalog)
         => Assert.True(TrackMatcher.TitleMatchScore(local, catalog) >= 0.84);
+
+    [Fact]
+    public void SameNames_IgnoresProviderCasing()
+    {
+        Assert.True(Titles.SameNames(["NF"], ["nf"]));
+        Assert.True(Titles.SameNames(["femtanyl"], ["Femtanyl"]));
+        Assert.False(Titles.SameNames(["NF"], ["Nate Feuerstein"]));
+        Assert.False(Titles.SameNames(["NF"], ["NF", "Hopsin"]));
+    }
 }

@@ -16,7 +16,7 @@
 
                     <div class="verticalSection">
                         <h3 class="checkboxListLabel">Metadata providers</h3>
-                        <div class="fieldDescription">Providers are tried in order. Default: Discogs first, Deezer as fallback. Genres only come from the first (top) provider.</div>
+                            <div class="fieldDescription">Providers are tried in order. Default: Deezer first, Discogs as fallback. Genres only come from the first (top) provider.</div>
                         <div id="ProviderList" class="checkboxList paperList checkboxList-paperList"></div>
                         <div class="inputContainer" id="MusicBrainzContactRow">
                             <label class="inputLabel inputLabelUnfocused" for="MusicBrainzContact">MusicBrainz contact</label>
@@ -141,13 +141,13 @@
             const DtConfig = { pluginUniqueId: 'ade80bea-e92e-4f2c-9a42-f5bf88bffa98' };
 
             const PROVIDER_CATALOG = [
-                { id: 'Discogs', name: 'Discogs' },
                 { id: 'Deezer', name: 'Deezer' },
+                { id: 'Discogs', name: 'Discogs' },
                 { id: 'MusicBrainz', name: 'MusicBrainz' },
                 { id: 'Itunes', name: 'iTunes / Apple Music' },
                 { id: 'OpenOpus', name: 'Open Opus (classical)' }
             ];
-            const DEFAULT_ENABLED_PROVIDERS = ['Discogs', 'Deezer'];
+            const DEFAULT_ENABLED_PROVIDERS = ['Deezer', 'Discogs'];
             const DEFAULT_PROVIDER_ORDER = PROVIDER_CATALOG.map(function (p) { return p.id; });
 
             function providerName(id) {
@@ -173,7 +173,7 @@
             }
 
             function legacyProviders(config) {
-                var primary = config.MetadataProvider || 'Discogs';
+                var primary = config.MetadataProvider || 'Deezer';
                 if (config.FallbackToOtherProvider === true) {
                     return [primary].concat(DEFAULT_PROVIDER_ORDER.filter(function (p) { return p !== primary; }));
                 }

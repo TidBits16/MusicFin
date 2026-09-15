@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.29.0",
+  "version": "1.8.30.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Keep separate EP folder names (Seven / Mary) when catalog only has a combo like Seven + Mary.",
+  "changelog": "Default to Deezer (cleaner covers) with Discogs fallback; preserve library artist casing (NF vs nf, femtanyl).",
   "imagePath": "backdrop.svg"
 }

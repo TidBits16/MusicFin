@@ -671,6 +671,10 @@ public static class Titles
         return output;
     }
 
+    /// <summary>
+    /// True when the lists match ignoring case. Provider casing (e.g. Discogs "nf")
+    /// must not rewrite library casing ("NF", "femtanyl").
+    /// </summary>
     public static bool SameNames(IReadOnlyList<string> a, IReadOnlyList<string> b)
     {
         if (a.Count != b.Count)
@@ -680,7 +684,7 @@ public static class Titles
 
         for (var i = 0; i < a.Count; i++)
         {
-            if (!a[i].Equals(b[i], StringComparison.Ordinal))
+            if (!a[i].Equals(b[i], StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }

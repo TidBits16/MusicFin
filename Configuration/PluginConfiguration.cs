@@ -20,15 +20,15 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>All providers in UI order (checked and unchecked).</summary>
     public MetadataProvider[] MetadataProviderOrder { get; set; } = [];
 
-    /// <summary>Checked providers to try, in order. Default: Discogs then Deezer fallback.</summary>
+    /// <summary>Checked providers to try, in order. Default: Deezer then Discogs fallback.</summary>
     public MetadataProvider[] MetadataProviders { get; set; } =
     [
-        MetadataProvider.Discogs,
-        MetadataProvider.Deezer
+        MetadataProvider.Deezer,
+        MetadataProvider.Discogs
     ];
 
     /// <summary>Legacy single provider; used only when <see cref="MetadataProviders"/> is empty.</summary>
-    public MetadataProvider MetadataProvider { get; set; } = MetadataProvider.Discogs;
+    public MetadataProvider MetadataProvider { get; set; } = MetadataProvider.Deezer;
 
     /// <summary>Legacy fallback toggle; used only when <see cref="MetadataProviders"/> is empty.</summary>
     public bool? FallbackToOtherProvider { get; set; }

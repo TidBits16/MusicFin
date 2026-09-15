@@ -64,8 +64,8 @@ public class ContextEngine
         {
             clients = _metadata.GetClients(
             [
-                Configuration.MetadataProvider.Discogs,
-                Configuration.MetadataProvider.Deezer
+                Configuration.MetadataProvider.Deezer,
+                Configuration.MetadataProvider.Discogs
             ]);
         }
 
@@ -884,12 +884,21 @@ public class ContextEngine
 
     private static IReadOnlyList<string> EffectiveAlbumArtists(TrackAssignment assignment, string catalogArtistName)
     {
-        if (assignment.AlbumArtists.Count > 0)
+        IReadOnlyList<string> fromCatalog = assignment.AlbumArtists.Count > 0
+            ? assignment.AlbumArtists
+            : catalogArtistName.Length > 0 ? [catalogArtistName] : [];
+
+        // Keep the library artist spelling when the provider only differs by case.
+        if (catalogArtistName.Length == 0 || fromCatalog.Count == 0)
         {
-            return assignment.AlbumArtists;
+            return fromCatalog;
         }
 
-        return catalogArtistName.Length > 0 ? [catalogArtistName] : [];
+        return fromCatalog
+            .Select(name => name.Equals(catalogArtistName, StringComparison.OrdinalIgnoreCase)
+                ? catalogArtistName
+                : name)
+            .ToList();
     }
 
     private static List<string>? ArtistWant(IReadOnlyList<string> want, IReadOnlyList<string>? current)
