@@ -1,6 +1,6 @@
 name: "MusicFin: Smarter Music Tagging"
 guid: "ade80bea-e92e-4f2c-9a42-f5bf88bffa98"
-version: "1.8.23.0"
+version: "1.8.24.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Context-based track & album recognition."
@@ -11,4 +11,4 @@ artifacts:
   - "Jellyfin.Plugin.MusicFin.dll"
   - "backdrop.svg"
 changelog: >
-  Match each album folder on its own tracks (Seven/Mary stay separate EPs; a single-track folder stays a single). Combo releases only win when both halves share one folder.
+  Roll track genres up onto MusicArtist entities (union of that artist's track genres). Album/track genre overwrite still only on Force rewrite / Force Refresh.

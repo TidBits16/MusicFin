@@ -88,6 +88,15 @@ public class ContextEngine
             Recursive = true
         }).OfType<MusicAlbum>().Where(a => a.Id != Guid.Empty).ToDictionary(a => a.Id);
 
+        var musicArtists = _library.GetItemList(new InternalItemsQuery
+        {
+            IncludeItemTypes = [BaseItemKind.MusicArtist],
+            Recursive = true
+        }).OfType<MusicArtist>()
+            .Where(a => a.Id != Guid.Empty && !string.IsNullOrWhiteSpace(a.Name))
+            .GroupBy(a => a.Name.Trim(), StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<MusicArtist>)g.ToList(), StringComparer.OrdinalIgnoreCase);
+
         var skipSet = new HashSet<string>(cfg.EffectiveSkipArtists, StringComparer.OrdinalIgnoreCase);
         var grouped = tracks
             .GroupBy(AlbumArtistOf, StringComparer.OrdinalIgnoreCase)
@@ -127,6 +136,7 @@ public class ContextEngine
                     patches,
                     albumPatches,
                     albums,
+                    musicArtists,
                     force,
                     cancellationToken).ConfigureAwait(false);
             }
@@ -180,6 +190,7 @@ public class ContextEngine
         ConcurrentDictionary<Guid, Patch> patches,
         ConcurrentDictionary<Guid, Patch> albumPatches,
         IReadOnlyDictionary<Guid, MusicAlbum> albums,
+        IReadOnlyDictionary<string, IReadOnlyList<MusicArtist>> musicArtists,
         bool force,
         CancellationToken cancellationToken)
     {
@@ -192,6 +203,17 @@ public class ContextEngine
             cancellationToken).ConfigureAwait(false);
         if (resolved is null)
         {
+            if (cfg.WriteGenres)
+            {
+                WriteArtistGenresFromTracks(
+                    artist,
+                    artistTracks,
+                    patches,
+                    albumPatches,
+                    musicArtists,
+                    force || cfg.CleanOldMusicTags);
+            }
+
             return;
         }
 
@@ -514,6 +536,63 @@ public class ContextEngine
                 };
                 albumPatches.AddOrUpdate(albumId, patch, (_, prev) => prev.Merge(patch));
             }
+        }
+
+        if (cfg.WriteGenres)
+        {
+            WriteArtistGenresFromTracks(
+                artist,
+                artistTracks,
+                patches,
+                albumPatches,
+                musicArtists,
+                force || cfg.CleanOldMusicTags);
+        }
+    }
+
+    /// <summary>
+    /// Rolls up track genres for this album artist onto matching MusicArtist entities.
+    /// </summary>
+    private static void WriteArtistGenresFromTracks(
+        string artist,
+        IReadOnlyList<Audio> artistTracks,
+        ConcurrentDictionary<Guid, Patch> patches,
+        ConcurrentDictionary<Guid, Patch> albumPatches,
+        IReadOnlyDictionary<string, IReadOnlyList<MusicArtist>> musicArtists,
+        bool force)
+    {
+        if (!musicArtists.TryGetValue(artist, out var artistItems) || artistItems.Count == 0)
+        {
+            return;
+        }
+
+        var perTrack = new List<IReadOnlyList<string>>(artistTracks.Count);
+        foreach (var track in artistTracks)
+        {
+            if (patches.TryGetValue(track.Id, out var patch) && patch.Genres is { Count: > 0 })
+            {
+                perTrack.Add(patch.Genres);
+                continue;
+            }
+
+            perTrack.Add(track.Genres ?? []);
+        }
+
+        var rolled = Genres.PrettyList(perTrack.SelectMany(g => g));
+        if (rolled.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var musicArtist in artistItems)
+        {
+            if (GenreWant(rolled, musicArtist.Genres, force) is not { } want)
+            {
+                continue;
+            }
+
+            var patch = new Patch { ItemId = musicArtist.Id, Item = musicArtist, Genres = want };
+            albumPatches.AddOrUpdate(musicArtist.Id, patch, (_, existing) => existing.Merge(patch));
         }
     }
 

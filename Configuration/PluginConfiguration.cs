@@ -116,12 +116,12 @@ public class PluginConfiguration : BasePluginConfiguration
 
     /// <summary>
     /// When WriteGenres is on, copy album genres onto assigned tracks so they stay consistent.
-    /// When off, WriteGenres still updates albums; track genres are left as-is.
+    /// When off, WriteGenres still updates albums and rolls track genres up to artists; track genres are left as-is.
     /// </summary>
     public bool ApplyAlbumGenresToTracks { get; set; } = true;
 
     /// <summary>
-    /// When on, overwrite existing genres with the first provider's genre list.
+    /// When on, overwrite existing genres (albums, tracks, and artist rollups) with the first provider / rolled list.
     /// When off, only fill empty genre lists. Genres are never taken from fallback providers.
     /// </summary>
     public bool CleanOldMusicTags { get; set; } = true;

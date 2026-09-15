@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.23.0",
+  "version": "1.8.24.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Match each album folder on its own tracks (Seven/Mary stay separate EPs; a single-track folder stays a single). Combo releases only win when both halves share one folder.",
+  "changelog": "Roll track genres up onto MusicArtist entities (union of that artist's track genres). Album/track genre overwrite still only on Force rewrite / Force Refresh.",
   "imagePath": "backdrop.svg"
 }

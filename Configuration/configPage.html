@@ -73,6 +73,7 @@
                                 <input is="emby-checkbox" type="checkbox" id="WriteGenres" />
                                 <span>Genres</span>
                             </label>
+                            <div class="fieldDescription">Writes album/track genres from the first provider, and sets each MusicArtist to the union of that artist's track genres.</div>
                         </div>
                         <div class="checkboxContainer">
                             <label>
@@ -85,7 +86,7 @@
                                 <input is="emby-checkbox" type="checkbox" id="CleanOldMusicTags" />
                                 <span>Force rewrite genres</span>
                             </label>
-                            <div class="fieldDescription">Overwrite existing genres with tags from the first provider only. When off, only fill empty genre lists.</div>
+                            <div class="fieldDescription">Overwrite existing album, track, and artist genres. When off, only fill empty genre lists. Force Refresh also overwrites.</div>
                         </div>
                     </div>
 
