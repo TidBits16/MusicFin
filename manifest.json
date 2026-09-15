@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.26.0",
+        "changelog": "Keep ExplicitFin marks when album titles only differ by IgnoreTitleMarkers; shared FinCommon HTTP; rename-guard cleanup.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.26.0/MusicFin_1.8.26.0.zip",
+        "checksum": "d98799f9fa1d936b09412f0396394585",
+        "timestamp": "2026-09-15T14:30:06Z"
+      },
+      {
         "version": "1.8.25.0",
         "changelog": "Separate Artist genres toggle; remove Force rewrite genres checkbox (overwrite only via Force Refresh).",
         "targetAbi": "10.11.0.0",
