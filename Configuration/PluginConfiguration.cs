@@ -139,7 +139,7 @@ public class PluginConfiguration : BasePluginConfiguration
     public int AlbumFetchWorkers { get; set; }
 
     public int EffectiveAlbumFetchWorkers
-        => AlbumFetchWorkers <= 0 ? 1 : Math.Clamp(AlbumFetchWorkers, 1, 4);
+        => AlbumFetchWorkers <= 0 ? 2 : Math.Clamp(AlbumFetchWorkers, 1, 4);
 
     public IReadOnlyList<string> EffectiveSkipArtists
         => (SkipArtists ?? string.Empty)

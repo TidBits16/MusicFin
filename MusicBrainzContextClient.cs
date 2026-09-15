@@ -22,7 +22,7 @@ public sealed class MusicBrainzContextClient : IContextMetadataClient
             factory,
             cache,
             TimeSpan.FromMilliseconds(1100),
-            maxInFlight: 1,
+            maxInFlight: 3,
             userAgent: BuildUserAgent(),
             skipCacheOnErrorProperty: true);
     }
@@ -178,25 +178,36 @@ public sealed class MusicBrainzContextClient : IContextMetadataClient
             }
         }
 
-        var results = new List<CatalogAlbum>();
-        foreach (var group in releaseGroups)
+        var results = new System.Collections.Concurrent.ConcurrentBag<CatalogAlbum>();
+        var workers = Math.Clamp(albumFetchWorkers, 1, 4);
+        using var gate = new SemaphoreSlim(workers, workers);
+
+        await Task.WhenAll(releaseGroups.Select(async group =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var album = await ReleaseGroupAlbumAsync(group, artistName, cancellationToken).ConfigureAwait(false);
-            if (album.AlbumId.Length == 0 || album.Tracks.Count == 0)
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
-                continue;
-            }
+                cancellationToken.ThrowIfCancellationRequested();
+                var album = await ReleaseGroupAlbumAsync(group, artistName, cancellationToken).ConfigureAwait(false);
+                if (album.AlbumId.Length == 0 || album.Tracks.Count == 0)
+                {
+                    return;
+                }
 
-            if (!CatalogFilters.IsOwnedByArtist(artistName, album))
+                if (!CatalogFilters.IsOwnedByArtist(artistName, album))
+                {
+                    return;
+                }
+
+                results.Add(album);
+            }
+            finally
             {
-                continue;
+                gate.Release();
             }
+        })).ConfigureAwait(false);
 
-            results.Add(album);
-        }
-
-        return results;
+        return results.ToList();
     }
 
     internal static bool ShouldFetchReleaseGroup(JsonElement raw, string artistName)

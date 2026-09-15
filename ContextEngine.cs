@@ -133,6 +133,7 @@ public class ContextEngine
                     cfg,
                     primaryClient,
                     fallbackClients,
+                    clients.Select(c => c.ProviderKey).ToList(),
                     patches,
                     albumPatches,
                     albums,
@@ -187,6 +188,7 @@ public class ContextEngine
         PluginConfiguration cfg,
         IContextMetadataClient primaryClient,
         IReadOnlyList<IContextMetadataClient> fallbackClients,
+        IReadOnlyList<string> providerKeys,
         ConcurrentDictionary<Guid, Patch> patches,
         ConcurrentDictionary<Guid, Patch> albumPatches,
         IReadOnlyDictionary<Guid, MusicAlbum> albums,
@@ -194,6 +196,27 @@ public class ContextEngine
         bool force,
         CancellationToken cancellationToken)
     {
+        if (!force
+            && ArtistLooksSettled(artist, artistTracks, providerKeys, cfg.EffectiveIgnoreTitleMarkers))
+        {
+            _logger.LogInformation(
+                "SmarterMusicTagging: {Artist}: skipped ({Count} tracks already tagged)",
+                artist,
+                artistTracks.Count);
+            if (cfg.WriteArtistGenres)
+            {
+                WriteArtistGenresFromTracks(
+                    artist,
+                    artistTracks,
+                    patches,
+                    albumPatches,
+                    musicArtists,
+                    force);
+            }
+
+            return;
+        }
+
         var resolved = await ResolveArtistDiscographyAsync(
             artist,
             artistTracks.Count,
@@ -454,7 +477,8 @@ public class ContextEngine
                 }
 
                 if (!AlbumRename.HasMajorityCoverage(
-                        musicAlbum.GetRecursiveChildren().OfType<Audio>().Count(t => t.IsFileProtocol),
+                        artistTracks.Count(t =>
+                            t.GetParent() is MusicAlbum parent && parent.Id == albumId),
                         urls.Count))
                 {
                     continue;
@@ -543,6 +567,8 @@ public class ContextEngine
         }
     }
 
+    private static readonly TimeSpan ProviderMissTtl = TimeSpan.FromDays(7);
+
     private async Task<(CatalogArtistInfo Artist, List<CatalogAlbum> Discography, IContextMetadataClient Client)?> ResolveArtistDiscographyAsync(
         string artist,
         int trackCount,
@@ -551,7 +577,8 @@ public class ContextEngine
         int fetchWorkers,
         CancellationToken cancellationToken)
     {
-        var primary = await TryResolveWithClientAsync(artist, primaryClient, fetchWorkers, cancellationToken).ConfigureAwait(false);
+        var primary = await TryResolveWithClientAsync(artist, primaryClient, fetchWorkers, cancellationToken)
+            .ConfigureAwait(false);
         if (primary is not null)
         {
             return (primary.Value.Artist, primary.Value.Discography, primaryClient);
@@ -566,7 +593,8 @@ public class ContextEngine
                 trackCount,
                 fallbackClient.ProviderKey);
 
-            var fallback = await TryResolveWithClientAsync(artist, fallbackClient, fetchWorkers, cancellationToken).ConfigureAwait(false);
+            var fallback = await TryResolveWithClientAsync(artist, fallbackClient, fetchWorkers, cancellationToken)
+                .ConfigureAwait(false);
             if (fallback is null)
             {
                 continue;
@@ -589,9 +617,19 @@ public class ContextEngine
         int fetchWorkers,
         CancellationToken cancellationToken)
     {
+        if (HasCachedProviderMiss(metadataClient.ProviderKey, artist))
+        {
+            _logger.LogInformation(
+                "SmarterMusicTagging: {Artist}: skipping {Provider} (cached empty)",
+                artist,
+                metadataClient.ProviderKey);
+            return null;
+        }
+
         var candidates = await metadataClient.GetArtistCandidatesAsync(artist, cancellationToken).ConfigureAwait(false);
         if (candidates.Count == 0)
         {
+            CacheProviderMiss(metadataClient.ProviderKey, artist);
             _logger.LogWarning(
                 "SmarterMusicTagging: no {Provider} artist match for {Artist}",
                 metadataClient.ProviderKey,
@@ -620,6 +658,7 @@ public class ContextEngine
 
         if (matchedArtist is null || discography.Count == 0)
         {
+            CacheProviderMiss(metadataClient.ProviderKey, artist);
             var tried = string.Join(", ", candidates.Select(c => c.ArtistId));
             _logger.LogWarning(
                 "SmarterMusicTagging: empty discography for {Artist} after trying {Provider} ids [{Ids}]",
@@ -641,6 +680,63 @@ public class ContextEngine
         }
 
         return (matchedArtist, discography);
+    }
+
+    private bool HasCachedProviderMiss(string providerKey, string artist)
+        => _cache.TryGet(ProviderMissKey(providerKey, artist), ProviderMissTtl, out _);
+
+    private void CacheProviderMiss(string providerKey, string artist)
+        => _cache.SetObject(ProviderMissKey(providerKey, artist), new { empty = true });
+
+    private static string ProviderMissKey(string providerKey, string artist)
+        => "resolve-miss/" + providerKey + "/" + Titles.Norm(artist);
+
+    /// <summary>
+    /// True when every track already has a provider id and on-disk album names agree with Jellyfin
+    /// (so a bad Live in '25 tag still re-runs when the folder name differs).
+    /// </summary>
+    private static bool ArtistLooksSettled(
+        string artist,
+        IReadOnlyList<Audio> tracks,
+        IReadOnlyList<string> providerKeys,
+        IReadOnlyList<string> markers)
+    {
+        if (tracks.Count == 0 || providerKeys.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var track in tracks)
+        {
+            var tagged = false;
+            foreach (var key in providerKeys)
+            {
+                if (!string.IsNullOrEmpty(track.GetProviderId(key)))
+                {
+                    tagged = true;
+                    break;
+                }
+            }
+
+            if (!tagged)
+            {
+                return false;
+            }
+
+            if (!track.IsFileProtocol)
+            {
+                continue;
+            }
+
+            var pathAlbum = Titles.AlbumFromStoragePath(track.Path, artist);
+            if (pathAlbum.Length > 0
+                && !Titles.SameTitleIgnoringMarks(track.Album ?? string.Empty, pathAlbum, markers))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static Patch? BuildTrackPatch(

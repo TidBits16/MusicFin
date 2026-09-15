@@ -23,7 +23,7 @@ public sealed class DiscogsContextClient : IContextMetadataClient
             factory,
             cache,
             TimeSpan.FromMilliseconds(1100),
-            maxInFlight: 1,
+            maxInFlight: 3,
             userAgent: "MusicFin/1.0 +https://github.com/TidBits16/MusicFin",
             extraHeaders: BuildAuthHeaders(),
             skipCacheOnErrorProperty: true);
@@ -219,25 +219,36 @@ public sealed class DiscogsContextClient : IContextMetadataClient
             page++;
         }
 
-        var results = new List<CatalogAlbum>();
-        foreach (var masterId in masterIds)
+        var results = new System.Collections.Concurrent.ConcurrentBag<CatalogAlbum>();
+        var workers = Math.Clamp(albumFetchWorkers, 1, 4);
+        using var gate = new SemaphoreSlim(workers, workers);
+
+        await Task.WhenAll(masterIds.Select(async masterId =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var album = await MasterByIdAsync(masterId, artistName, cancellationToken).ConfigureAwait(false);
-            if (album.AlbumId.Length == 0 || album.Tracks.Count == 0)
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
-                continue;
-            }
+                cancellationToken.ThrowIfCancellationRequested();
+                var album = await MasterByIdAsync(masterId, artistName, cancellationToken).ConfigureAwait(false);
+                if (album.AlbumId.Length == 0 || album.Tracks.Count == 0)
+                {
+                    return;
+                }
 
-            if (!CatalogFilters.IsOwnedByArtist(artistName, album))
+                if (!CatalogFilters.IsOwnedByArtist(artistName, album))
+                {
+                    return;
+                }
+
+                results.Add(album);
+            }
+            finally
             {
-                continue;
+                gate.Release();
             }
+        })).ConfigureAwait(false);
 
-            results.Add(album);
-        }
-
-        return results;
+        return results.ToList();
     }
 
     private async Task<CatalogAlbum> MasterByIdAsync(string masterId, string artistName, CancellationToken cancellationToken)
