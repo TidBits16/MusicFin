@@ -203,7 +203,7 @@ public class ContextEngine
             cancellationToken).ConfigureAwait(false);
         if (resolved is null)
         {
-            if (cfg.WriteGenres)
+            if (cfg.WriteArtistGenres)
             {
                 WriteArtistGenresFromTracks(
                     artist,
@@ -211,7 +211,7 @@ public class ContextEngine
                     patches,
                     albumPatches,
                     musicArtists,
-                    force || cfg.CleanOldMusicTags);
+                    force);
             }
 
             return;
@@ -395,7 +395,7 @@ public class ContextEngine
                         continue;
                     }
 
-                    if (GenreWant(entry.Value, albumItem.Genres, force || cfg.CleanOldMusicTags) is not { } want)
+                    if (GenreWant(entry.Value, albumItem.Genres, force) is not { } want)
                     {
                         continue;
                     }
@@ -538,7 +538,7 @@ public class ContextEngine
             }
         }
 
-        if (cfg.WriteGenres)
+        if (cfg.WriteArtistGenres)
         {
             WriteArtistGenresFromTracks(
                 artist,
@@ -546,7 +546,7 @@ public class ContextEngine
                 patches,
                 albumPatches,
                 musicArtists,
-                force || cfg.CleanOldMusicTags);
+                force);
         }
     }
 
@@ -759,7 +759,7 @@ public class ContextEngine
         List<string>? genreWrite = null;
         if (writeGenresFromProvider && cfg.ApplyAlbumGenresToTracks && assignment.Genres.Count > 0)
         {
-            if (GenreWant(assignment.Genres, track.Genres, force || cfg.CleanOldMusicTags) is { } genres)
+            if (GenreWant(assignment.Genres, track.Genres, force) is { } genres)
             {
                 genreWrite = genres;
             }

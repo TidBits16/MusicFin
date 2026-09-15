@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.24.0",
+  "version": "1.8.25.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Roll track genres up onto MusicArtist entities (union of that artist's track genres). Album/track genre overwrite still only on Force rewrite / Force Refresh.",
+  "changelog": "Separate Artist genres toggle; remove Force rewrite genres checkbox (overwrite only via Force Refresh).",
   "imagePath": "backdrop.svg"
 }

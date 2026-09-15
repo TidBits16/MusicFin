@@ -73,20 +73,18 @@
                                 <input is="emby-checkbox" type="checkbox" id="WriteGenres" />
                                 <span>Genres</span>
                             </label>
-                            <div class="fieldDescription">Writes album/track genres from the first provider, and sets each MusicArtist to the union of that artist's track genres.</div>
+                        </div>
+                        <div class="checkboxContainer">
+                            <label>
+                                <input is="emby-checkbox" type="checkbox" id="WriteArtistGenres" />
+                                <span>Artist genres</span>
+                            </label>
                         </div>
                         <div class="checkboxContainer">
                             <label>
                                 <input is="emby-checkbox" type="checkbox" id="ApplyAlbumGenresToTracks" />
                                 <span>Keep album and track genres consistent</span>
                             </label>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="CleanOldMusicTags" />
-                                <span>Force rewrite genres</span>
-                            </label>
-                            <div class="fieldDescription">Overwrite existing album, track, and artist genres. When off, only fill empty genre lists. Force Refresh also overwrites.</div>
                         </div>
                     </div>
 
@@ -305,8 +303,8 @@
                 document.querySelector('#WriteYear').checked = config.WriteYear !== false;
                 document.querySelector('#WriteAlbumCovers').checked = config.WriteAlbumCovers !== false;
                 document.querySelector('#WriteGenres').checked = config.WriteGenres !== false;
+                document.querySelector('#WriteArtistGenres').checked = config.WriteArtistGenres !== false;
                 document.querySelector('#ApplyAlbumGenresToTracks').checked = config.ApplyAlbumGenresToTracks !== false;
-                document.querySelector('#CleanOldMusicTags').checked = config.CleanOldMusicTags !== false;
                 document.querySelector('#IgnoreTitleMarkers').value = config.IgnoreTitleMarkers ?? '🅴,[Explicit]';
                 document.querySelector('#MinTitleSimilarity').value = config.MinTitleSimilarity || 0.72;
                 document.querySelector('#SkipArtists').value = config.SkipArtists || '';
@@ -329,8 +327,8 @@
                     config.WriteYear = document.querySelector('#WriteYear').checked;
                     config.WriteAlbumCovers = document.querySelector('#WriteAlbumCovers').checked;
                     config.WriteGenres = document.querySelector('#WriteGenres').checked;
+                    config.WriteArtistGenres = document.querySelector('#WriteArtistGenres').checked;
                     config.ApplyAlbumGenresToTracks = document.querySelector('#ApplyAlbumGenresToTracks').checked;
-                    config.CleanOldMusicTags = document.querySelector('#CleanOldMusicTags').checked;
                     config.IgnoreTitleMarkers = document.querySelector('#IgnoreTitleMarkers').value;
                     config.MinTitleSimilarity = parseFloat(document.querySelector('#MinTitleSimilarity').value) || 0.72;
                     config.SkipArtists = document.querySelector('#SkipArtists').value;
