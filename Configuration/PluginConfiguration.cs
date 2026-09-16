@@ -20,11 +20,10 @@ public class PluginConfiguration : BasePluginConfiguration
     /// <summary>All providers in UI order (checked and unchecked).</summary>
     public MetadataProvider[] MetadataProviderOrder { get; set; } = [];
 
-    /// <summary>Checked providers to try, in order. Default: Deezer then Discogs fallback.</summary>
+    /// <summary>Checked providers to try, in order. Default: Deezer only (Discogs off — physical scans).</summary>
     public MetadataProvider[] MetadataProviders { get; set; } =
     [
-        MetadataProvider.Deezer,
-        MetadataProvider.Discogs
+        MetadataProvider.Deezer
     ];
 
     /// <summary>Legacy single provider; used only when <see cref="MetadataProviders"/> is empty.</summary>

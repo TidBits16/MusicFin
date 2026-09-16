@@ -16,7 +16,7 @@
 
                     <div class="verticalSection">
                         <h3 class="checkboxListLabel">Metadata providers</h3>
-                            <div class="fieldDescription">Providers are tried in order. Default: Deezer first, Discogs as fallback. Genres only come from the first (top) provider.</div>
+                            <div class="fieldDescription">Providers are tried in order. Default: Deezer only (Discogs is available but off — it often returns CD-case photos). Check Discogs only if you need it as a fallback.</div>
                         <div id="ProviderList" class="checkboxList paperList checkboxList-paperList"></div>
                         <div class="inputContainer" id="MusicBrainzContactRow">
                             <label class="inputLabel inputLabelUnfocused" for="MusicBrainzContact">MusicBrainz contact</label>
@@ -147,7 +147,7 @@
                 { id: 'Itunes', name: 'iTunes / Apple Music' },
                 { id: 'OpenOpus', name: 'Open Opus (classical)' }
             ];
-            const DEFAULT_ENABLED_PROVIDERS = ['Deezer', 'Discogs'];
+            const DEFAULT_ENABLED_PROVIDERS = ['Deezer'];
             const DEFAULT_PROVIDER_ORDER = PROVIDER_CATALOG.map(function (p) { return p.id; });
 
             function providerName(id) {

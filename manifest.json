@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.33.0",
+        "changelog": "Deezer-only by default (Discogs off); restore Seven/Mary EP names; keep singles out of larger LPs; prefer Deezer covers over Discogs scans.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.33.0/MusicFin_1.8.33.0.zip",
+        "checksum": "f1d22a48ccfb40db0be7f29d156f156b",
+        "timestamp": "2026-09-16T19:25:53Z"
+      },
+      {
         "version": "1.8.32.0",
         "changelog": "Cleaner genres (drop junk, fix splits); Discogs styles when Deezer is only Pop/Rock/Alternative; skip failed lookups until cache TTL.",
         "targetAbi": "10.11.0.0",

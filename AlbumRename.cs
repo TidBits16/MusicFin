@@ -36,8 +36,27 @@ public static class AlbumRename
             }
         }
 
+        // Never Be Alone (1-track folder) must not become Fiber-Optic Radio because the
+        // track sits at position 3 on that LP.
+        if (LooksAbsorbedIntoLargerAlbum(parentTrackCount, assignments))
+        {
+            return false;
+        }
+
         // A multi-track folder must not be renamed to a single just because the lead single matched.
         return !assignments.All(a => a.IsSingleRelease)
             || parentTrackCount <= Math.Max(2, assignments.Count);
     }
+
+    /// <summary>
+    /// True when every matched track's catalog position is beyond the local folder size
+    /// (local release is a single/EP absorbed into a larger catalog album).
+    /// </summary>
+    public static bool LooksAbsorbedIntoLargerAlbum(
+        int parentTrackCount,
+        IReadOnlyList<TrackAssignment> assignments)
+        => parentTrackCount > 0
+           && assignments.Count > 0
+           && assignments.All(a => a.TrackNumber > parentTrackCount);
 }
+

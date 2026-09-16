@@ -49,4 +49,42 @@ public class AlbumRenameTests
 
         Assert.False(AlbumRename.ShouldRenameAlbumEntity(11, assignments));
     }
+
+    [Fact]
+    public void ShouldNotRename_WhenSingleFolderAbsorbedIntoLargerAlbum()
+    {
+        // Never Be Alone is track 3 on Fiber-Optic Radio; local folder only has 1 file.
+        var assignments = new List<TrackAssignment>
+        {
+            new()
+            {
+                TrackId = Guid.NewGuid(),
+                TrackTitle = "Never Be Alone",
+                AlbumTitle = "Fiber-Optic Radio",
+                TrackNumber = 3,
+                IsSingleRelease = false
+            }
+        };
+
+        Assert.True(AlbumRename.LooksAbsorbedIntoLargerAlbum(1, assignments));
+        Assert.False(AlbumRename.ShouldRenameAlbumEntity(1, assignments));
+    }
+
+    [Fact]
+    public void ShouldRename_WhenTrackNumbersFitLocalFolder()
+    {
+        var assignments = Enumerable.Range(1, 7)
+            .Select(i => new TrackAssignment
+            {
+                TrackId = Guid.NewGuid(),
+                TrackTitle = "t" + i,
+                AlbumTitle = "Seven + Mary",
+                TrackNumber = i,
+                IsSingleRelease = false
+            })
+            .ToList();
+
+        Assert.False(AlbumRename.LooksAbsorbedIntoLargerAlbum(7, assignments));
+        Assert.True(AlbumRename.ShouldRenameAlbumEntity(7, assignments));
+    }
 }

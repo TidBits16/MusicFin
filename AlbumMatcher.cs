@@ -38,7 +38,7 @@ public sealed class TrackAssignment
 
     public int? Year { get; init; }
 
-    public string CoverUrl { get; init; } = string.Empty;
+    public string CoverUrl { get; set; } = string.Empty;
 
     public bool IsSingleRelease { get; init; }
 }

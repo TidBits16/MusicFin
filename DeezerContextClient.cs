@@ -512,6 +512,74 @@ public sealed class DeezerContextClient : IContextMetadataClient
         return string.Empty;
     }
 
+    /// <summary>Find a clean digital cover when Discogs only has a physical scan.</summary>
+    public async Task<string> FindAlbumCoverAsync(
+        string artist,
+        string albumTitle,
+        CancellationToken cancellationToken)
+    {
+        var wantArtist = Titles.Norm(artist);
+        var wantAlbum = Titles.Norm(albumTitle);
+        if (wantArtist.Length == 0 || wantAlbum.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        var payload = await _http.GetJsonAsync(
+            "deezer/search/album",
+            Base + "/search/album",
+            new Dictionary<string, string>
+            {
+                ["q"] = "artist:\"" + artist.Trim().Replace("\"", " ", StringComparison.Ordinal) + "\" "
+                    + "album:\"" + albumTitle.Trim().Replace("\"", " ", StringComparison.Ordinal) + "\"",
+                ["limit"] = "8"
+            },
+            Ttl,
+            cancellationToken).ConfigureAwait(false);
+        if (payload is null)
+        {
+            return string.Empty;
+        }
+
+        string bestUrl = string.Empty;
+        var bestScore = 0.0;
+        foreach (var raw in JsonUtil.Arr(payload.Value, "data"))
+        {
+            var title = JsonUtil.Str(raw, "title").Trim();
+            var artistName = string.Empty;
+            if (raw.TryGetProperty("artist", out var artistObj) && artistObj.ValueKind == JsonValueKind.Object)
+            {
+                artistName = JsonUtil.Str(artistObj, "name").Trim();
+            }
+
+            if (wantArtist.Length > 0 && artistName.Length > 0)
+            {
+                var artistScore = Similarity.Ratio(Titles.Norm(artistName), wantArtist);
+                if (artistScore < 0.84)
+                {
+                    continue;
+                }
+            }
+
+            var score = Similarity.Ratio(Titles.Norm(title), wantAlbum);
+            if (score < 0.84 || score <= bestScore)
+            {
+                continue;
+            }
+
+            var cover = CoverUrlFrom(raw);
+            if (cover.Length == 0)
+            {
+                continue;
+            }
+
+            bestScore = score;
+            bestUrl = cover;
+        }
+
+        return bestUrl;
+    }
+
     private static DateTime? ParseRelease(string raw)
     {
         var s = raw.Trim();

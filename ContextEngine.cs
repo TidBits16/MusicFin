@@ -25,6 +25,7 @@ public class ContextEngine
     private readonly IProviderManager _providers;
     private readonly MetadataClientFactory _metadata;
     private readonly DiscogsContextClient _discogs;
+    private readonly DeezerContextClient _deezer;
     private readonly HttpCache _cache;
     private readonly ILogger<ContextEngine> _logger;
     private int _forceNext;
@@ -34,6 +35,7 @@ public class ContextEngine
         IProviderManager providers,
         MetadataClientFactory metadata,
         DiscogsContextClient discogs,
+        DeezerContextClient deezer,
         HttpCache cache,
         ILogger<ContextEngine> logger)
     {
@@ -41,6 +43,7 @@ public class ContextEngine
         _providers = providers;
         _metadata = metadata;
         _discogs = discogs;
+        _deezer = deezer;
         _cache = cache;
         _logger = logger;
     }
@@ -68,8 +71,7 @@ public class ContextEngine
         {
             clients = _metadata.GetClients(
             [
-                Configuration.MetadataProvider.Deezer,
-                Configuration.MetadataProvider.Discogs
+                Configuration.MetadataProvider.Deezer
             ]);
         }
 
@@ -325,6 +327,9 @@ public class ContextEngine
                 .ConfigureAwait(false);
         }
 
+        var digitalCoverAlbums = await PreferDigitalCoversAsync(artist, assignmentByTrack, cancellationToken)
+            .ConfigureAwait(false);
+
         var albumGenres = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         var albumYears = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
@@ -402,6 +407,34 @@ public class ContextEngine
                     .ToList();
                 if (!AlbumRename.ShouldRenameAlbumEntity(parentTracks.Count, assignments))
                 {
+                    // Single/EP folder was absorbed into a larger LP name — put the folder title back.
+                    if (AlbumRename.LooksAbsorbedIntoLargerAlbum(parentTracks.Count, assignments))
+                    {
+                        var restoreFolder = string.Empty;
+                        foreach (var track in parentTracks)
+                        {
+                            if (!track.IsFileProtocol)
+                            {
+                                continue;
+                            }
+
+                            restoreFolder = Titles.AlbumFromStoragePath(track.Path, artist);
+                            if (restoreFolder.Length > 0)
+                            {
+                                break;
+                            }
+                        }
+
+                        var markersAbsorbed = cfg.EffectiveIgnoreTitleMarkers;
+                        var currentAbsorbed = albumItem.Name ?? string.Empty;
+                        if (restoreFolder.Length > 0
+                            && !Titles.SameTitleIgnoringMarks(currentAbsorbed, restoreFolder, markersAbsorbed))
+                        {
+                            var restore = new Patch { ItemId = albumId, Item = albumItem, Name = restoreFolder };
+                            albumPatches.AddOrUpdate(albumId, restore, (_, existing) => existing.Merge(restore));
+                        }
+                    }
+
                     continue;
                 }
 
@@ -428,6 +461,13 @@ public class ContextEngine
                     folderTitle.Length > 0 ? folderTitle : current,
                     catalogTitle,
                     markers);
+
+                // Already renamed to the combo earlier — force the EP folder name back.
+                if (folderTitle.Length > 0
+                    && Titles.IsComboExpansionOf(folderTitle, current, markers))
+                {
+                    desired = folderTitle;
+                }
 
                 if (Titles.SameTitleIgnoringMarks(current, desired, markers))
                 {
@@ -549,17 +589,22 @@ public class ContextEngine
                     continue;
                 }
 
-                // Force refresh always replaces art; otherwise only when renaming the album.
+                // Force when renaming, when Force refresh, or when swapping a Discogs scan for Deezer art.
                 var renameForce = albumPatches.TryGetValue(albumId, out var existing)
                     && existing.Name is not null
                     && !string.Equals(musicAlbum.Name, existing.Name, StringComparison.Ordinal);
+                var digitalForce = digitalCoverAlbums.Contains(musicAlbum.Name ?? string.Empty)
+                    || artistTracks.Any(t =>
+                        t.GetParent() is MusicAlbum p && p.Id == albumId
+                        && assignmentByTrack.TryGetValue(t.Id, out var a)
+                        && digitalCoverAlbums.Contains(a.AlbumTitle));
 
                 var patch = new Patch
                 {
                     ItemId = albumId,
                     Item = musicAlbum,
                     CoverUrl = distinct[0],
-                    CoverForce = force || renameForce
+                    CoverForce = force || renameForce || digitalForce
                 };
                 albumPatches.AddOrUpdate(albumId, patch, (_, prev) => prev.Merge(patch));
             }
@@ -635,6 +680,14 @@ public class ContextEngine
             return;
         }
 
+        // Only hit Discogs for genre enrichment when the user has it enabled for recognition.
+        var cfg = Plugin.Instance?.Configuration;
+        if (cfg is null
+            || !cfg.EffectiveMetadataProviders.Contains(Configuration.MetadataProvider.Discogs))
+        {
+            return;
+        }
+
         var byAlbum = assignmentByTrack.Values
             .GroupBy(a => a.AlbumTitle, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -680,6 +733,68 @@ public class ContextEngine
                 assignment.Genres = preferred;
             }
         }
+    }
+
+    /// <summary>Replace Discogs physical scans with Deezer digital art when available.</summary>
+    private async Task<HashSet<string>> PreferDigitalCoversAsync(
+        string artist,
+        Dictionary<Guid, TrackAssignment> assignmentByTrack,
+        CancellationToken cancellationToken)
+    {
+        var upgraded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var byAlbum = assignmentByTrack.Values
+            .GroupBy(a => a.AlbumTitle, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        foreach (var group in byAlbum)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var sample = group.First();
+            if (!LooksLikePhysicalScanCover(sample.CoverUrl))
+            {
+                continue;
+            }
+
+            string digital;
+            try
+            {
+                digital = await _deezer.FindAlbumCoverAsync(artist, sample.AlbumTitle, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Deezer cover enrich failed for {Artist} / {Album}", artist, sample.AlbumTitle);
+                continue;
+            }
+
+            if (digital.Length == 0)
+            {
+                continue;
+            }
+
+            _logger.LogInformation(
+                "SmarterMusicTagging: {Artist}: \"{Album}\" preferring Deezer cover over Discogs scan",
+                artist,
+                sample.AlbumTitle);
+
+            upgraded.Add(sample.AlbumTitle);
+            foreach (var assignment in group)
+            {
+                assignment.CoverUrl = digital;
+            }
+        }
+
+        return upgraded;
+    }
+
+    private static bool LooksLikePhysicalScanCover(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return false;
+        }
+
+        return url.Contains("discogs.com", StringComparison.OrdinalIgnoreCase)
+               || url.Contains("i.discogs.com", StringComparison.OrdinalIgnoreCase);
     }
 
     private static readonly TimeSpan ProviderMissTtl = TimeSpan.FromDays(30);
@@ -878,9 +993,26 @@ public class ContextEngine
                 folderTitle.Length > 0 ? folderTitle : current,
                 assignment.AlbumTitle,
                 markers);
+
+            // Standalone single folder named after the track (Never Be Alone) — don't adopt the LP title.
+            if (folderTitle.Length > 0
+                && Titles.SameTitleIgnoringMarks(folderTitle, track.Name ?? string.Empty, markers)
+                && !Titles.SameTitleIgnoringMarks(folderTitle, assignment.AlbumTitle, markers))
+            {
+                desired = folderTitle;
+            }
+
+            // Already on the combo name — restore the EP folder title.
+            if (folderTitle.Length > 0
+                && Titles.IsComboExpansionOf(folderTitle, current, markers))
+            {
+                desired = folderTitle;
+            }
+
             if (!Titles.SameTitleIgnoringMarks(current, desired, markers)
                 && (!Titles.SameTitleIgnoringMarks(desired, assignment.AlbumTitle, markers)
-                    || Titles.ShouldReplaceAlbumTitle(current, assignment.AlbumTitle, markers)))
+                    || Titles.ShouldReplaceAlbumTitle(current, assignment.AlbumTitle, markers)
+                    || Titles.IsComboExpansionOf(desired, current, markers)))
             {
                 albumWrite = desired;
             }
