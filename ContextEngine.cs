@@ -17,12 +17,14 @@ public class ContextEngine
     {
         string.Empty,
         "Various Artists",
-        "Various"
+        "Various",
+        "Admin"
     };
 
     private readonly ILibraryManager _library;
     private readonly IProviderManager _providers;
     private readonly MetadataClientFactory _metadata;
+    private readonly DiscogsContextClient _discogs;
     private readonly HttpCache _cache;
     private readonly ILogger<ContextEngine> _logger;
     private int _forceNext;
@@ -31,12 +33,14 @@ public class ContextEngine
         ILibraryManager library,
         IProviderManager providers,
         MetadataClientFactory metadata,
+        DiscogsContextClient discogs,
         HttpCache cache,
         ILogger<ContextEngine> logger)
     {
         _library = library;
         _providers = providers;
         _metadata = metadata;
+        _discogs = discogs;
         _cache = cache;
         _logger = logger;
     }
@@ -217,6 +221,14 @@ public class ContextEngine
             return;
         }
 
+        if (!force && LookupMiss.IsRemembered(_cache, ArtistMissKey(artist)))
+        {
+            _logger.LogInformation(
+                "SmarterMusicTagging: {Artist}: skipped (unknown until cache expires)",
+                artist);
+            return;
+        }
+
         var resolved = await ResolveArtistDiscographyAsync(
             artist,
             artistTracks.Count,
@@ -226,6 +238,10 @@ public class ContextEngine
             cancellationToken).ConfigureAwait(false);
         if (resolved is null)
         {
+            LookupMiss.Remember(_cache, ArtistMissKey(artist));
+            _logger.LogWarning(
+                "SmarterMusicTagging: {Artist}: marked unknown (will retry after cache TTL)",
+                artist);
             if (cfg.WriteArtistGenres)
             {
                 WriteArtistGenresFromTracks(
@@ -241,8 +257,8 @@ public class ContextEngine
         }
 
         var (matchedArtist, discography, metadataClient) = resolved.Value;
-        var writeGenresFromProvider = cfg.WriteGenres
-            && string.Equals(metadataClient.ProviderKey, primaryClient.ProviderKey, StringComparison.OrdinalIgnoreCase);
+        // Write genres from whichever provider matched (not only the top-ranked one).
+        var writeGenresFromProvider = cfg.WriteGenres;
 
         var localTracks = artistTracks.Select(t =>
         {
@@ -299,6 +315,16 @@ public class ContextEngine
         }
 
         var assignmentByTrack = result.Assignments.ToDictionary(a => a.TrackId);
+        if (writeGenresFromProvider)
+        {
+            await EnrichGenericGenresFromDiscogsAsync(
+                    artist,
+                    assignmentByTrack,
+                    metadataClient.ProviderKey,
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+
         var albumGenres = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         var albumYears = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
@@ -597,6 +623,65 @@ public class ContextEngine
         }
     }
 
+    private async Task EnrichGenericGenresFromDiscogsAsync(
+        string artist,
+        Dictionary<Guid, TrackAssignment> assignmentByTrack,
+        string matchedProviderKey,
+        CancellationToken cancellationToken)
+    {
+        // Already on Discogs - styles were the source.
+        if (matchedProviderKey.Equals("Discogs", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var byAlbum = assignmentByTrack.Values
+            .GroupBy(a => a.AlbumTitle, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        foreach (var group in byAlbum)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var sample = group.First();
+            if (!Genres.IsGenericOnly(sample.Genres))
+            {
+                continue;
+            }
+
+            IReadOnlyList<string> discogsGenres;
+            try
+            {
+                discogsGenres = await _discogs.FindAlbumGenresAsync(
+                        artist,
+                        sample.AlbumTitle,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Discogs genre enrich failed for {Artist} / {Album}", artist, sample.AlbumTitle);
+                continue;
+            }
+
+            var preferred = Genres.PreferSpecific(sample.Genres, discogsGenres);
+            if (preferred.Count == 0 || Titles.SameNames(preferred, sample.Genres.ToList()))
+            {
+                continue;
+            }
+
+            _logger.LogInformation(
+                "SmarterMusicTagging: {Artist}: \"{Album}\" genres {Old} --> {New} (Discogs styles)",
+                artist,
+                sample.AlbumTitle,
+                string.Join(", ", sample.Genres),
+                string.Join(", ", preferred));
+
+            foreach (var assignment in group)
+            {
+                assignment.Genres = preferred;
+            }
+        }
+    }
+
     private static readonly TimeSpan ProviderMissTtl = TimeSpan.FromDays(30);
 
     private async Task<(CatalogArtistInfo Artist, List<CatalogAlbum> Discography, IContextMetadataClient Client)?> ResolveArtistDiscographyAsync(
@@ -720,6 +805,9 @@ public class ContextEngine
 
     private static string ProviderMissKey(string providerKey, string artist)
         => "resolve-miss/" + providerKey + "/" + Titles.Norm(artist);
+
+    private static string ArtistMissKey(string artist)
+        => "artist/" + Titles.Norm(artist);
 
     /// <summary>
     /// True when every track already has a provider id and on-disk album names agree with Jellyfin
@@ -1017,23 +1105,43 @@ public class ContextEngine
     }
 
     /// <summary>
-    /// Provider genres win when force is on (overwrite), or when current genres are empty.
-    /// Never invents genres from local cleanup alone.
+    /// Provider genres win when force is on, current genres are empty/messy, or provider is more specific.
+    /// Local cleanup alone is allowed only to fix messy existing lists when providers have nothing.
     /// </summary>
     private static List<string>? GenreWant(IReadOnlyList<string> provider, IReadOnlyList<string>? current, bool force)
     {
-        if (provider.Count == 0)
-        {
-            return null;
-        }
-
         var raw = current ?? [];
-        if (!force && raw.Count > 0)
+        var cleanedCurrent = Genres.PrettyList(raw);
+        var want = Genres.PrettyList(provider);
+
+        if (want.Count == 0)
         {
+            if (raw.Count > 0 && Genres.NeedsRewrite(raw) && cleanedCurrent.Count > 0
+                && !Titles.SameNames(cleanedCurrent, raw))
+            {
+                return cleanedCurrent;
+            }
+
             return null;
         }
 
-        return NeedList(provider, raw) ? provider.ToList() : null;
+        if (force || raw.Count == 0)
+        {
+            return NeedList(want, raw) ? want : null;
+        }
+
+        if (Genres.NeedsRewrite(raw))
+        {
+            var preferred = Genres.PreferSpecific(cleanedCurrent, want);
+            return NeedList(preferred, raw) ? preferred : null;
+        }
+
+        if (Genres.IsGenericOnly(raw) && !Genres.IsGenericOnly(want))
+        {
+            return want;
+        }
+
+        return null;
     }
 
     private static bool NeedList(IReadOnlyList<string> want, IReadOnlyList<string> got)

@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.31.0",
+  "version": "1.8.32.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "HTTP caches last 30 days; force refresh clears cache; expired lookups re-fetch individually.",
+  "changelog": "Cleaner genres (drop junk, fix splits); Discogs styles when Deezer is only Pop/Rock/Alternative; skip failed lookups until cache TTL.",
   "imagePath": "backdrop.svg"
 }

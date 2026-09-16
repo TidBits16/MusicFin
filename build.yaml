@@ -1,6 +1,6 @@
 name: "MusicFin: Smarter Music Tagging"
 guid: "ade80bea-e92e-4f2c-9a42-f5bf88bffa98"
-version: "1.8.31.0"
+version: "1.8.32.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Context-based track & album recognition."
@@ -11,4 +11,4 @@ artifacts:
   - "Jellyfin.Plugin.MusicFin.dll"
   - "backdrop.svg"
 changelog: >
-  HTTP caches last 30 days; force refresh clears cache; expired lookups re-fetch individually.
+  Cleaner genres (drop junk, fix splits); Discogs styles when Deezer is only Pop/Rock/Alternative; skip failed lookups until cache TTL.

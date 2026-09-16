@@ -33,6 +33,39 @@ public static partial class Genres
         ["soul & funk"] = "soul",
         ["films/games"] = "soundtrack",
         ["elecronic"] = "electronic",
+        ["insturmental"] = "instrumental",
+        ["electric"] = "electronic",
+    };
+
+    private static readonly HashSet<string> JunkGenres = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "explicit",
+        "unclassified",
+        "unknown",
+        "other",
+        "none",
+        "ai generated",
+        "aigenerated",
+        "screen",
+        "stage",
+        "game",
+        "single",
+        "album",
+        "ep",
+        "lp",
+        "various",
+        "miscellaneous",
+    };
+
+    /// <summary>Broad storefront buckets - fine with a specific tag, useless alone.</summary>
+    private static readonly HashSet<string> GenericGenres = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "pop",
+        "rock",
+        "alternative",
+        "dance",
+        "electro",
+        "electronic",
     };
 
     // Split on ; | , / : always; split on & only when spaced (keeps R&B / D&B).
@@ -138,16 +171,21 @@ public static partial class Genres
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var name in names)
         {
-            foreach (var part in SplitParts(name))
+            foreach (var part in SplitParts(DecodeEntities(name)))
             {
+                if (IsJunkPart(part))
+                {
+                    continue;
+                }
+
                 var p = Pretty(part);
-                if (p.Length == 0)
+                if (p.Length == 0 || IsJunkPart(p))
                 {
                     continue;
                 }
 
                 var k = NormKey(p);
-                if (!seen.Add(k))
+                if (k.Length == 0 || JunkGenres.Contains(k) || !seen.Add(k))
                 {
                     continue;
                 }
@@ -157,6 +195,7 @@ public static partial class Genres
         }
 
         ReuniteKnownPairs(output);
+        output.RemoveAll(g => IsJunkPart(g) || JunkGenres.Contains(NormKey(g)));
 
         if (max > 0 && output.Count > max)
         {
@@ -164,6 +203,46 @@ public static partial class Genres
         }
 
         return output;
+    }
+
+    /// <summary>True when every genre is a broad storefront bucket (Pop/Rock/Alternative/…).</summary>
+    public static bool IsGenericOnly(IReadOnlyList<string>? genres)
+    {
+        if (genres is null || genres.Count == 0)
+        {
+            return true;
+        }
+
+        var cleaned = PrettyList(genres);
+        if (cleaned.Count == 0)
+        {
+            return true;
+        }
+
+        return cleaned.All(g => GenericGenres.Contains(NormKey(g)));
+    }
+
+    /// <summary>Prefer a more specific genre list when the primary one is only broad buckets.</summary>
+    public static List<string> PreferSpecific(IReadOnlyList<string>? primary, IReadOnlyList<string>? fallback)
+    {
+        var a = PrettyList(primary ?? []);
+        var b = PrettyList(fallback ?? []);
+        if (b.Count == 0)
+        {
+            return a;
+        }
+
+        if (a.Count == 0)
+        {
+            return b;
+        }
+
+        if (IsGenericOnly(a) && !IsGenericOnly(b))
+        {
+            return b;
+        }
+
+        return a;
     }
 
     public static IEnumerable<string> SplitParts(string name)
@@ -221,13 +300,45 @@ public static partial class Genres
 
     private static string SoftKey(string name)
     {
-        var s = name.Trim().ToLowerInvariant().Replace('_', ' ');
+        var s = DecodeEntities(name).Trim().ToLowerInvariant().Replace('_', ' ');
         while (s.Contains("  ", StringComparison.Ordinal))
         {
             s = s.Replace("  ", " ", StringComparison.Ordinal);
         }
 
         return s;
+    }
+
+    private static string DecodeEntities(string name)
+    {
+        var s = name.Trim();
+        if (s.Length == 0)
+        {
+            return s;
+        }
+
+        return s
+            .Replace("&amp;", "&", StringComparison.OrdinalIgnoreCase)
+            .Replace("&#38;", "&", StringComparison.OrdinalIgnoreCase)
+            .Replace("&quot;", "\"", StringComparison.OrdinalIgnoreCase)
+            .Replace("&#39;", "'", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsJunkPart(string raw)
+    {
+        var soft = SoftKey(raw);
+        if (soft.Length == 0)
+        {
+            return true;
+        }
+
+        // Leftovers from bad splits: "& Country", leading punctuation, etc.
+        if (soft[0] is '&' or '/' or '|' or ';' or ':' or ',')
+        {
+            return true;
+        }
+
+        return JunkGenres.Contains(soft) || JunkGenres.Contains(NormKey(raw));
     }
 
     private static bool HasGenreDelimiter(string raw)

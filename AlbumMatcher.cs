@@ -30,7 +30,7 @@ public sealed class TrackAssignment
 
     public string ProviderTrackId { get; init; } = string.Empty;
 
-    public IReadOnlyList<string> Genres { get; init; } = [];
+    public IReadOnlyList<string> Genres { get; set; } = [];
 
     public IReadOnlyList<string> TrackArtists { get; init; } = [];
 

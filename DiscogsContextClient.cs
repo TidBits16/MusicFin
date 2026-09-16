@@ -404,6 +404,85 @@ public sealed class DiscogsContextClient : IContextMetadataClient
         return Genres.PrettyList(names, 3);
     }
 
+    /// <summary>
+    /// Look up Discogs master genres/styles for an album when the primary provider only returned broad buckets.
+    /// </summary>
+    public async Task<IReadOnlyList<string>> FindAlbumGenresAsync(
+        string artist,
+        string albumTitle,
+        CancellationToken cancellationToken)
+    {
+        var wantArtist = Titles.Norm(artist);
+        var wantAlbum = Titles.Norm(albumTitle);
+        if (wantArtist.Length == 0 || wantAlbum.Length == 0)
+        {
+            return [];
+        }
+
+        var payload = await GetAsync(
+            "database/search",
+            new Dictionary<string, string>
+            {
+                ["artist"] = artist.Trim(),
+                ["release_title"] = albumTitle.Trim(),
+                ["type"] = "master",
+                ["per_page"] = "8"
+            },
+            cancellationToken).ConfigureAwait(false);
+        if (payload is null)
+        {
+            return [];
+        }
+
+        var bestId = 0;
+        var bestScore = 0.0;
+        foreach (var raw in JsonUtil.Arr(payload.Value, "results"))
+        {
+            if (!JsonUtil.Str(raw, "type").Equals("master", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var title = JsonUtil.Str(raw, "title").Trim();
+            // Discogs search titles are often "Artist - Album".
+            var albumPart = title;
+            var dash = title.IndexOf(" - ", StringComparison.Ordinal);
+            if (dash > 0 && dash + 3 < title.Length)
+            {
+                albumPart = title[(dash + 3)..].Trim();
+            }
+
+            var score = Similarity.Ratio(Titles.Norm(albumPart), wantAlbum);
+            if (score < 0.84)
+            {
+                continue;
+            }
+
+            var id = (int)JsonUtil.Num(raw, "id");
+            if (id <= 0)
+            {
+                continue;
+            }
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestId = id;
+            }
+        }
+
+        if (bestId <= 0)
+        {
+            return [];
+        }
+
+        var master = await GetAsync(
+            "masters/" + bestId.ToString(CultureInfo.InvariantCulture),
+            null,
+            cancellationToken).ConfigureAwait(false);
+        return master is null ? [] : GenresFrom(master.Value);
+    }
+
     private static string MapRecordType(JsonElement payload)
     {
         foreach (var raw in JsonUtil.Arr(payload, "formats"))
