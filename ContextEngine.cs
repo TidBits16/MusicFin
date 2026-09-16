@@ -202,6 +202,17 @@ public class ContextEngine
         bool force,
         CancellationToken cancellationToken)
     {
+        if (cfg.StandardizeGenres)
+        {
+            StandardizeArtistLibraryGenres(
+                artist,
+                artistTracks,
+                albums,
+                musicArtists,
+                patches,
+                albumPatches);
+        }
+
         if (!force
             && ArtistLooksSettled(artist, artistTracks, providerKeys, cfg.EffectiveIgnoreTitleMarkers))
         {
@@ -623,6 +634,63 @@ public class ContextEngine
     }
 
     /// <summary>
+    /// Rewrite messy local genres on tracks/albums/artists for this library artist.
+    /// Independent of catalog WriteGenres so settled artists still get cleaned.
+    /// </summary>
+    private static void StandardizeArtistLibraryGenres(
+        string artist,
+        IReadOnlyList<Audio> artistTracks,
+        IReadOnlyDictionary<Guid, MusicAlbum> albums,
+        IReadOnlyDictionary<string, IReadOnlyList<MusicArtist>> musicArtists,
+        ConcurrentDictionary<Guid, Patch> patches,
+        ConcurrentDictionary<Guid, Patch> albumPatches)
+    {
+        var seenAlbums = new HashSet<Guid>();
+        foreach (var track in artistTracks)
+        {
+            if (Genres.StandardizeWant(track.Genres) is { } trackWant)
+            {
+                var patch = new Patch { ItemId = track.Id, Item = track, Genres = trackWant };
+                patches.AddOrUpdate(track.Id, patch, (_, existing) => existing.Merge(patch));
+            }
+
+            if (track.GetParent() is not MusicAlbum parentAlbum || !seenAlbums.Add(parentAlbum.Id))
+            {
+                continue;
+            }
+
+            if (!albums.TryGetValue(parentAlbum.Id, out var albumItem))
+            {
+                albumItem = parentAlbum;
+            }
+
+            if (Genres.StandardizeWant(albumItem.Genres) is not { } albumWant)
+            {
+                continue;
+            }
+
+            var albumPatch = new Patch { ItemId = albumItem.Id, Item = albumItem, Genres = albumWant };
+            albumPatches.AddOrUpdate(albumItem.Id, albumPatch, (_, existing) => existing.Merge(albumPatch));
+        }
+
+        if (!musicArtists.TryGetValue(artist, out var artistItems))
+        {
+            return;
+        }
+
+        foreach (var musicArtist in artistItems)
+        {
+            if (Genres.StandardizeWant(musicArtist.Genres) is not { } artistWant)
+            {
+                continue;
+            }
+
+            var patch = new Patch { ItemId = musicArtist.Id, Item = musicArtist, Genres = artistWant };
+            albumPatches.AddOrUpdate(musicArtist.Id, patch, (_, existing) => existing.Merge(patch));
+        }
+    }
+
+    /// <summary>
     /// Rolls up track genres for this album artist onto matching MusicArtist entities.
     /// </summary>
     private static void WriteArtistGenresFromTracks(
@@ -1037,9 +1105,15 @@ public class ContextEngine
         List<string>? trackArtistsWrite = null;
         if (cfg.WriteTrackArtists)
         {
-            var want = assignment.TrackArtists.Count > 0
-                ? assignment.TrackArtists
-                : EffectiveAlbumArtists(assignment, catalogArtistName);
+            var want = AlbumMatcher.ContextTrackArtists(
+                assignment.TrackArtists,
+                assignment.AlbumArtists,
+                catalogArtistName);
+            if (want.Count == 0)
+            {
+                want = EffectiveAlbumArtists(assignment, catalogArtistName);
+            }
+
             if (ArtistWant(want, track.Artists) is { } artists)
             {
                 trackArtistsWrite = artists;
@@ -1107,6 +1181,8 @@ public class ContextEngine
         IReadOnlyList<string> fromCatalog = assignment.AlbumArtists.Count > 0
             ? assignment.AlbumArtists
             : catalogArtistName.Length > 0 ? [catalogArtistName] : [];
+
+        fromCatalog = AlbumMatcher.ContextAlbumArtists(fromCatalog, catalogArtistName);
 
         // Keep the library artist spelling when the provider only differs by case.
         if (catalogArtistName.Length == 0 || fromCatalog.Count == 0)

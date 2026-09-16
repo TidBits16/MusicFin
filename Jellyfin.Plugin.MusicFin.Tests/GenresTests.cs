@@ -67,8 +67,17 @@ public class GenresTests
     [Fact]
     public void PrettyList_DropsJunkAndLeadingAmpFragments()
     {
-        var got = Genres.PrettyList(["& Country", "Explicit", "Ai Generated", "Screen", "Folk"]);
+        var got = Genres.PrettyList(["& Country", "Explicit", "Screen", "Folk"]);
         Assert.Equal(["Folk"], got);
+    }
+
+    [Fact]
+    public void PrettyList_NormalizesAiGenerated()
+    {
+        Assert.Equal(["AI Generated"], Genres.PrettyList(["Ai Generated"]));
+        Assert.Equal(["AI Generated"], Genres.PrettyList(["AI"]));
+        Assert.Equal(["AI Generated"], Genres.PrettyList(["aigenerated"]));
+        Assert.Equal(["AI Generated"], Genres.PrettyList(["AI-Generated"]));
     }
 
     [Fact]
@@ -102,6 +111,36 @@ public class GenresTests
         Assert.True(Genres.IsGenericOnly(["Alternative", "Rock"]));
         Assert.False(Genres.IsGenericOnly(["Breakcore", "Electronic"]));
         Assert.False(Genres.IsGenericOnly(["Indie Rock"]));
+    }
+
+    [Fact]
+    public void StandardizeWant_SplitsAndDropsJunk()
+    {
+        var got = Genres.StandardizeWant(
+        [
+            "Classical: World",
+            "Alternative & Indie",
+            "& Country",
+            "Elecronic",
+            "Ai Generated",
+            "Folk"
+        ]);
+        Assert.NotNull(got);
+        Assert.Contains("Classical", got);
+        Assert.Contains("World", got);
+        Assert.Contains("Alternative", got);
+        Assert.Contains("Indie", got);
+        Assert.Contains("Electronic", got);
+        Assert.Contains("AI Generated", got);
+        Assert.Contains("Folk", got);
+        Assert.DoesNotContain("& Country", got);
+        Assert.DoesNotContain("Classical: World", got);
+    }
+
+    [Fact]
+    public void StandardizeWant_NullWhenAlreadyClean()
+    {
+        Assert.Null(Genres.StandardizeWant(["Indie Rock", "Folk"]));
     }
 
     [Fact]

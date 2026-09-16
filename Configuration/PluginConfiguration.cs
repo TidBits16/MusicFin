@@ -114,6 +114,12 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool WriteGenres { get; set; } = true;
 
     /// <summary>
+    /// Split compound genre strings, fix typos, and drop junk tags on existing library items
+    /// (e.g. Classical: World → Classical + World). Runs even when catalog genres are skipped.
+    /// </summary>
+    public bool StandardizeGenres { get; set; } = true;
+
+    /// <summary>
     /// When on, set each MusicArtist to the union of that artist's track genres.
     /// </summary>
     public bool WriteArtistGenres { get; set; } = true;

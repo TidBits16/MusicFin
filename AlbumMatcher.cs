@@ -166,9 +166,27 @@ public static class AlbumMatcher
             .GroupBy(t => t.ParentAlbumId!.Value)
             .ToDictionary(g => g.Key, g => g.Count());
 
+        // Multi-track folders are album identity: stamp every matchable track from the
+        // best context album first. Leftovers still use per-track scoring + consensus.
         var assignments = new List<TrackAssignment>();
+        var assigned = new HashSet<Guid>();
+        if (folderTracks.Count >= 3
+            && TryAssignFolderFromPrimary(artist, folderTracks, candidates, scored, minSim, markers) is { } primary)
+        {
+            foreach (var assignment in primary)
+            {
+                assignments.Add(assignment);
+                assigned.Add(assignment.TrackId);
+            }
+        }
+
         foreach (var local in folderTracks)
         {
+            if (assigned.Contains(local.Id))
+            {
+                continue;
+            }
+
             var parentSize = local.ParentAlbumId is { } pid && parentSizes.TryGetValue(pid, out var n)
                 ? n
                 : folderTracks.Count;
@@ -189,6 +207,133 @@ public static class AlbumMatcher
             minSim,
             markers,
             parentSizes);
+    }
+
+    /// <summary>
+    /// Album-first path: when one non-single catalog album covers most of a folder,
+    /// every track that appears on it is assigned from that album (credits included).
+    /// </summary>
+    private static List<TrackAssignment>? TryAssignFolderFromPrimary(
+        string artist,
+        IReadOnlyList<LocalTrack> folderTracks,
+        IReadOnlyList<CatalogAlbum> candidates,
+        IReadOnlyDictionary<string, ScoredAlbum> scored,
+        double minSim,
+        IReadOnlyList<string> markers)
+    {
+        var primaries = scored.Values
+            .Where(x => !x.Album.IsSingle && !x.Album.IsCompilation)
+            .Where(x => AlbumRename.HasMajorityCoverage(folderTracks.Count, x.Score))
+            .Where(x => AlbumArtistsMatchContext(x.Album, artist))
+            .Select(x => (
+                Item: x,
+                LocalAlbum: FolderLocalAlbumScore(folderTracks, x.Album, markers)))
+            .OrderByDescending(x => x.Item.Fitness)
+            .ThenByDescending(x => TitleBand(x.LocalAlbum))
+            .ThenByDescending(x => x.LocalAlbum)
+            .ThenByDescending(x => x.Item.Score)
+            .ThenBy(x => SecondaryPenalty(x.Item.Album))
+            .ThenBy(x => DeluxePenalty(x.Item.Album))
+            .ThenBy(x => x.Item.Album.Tracks.Count)
+            .ThenBy(x => x.Item.Album.Title, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (primaries.Count == 0)
+        {
+            return null;
+        }
+
+        // Tied fitness from two unrelated albums — fall back to per-track.
+        if (primaries.Count > 1
+            && Math.Abs(primaries[1].Item.Fitness - primaries[0].Item.Fitness) < 0.0001
+            && Math.Abs(primaries[1].LocalAlbum - primaries[0].LocalAlbum) < 0.0001
+            && primaries[1].Item.Score == primaries[0].Item.Score)
+        {
+            return null;
+        }
+
+        var win = primaries[0].Item.Album;
+        var assignments = new List<TrackAssignment>(folderTracks.Count);
+        foreach (var local in folderTracks)
+        {
+            var match = TrackMatcher.MatchTrack(local.Title, win.Tracks, minSim, markers, artist);
+            if (match is null)
+            {
+                continue;
+            }
+
+            assignments.Add(BuildAssignment(local, win, match, artist));
+        }
+
+        return assignments.Count > 0 ? assignments : null;
+    }
+
+    /// <summary>
+    /// True when the catalog album belongs to the library artist we are tagging
+    /// (blocks anniversary/cover singles credited to another main artist).
+    /// </summary>
+    internal static bool AlbumArtistsMatchContext(CatalogAlbum album, string contextArtist)
+        => AlbumArtistsMatchContext(album.AlbumArtists, contextArtist);
+
+    internal static bool AlbumArtistsMatchContext(IReadOnlyList<string> albumArtists, string contextArtist)
+    {
+        var want = Titles.Norm(contextArtist);
+        if (want.Length == 0)
+        {
+            return true;
+        }
+
+        if (albumArtists.Count == 0)
+        {
+            return true;
+        }
+
+        if (albumArtists.Count == 1 && CatalogFilters.IsVariousArtists(albumArtists[0]))
+        {
+            return true;
+        }
+
+        foreach (var name in albumArtists)
+        {
+            var got = Titles.Norm(name);
+            if (got.Length == 0)
+            {
+                continue;
+            }
+
+            if (got == want
+                || got.Contains(want, StringComparison.Ordinal)
+                || want.Contains(got, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>Album artists safe to write under a library artist context.</summary>
+    internal static IReadOnlyList<string> ContextAlbumArtists(
+        IReadOnlyList<string> albumArtists,
+        string contextArtist)
+        => AlbumArtistsMatchContext(albumArtists, contextArtist) && albumArtists.Count > 0
+            ? albumArtists
+            : string.IsNullOrWhiteSpace(contextArtist) ? albumArtists : [contextArtist.Trim()];
+
+    /// <summary>Track artists safe to write under a library artist context.</summary>
+    internal static IReadOnlyList<string> ContextTrackArtists(
+        IReadOnlyList<string> trackArtists,
+        IReadOnlyList<string> albumArtists,
+        string contextArtist)
+    {
+        if (!AlbumArtistsMatchContext(albumArtists, contextArtist))
+        {
+            return string.IsNullOrWhiteSpace(contextArtist) ? trackArtists : [contextArtist.Trim()];
+        }
+
+        return trackArtists.Count > 0
+            ? trackArtists
+            : ContextAlbumArtists(albumArtists, contextArtist);
     }
 
     /// <summary>
@@ -339,6 +484,13 @@ public static class AlbumMatcher
         foreach (var album in candidates)
         {
             if (!scored.TryGetValue(album.AlbumId, out var albumScore))
+            {
+                continue;
+            }
+
+            // Multi-track folders stay inside the library artist's discography.
+            // Cover/anniversary singles credited to someone else must not win a row.
+            if (parentSize >= 3 && !AlbumArtistsMatchContext(album, artist))
             {
                 continue;
             }
@@ -632,6 +784,29 @@ public static class AlbumMatcher
         => trackScore >= 0.999 ? 1.0
             : trackScore >= 0.84 ? 0.84
             : trackScore;
+
+    private static double FolderLocalAlbumScore(
+        IReadOnlyList<LocalTrack> folderTracks,
+        CatalogAlbum album,
+        IReadOnlyList<string> markers)
+    {
+        var best = 0.0;
+        foreach (var local in folderTracks)
+        {
+            if (local.Album is not { Length: > 0 } || Titles.IsSecondaryAlbumTitle(local.Album))
+            {
+                continue;
+            }
+
+            var score = TrackMatcher.TitleMatchScore(local.Album, album.Title, markers, null);
+            if (score > best)
+            {
+                best = score;
+            }
+        }
+
+        return best;
+    }
 
     private static IReadOnlyList<string> AlbumArtistsFor(CatalogAlbum album, string fallbackArtist)
         => album.AlbumArtists.Count > 0 ? album.AlbumArtists : [fallbackArtist];

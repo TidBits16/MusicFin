@@ -1018,6 +1018,97 @@ public class AlbumMatcherTests
     }
 
     [Fact]
+    public void AlbumFirst_IgnoresForeignCoverSingleCreditsInsideStudioFolder()
+    {
+        var parentId = Guid.NewGuid();
+        var local = new List<LocalTrack>
+        {
+            Track("1", "brutal", "SOUR", parentId),
+            Track("2", "traitor", "SOUR", parentId),
+            Track("3", "drivers license", "drivers license", parentId),
+            Track("4", "1 step forward, 3 steps back", "SOUR", parentId),
+            Track("5", "deja vu", "SOUR", parentId),
+            Track("6", "good 4 u", "SOUR", parentId),
+            Track("7", "enough for you", "SOUR", parentId),
+            Track("8", "happier", "SOUR", parentId),
+            Track("9", "jealousy, jealousy", "SOUR", parentId),
+            Track("10", "favorite crime", "SOUR", parentId),
+            Track("11", "hope ur ok", "SOUR", parentId)
+        };
+
+        var byrneSingle = new CatalogAlbum
+        {
+            AlbumId = "888",
+            Title = "drivers license",
+            RecordType = "single",
+            AlbumArtists = ["David Byrne"],
+            Genres = ["Pop"],
+            Tracks =
+            [
+                new CatalogTrack
+                {
+                    Title = "drivers license",
+                    TrackPosition = 1,
+                    TrackId = "88801",
+                    Artists = ["David Byrne"]
+                },
+                new CatalogTrack
+                {
+                    Title = "drivers license",
+                    TrackPosition = 2,
+                    TrackId = "88802",
+                    Artists = ["Olivia Rodrigo"]
+                }
+            ]
+        };
+
+        var albums = new List<CatalogAlbum>
+        {
+            AlbumWithType(
+                "SOUR",
+                1,
+                "album",
+                "Olivia Rodrigo",
+                "brutal", "traitor", "drivers license", "1 step forward, 3 steps back",
+                "deja vu", "good 4 u", "enough for you", "happier",
+                "jealousy, jealousy", "favorite crime", "hope ur ok"),
+            AlbumWithType("drivers license", 2, "single", "Olivia Rodrigo", "drivers license"),
+            byrneSingle
+        };
+
+        var result = AlbumMatcher.Match("Olivia Rodrigo", local, albums, new AlbumMatcherOptions());
+
+        Assert.Equal(11, result.Assignments.Count);
+        Assert.All(result.Assignments, a =>
+        {
+            Assert.Equal("SOUR", a.AlbumTitle);
+            Assert.Equal(["Olivia Rodrigo"], a.AlbumArtists);
+            Assert.DoesNotContain("David Byrne", a.TrackArtists);
+            Assert.DoesNotContain("David Byrne", a.AlbumArtists);
+        });
+
+        var violin = result.Assignments.Single(a => a.TrackTitle == "drivers license");
+        Assert.Equal(3, violin.TrackNumber);
+        Assert.False(violin.IsSingleRelease);
+    }
+
+    [Fact]
+    public void ContextTrackArtists_ReplacesForeignAlbumCredits()
+    {
+        var want = AlbumMatcher.ContextTrackArtists(
+            ["David Byrne"],
+            ["David Byrne"],
+            "Olivia Rodrigo");
+        Assert.Equal(["Olivia Rodrigo"], want);
+
+        var featured = AlbumMatcher.ContextTrackArtists(
+            ["Olivia Rodrigo", "Guest"],
+            ["Olivia Rodrigo"],
+            "Olivia Rodrigo");
+        Assert.Equal(["Olivia Rodrigo", "Guest"], featured);
+    }
+
+    [Fact]
     public void StandaloneSingleFolder_KeepsSingleWhenParentHasFewTracks()
     {
         var singleParent = Guid.NewGuid();

@@ -76,6 +76,13 @@
                         </div>
                         <div class="checkboxContainer">
                             <label>
+                                <input is="emby-checkbox" type="checkbox" id="StandardizeGenres" />
+                                <span>Standardize genres</span>
+                            </label>
+                            <div class="fieldDescription">Split compounds (Classical: World), fix typos (Elecronic), drop junk (&amp; Country, Ai Generated). Works on existing tags even without a catalog rewrite.</div>
+                        </div>
+                        <div class="checkboxContainer">
+                            <label>
                                 <input is="emby-checkbox" type="checkbox" id="WriteArtistGenres" />
                                 <span>Create artist genres from tracks</span>
                             </label>
@@ -303,6 +310,7 @@
                 document.querySelector('#WriteYear').checked = config.WriteYear !== false;
                 document.querySelector('#WriteAlbumCovers').checked = config.WriteAlbumCovers !== false;
                 document.querySelector('#WriteGenres').checked = config.WriteGenres !== false;
+                document.querySelector('#StandardizeGenres').checked = config.StandardizeGenres !== false;
                 document.querySelector('#WriteArtistGenres').checked = config.WriteArtistGenres !== false;
                 document.querySelector('#ApplyAlbumGenresToTracks').checked = config.ApplyAlbumGenresToTracks !== false;
                 document.querySelector('#IgnoreTitleMarkers').value = config.IgnoreTitleMarkers ?? '🅴,[Explicit]';
@@ -327,6 +335,7 @@
                     config.WriteYear = document.querySelector('#WriteYear').checked;
                     config.WriteAlbumCovers = document.querySelector('#WriteAlbumCovers').checked;
                     config.WriteGenres = document.querySelector('#WriteGenres').checked;
+                    config.StandardizeGenres = document.querySelector('#StandardizeGenres').checked;
                     config.WriteArtistGenres = document.querySelector('#WriteArtistGenres').checked;
                     config.ApplyAlbumGenresToTracks = document.querySelector('#ApplyAlbumGenresToTracks').checked;
                     config.IgnoreTitleMarkers = document.querySelector('#IgnoreTitleMarkers').value;

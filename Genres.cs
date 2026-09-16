@@ -35,6 +35,10 @@ public static partial class Genres
         ["elecronic"] = "electronic",
         ["insturmental"] = "instrumental",
         ["electric"] = "electronic",
+        ["ai"] = "ai generated",
+        ["aigenerated"] = "ai generated",
+        ["ai-generated"] = "ai generated",
+        ["ai generated"] = "ai generated",
     };
 
     private static readonly HashSet<string> JunkGenres = new(StringComparer.OrdinalIgnoreCase)
@@ -44,8 +48,6 @@ public static partial class Genres
         "unknown",
         "other",
         "none",
-        "ai generated",
-        "aigenerated",
         "screen",
         "stage",
         "game",
@@ -296,6 +298,19 @@ public static partial class Genres
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Local cleanup of messy genre lists (compounds, typos, junk). Null when already clean.
+    /// </summary>
+    public static List<string>? StandardizeWant(IReadOnlyList<string>? raw)
+    {
+        if (raw is null || raw.Count == 0 || !NeedsRewrite(raw))
+        {
+            return null;
+        }
+
+        return PrettyList(raw, 0);
     }
 
     private static string SoftKey(string name)

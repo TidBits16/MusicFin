@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.33.0",
+  "version": "1.8.34.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Deezer-only by default (Discogs off); restore Seven/Mary EP names; keep singles out of larger LPs; prefer Deezer covers over Discogs scans.",
+  "changelog": "Standardize Genres setting (split Classical: World, fix typos, drop junk); keep AI Generated as a genre; album-first folder matching; block foreign cover-single artist credits (e.g. Byrne on SOUR).",
   "imagePath": "backdrop.svg"
 }
