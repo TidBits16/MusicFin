@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.34.0",
+        "changelog": "Standardize Genres setting (split Classical: World, fix typos, drop junk); keep AI Generated as a genre; album-first folder matching; block foreign cover-single artist credits (e.g. Byrne on SOUR).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.34.0/MusicFin_1.8.34.0.zip",
+        "checksum": "31094ab3c120b50a518d8489a767a60d",
+        "timestamp": "2026-09-16T21:01:04Z"
+      },
+      {
         "version": "1.8.33.0",
         "changelog": "Deezer-only by default (Discogs off); restore Seven/Mary EP names; keep singles out of larger LPs; prefer Deezer covers over Discogs scans.",
         "targetAbi": "10.11.0.0",
