@@ -597,7 +597,7 @@ public class ContextEngine
         }
     }
 
-    private static readonly TimeSpan ProviderMissTtl = TimeSpan.FromDays(7);
+    private static readonly TimeSpan ProviderMissTtl = TimeSpan.FromDays(30);
 
     private async Task<(CatalogArtistInfo Artist, List<CatalogAlbum> Discography, IContextMetadataClient Client)?> ResolveArtistDiscographyAsync(
         string artist,

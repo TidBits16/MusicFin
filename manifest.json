@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.31.0",
+        "changelog": "HTTP caches last 30 days; force refresh clears cache; expired lookups re-fetch individually.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.31.0/MusicFin_1.8.31.0.zip",
+        "checksum": "f714c83381e429cb02e05138cc364920",
+        "timestamp": "2026-09-16T15:07:30Z"
+      },
+      {
         "version": "1.8.30.0",
         "changelog": "Default to Deezer (cleaner covers) with Discogs fallback; preserve library artist casing (NF vs nf, femtanyl).",
         "targetAbi": "10.11.0.0",
