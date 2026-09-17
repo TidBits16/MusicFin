@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.34.0",
+  "version": "1.8.35.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Standardize Genres setting (split Classical: World, fix typos, drop junk); keep AI Generated as a genre; album-first folder matching; block foreign cover-single artist credits (e.g. Byrne on SOUR).",
+  "changelog": "Settings page polish: clearer helpers, grouped toggles, styled Advanced / force-refresh sections.",
   "imagePath": "backdrop.svg"
 }

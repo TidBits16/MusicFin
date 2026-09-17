@@ -1,6 +1,6 @@
 name: "MusicFin: Smarter Music Tagging"
 guid: "ade80bea-e92e-4f2c-9a42-f5bf88bffa98"
-version: "1.8.34.0"
+version: "1.8.35.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Context-based track & album recognition."
@@ -11,4 +11,4 @@ artifacts:
   - "Jellyfin.Plugin.MusicFin.dll"
   - "backdrop.svg"
 changelog: >
-  Standardize Genres setting (split Classical: World, fix typos, drop junk); keep AI Generated as a genre; album-first folder matching; block foreign cover-single artist credits (e.g. Byrne on SOUR).
+  Settings page polish: clearer helpers, grouped toggles, styled Advanced / force-refresh sections.

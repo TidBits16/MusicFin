@@ -3,144 +3,208 @@
 <head>
     <meta charset="utf-8" />
     <title>MusicFin: Smarter Music Tagging</title>
+    <style>
+        .finConfig .finIntro { margin: 0.25em 0 1.5em; opacity: 0.75; }
+        .finConfig .verticalSection { margin-top: 1.75em; }
+        .finConfig .finSectionLabel { margin-bottom: 0.35em; }
+        .finConfig .finSectionHelp { margin: 0 0 0.75em; }
+        .finConfig .finToggleList { margin-top: 0.5em; padding: 0.35em 0.75em; }
+        .finConfig .finToggleList .checkboxContainer { margin: 0.55em 0; }
+        .finConfig .finSubLabel {
+            margin: 1em 0 0.35em;
+            padding-top: 0.75em;
+            border-top: 1px solid rgba(128, 128, 128, 0.25);
+            font-size: 0.92em;
+            opacity: 0.85;
+        }
+        .finConfig details.finAdvanced {
+            margin-top: 1.75em;
+            padding: 0.35em 0;
+        }
+        .finConfig details.finAdvanced > summary {
+            cursor: pointer;
+            list-style: none;
+            user-select: none;
+            padding: 0.4em 0;
+        }
+        .finConfig details.finAdvanced > summary::-webkit-details-marker { display: none; }
+        .finConfig details.finAdvanced > summary::before {
+            content: "▸";
+            display: inline-block;
+            width: 1em;
+            margin-right: 0.25em;
+            opacity: 0.7;
+        }
+        .finConfig details.finAdvanced[open] > summary::before { content: "▾"; }
+        .finConfig .finAdvancedBody { margin-top: 0.85em; }
+        .finConfig .finDangerZone {
+            margin-top: 1.5em;
+            padding-top: 1.1em;
+            border-top: 1px solid rgba(128, 128, 128, 0.3);
+        }
+        .finConfig .finDangerZone .finSectionLabel { opacity: 0.9; }
+        .finConfig .finStatus {
+            margin-top: 0.5em;
+            min-height: 1.2em;
+            font-style: italic;
+            opacity: 0.8;
+        }
+        .finConfig .finSaveRow { margin-top: 2em; padding-top: 0.5em; }
+    </style>
 </head>
 <body>
-    <div id="DtConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-checkbox,emby-select,paper-icon-button-light">
+    <div id="DtConfigPage" data-role="page" class="page type-interior pluginConfigurationPage finConfig" data-require="emby-input,emby-button,emby-checkbox,emby-select,paper-icon-button-light">
         <div data-role="content">
             <div class="content-primary">
                 <form id="DtConfigForm">
                     <div class="sectionTitleContainer flex align-items-center">
                         <h2 class="sectionTitle">MusicFin: Smarter Music Tagging</h2>
                     </div>
-                    <p>Context-based track &amp; album recognition.</p>
+                    <p class="fieldDescription finIntro">Context-based track &amp; album recognition.</p>
 
                     <div class="verticalSection">
-                        <h3 class="checkboxListLabel">Metadata providers</h3>
-                            <div class="fieldDescription">Providers are tried in order. Default: Deezer only (Discogs is available but off — it often returns CD-case photos). Check Discogs only if you need it as a fallback.</div>
+                        <h3 class="checkboxListLabel finSectionLabel">Metadata providers</h3>
+                        <div class="fieldDescription finSectionHelp">Tried in order. Enable only the sources you want.</div>
                         <div id="ProviderList" class="checkboxList paperList checkboxList-paperList"></div>
                         <div class="inputContainer" id="MusicBrainzContactRow">
                             <label class="inputLabel inputLabelUnfocused" for="MusicBrainzContact">MusicBrainz contact</label>
                             <input is="emby-input" type="text" id="MusicBrainzContact" />
-                            <div class="fieldDescription">Required by MusicBrainz API policy - your email or project URL for the User-Agent header.</div>
+                            <div class="fieldDescription">Email or project URL required by MusicBrainz.</div>
                         </div>
                         <div class="inputContainer" id="DiscogsTokenRow">
                             <label class="inputLabel inputLabelUnfocused" for="DiscogsToken">Discogs token</label>
                             <input is="emby-input" type="text" id="DiscogsToken" />
-                            <div class="fieldDescription">Optional personal access token from discogs.com/settings/developers - improves rate limits.</div>
+                            <div class="fieldDescription">Optional. Improves Discogs rate limits.</div>
                         </div>
                     </div>
 
                     <div class="verticalSection">
-                        <h3 class="checkboxListLabel">Writes</h3>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="WriteAlbumNames" />
-                                <span>Album names</span>
-                            </label>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="WriteTrackNumbers" />
-                                <span>Track numbers</span>
-                            </label>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="WriteTrackArtists" />
-                                <span>Track artists</span>
-                            </label>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="WriteAlbumArtists" />
-                                <span>Album artists</span>
-                            </label>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="WriteYear" />
-                                <span>Year</span>
-                            </label>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="WriteAlbumCovers" />
-                                <span>Album covers</span>
-                            </label>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="WriteGenres" />
-                                <span>Genres</span>
-                            </label>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="StandardizeGenres" />
-                                <span>Standardize genres</span>
-                            </label>
-                            <div class="fieldDescription">Split compounds (Classical: World), fix typos (Elecronic), drop junk (&amp; Country, Ai Generated). Works on existing tags even without a catalog rewrite.</div>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="WriteArtistGenres" />
-                                <span>Create artist genres from tracks</span>
-                            </label>
-                        </div>
-                        <div class="checkboxContainer">
-                            <label>
-                                <input is="emby-checkbox" type="checkbox" id="ApplyAlbumGenresToTracks" />
-                                <span>Keep album and track genres consistent</span>
-                            </label>
+                        <h3 class="checkboxListLabel finSectionLabel">Writes</h3>
+                        <div class="checkboxList paperList checkboxList-paperList finToggleList">
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="WriteAlbumNames" />
+                                    <span>Album names</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Update album titles from the catalog.</div>
+                            </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="WriteTrackNumbers" />
+                                    <span>Track numbers</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Update track numbers from the catalog.</div>
+                            </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="WriteTrackArtists" />
+                                    <span>Track artists</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Update per-track artist credits.</div>
+                            </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="WriteAlbumArtists" />
+                                    <span>Album artists</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Update album artist credits.</div>
+                            </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="WriteYear" />
+                                    <span>Year</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Update release year.</div>
+                            </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="WriteAlbumCovers" />
+                                    <span>Album covers</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Download and set album artwork.</div>
+                            </div>
+                            <h4 class="checkboxListLabel finSubLabel">Genres</h4>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="WriteGenres" />
+                                    <span>Genres</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Write genre tags from the catalog.</div>
+                            </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="StandardizeGenres" />
+                                    <span>Standardize genres</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Formats genres to a pre-set list so various providers all use the same format / spelling.</div>
+                            </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="WriteArtistGenres" />
+                                    <span>Create artist genres from tracks</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Roll track genres up onto the artist.</div>
+                            </div>
+                            <div class="checkboxContainer checkboxContainer-withDescription">
+                                <label>
+                                    <input is="emby-checkbox" type="checkbox" id="ApplyAlbumGenresToTracks" />
+                                    <span>Keep album and track genres consistent</span>
+                                </label>
+                                <div class="fieldDescription checkboxDescription">Copy album genres onto its tracks.</div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="verticalSection">
-                        <h3 class="checkboxListLabel">Matching</h3>
+                        <h3 class="checkboxListLabel finSectionLabel">Matching</h3>
                         <div class="inputContainer">
                             <label class="inputLabel inputLabelUnfocused" for="IgnoreTitleMarkers">Ignore special characters / phrases</label>
                             <input is="emby-input" type="text" id="IgnoreTitleMarkers" />
-                            <div class="fieldDescription">Comma-separated markers stripped from track titles before matching, e.g. explicit tags like 🅴 or [Explicit].</div>
+                            <div class="fieldDescription">Markers stripped from titles before matching.</div>
                         </div>
                         <div class="inputContainer">
                             <label class="inputLabel inputLabelUnfocused" for="MinTitleSimilarity">Min title similarity</label>
                             <input is="emby-input" type="number" id="MinTitleSimilarity" min="0.5" max="1" step="0.01" />
-                            <div class="fieldDescription">0.72 recommended. Higher = stricter title matching.</div>
+                            <div class="fieldDescription">How closely titles must match. Higher is stricter.</div>
                         </div>
                         <div class="inputContainer">
                             <label class="inputLabel inputLabelUnfocused" for="SkipArtists">Skip artists</label>
                             <input is="emby-input" type="text" id="SkipArtists" />
-                            <div class="fieldDescription">Comma-separated album artist names to ignore.</div>
+                            <div class="fieldDescription">Album artists to leave alone.</div>
                         </div>
                     </div>
 
-                    <details class="verticalSection">
-                        <summary class="checkboxListLabel" style="cursor:pointer">Advanced</summary>
-                        <div class="inputContainer" style="margin-top:1em">
-                            <label class="inputLabel" for="AlbumFetchWorkers">Album fetch workers</label>
-                            <input is="emby-input" type="number" id="AlbumFetchWorkers" min="0" max="4" />
-                            <div class="fieldDescription">Parallel release fetches per artist (all providers). 0 = 2.</div>
-                        </div>
-                        <div class="inputContainer">
-                            <label class="inputLabel" for="Workers">Artist workers</label>
-                            <input is="emby-input" type="number" id="Workers" min="0" max="4" />
-                            <div class="fieldDescription">Parallel artists. 0 = 1. Leave at 1 unless you know you need more.</div>
-                        </div>
-                        <div class="verticalSection" style="margin-top:1.5em">
-                            <h3 class="checkboxListLabel">Force refresh</h3>
-                            <button is="emby-button" type="button" id="RefreshAllBtn" class="raised block button-delete">
-                                <span>Force Refresh All Music</span>
-                            </button>
-                            <div class="fieldDescription" style="margin-top:0.5em">
-                                Wipes cache and overwrites genres/covers from the first provider. Normal runs reuse cached provider data for ~30 days so they stay light on Jellyfin — only force when something looks wrong.
+                    <details class="verticalSection finAdvanced">
+                        <summary class="checkboxListLabel">Advanced</summary>
+                        <div class="finAdvancedBody">
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="AlbumFetchWorkers">Album fetch workers</label>
+                                <input is="emby-input" type="number" id="AlbumFetchWorkers" min="0" max="4" />
+                                <div class="fieldDescription">How many releases to fetch at once per artist.</div>
                             </div>
-                            <div class="fieldDescription" id="RefreshAllStatus" style="margin-top:0.5em"></div>
+                            <div class="inputContainer">
+                                <label class="inputLabel" for="Workers">Artist workers</label>
+                                <input is="emby-input" type="number" id="Workers" min="0" max="4" />
+                                <div class="fieldDescription">How many artists to process at once.</div>
+                            </div>
+                            <div class="finDangerZone">
+                                <h3 class="checkboxListLabel finSectionLabel">Force refresh</h3>
+                                <button is="emby-button" type="button" id="RefreshAllBtn" class="raised block button-delete">
+                                    <span>Force Refresh All Music</span>
+                                </button>
+                                <div class="fieldDescription" style="margin-top:0.5em">
+                                    Clears cache and rewrites from providers. Normal runs reuse cached data.
+                                </div>
+                                <div class="fieldDescription finStatus" id="RefreshAllStatus"></div>
+                            </div>
                         </div>
                     </details>
 
-                    <button is="emby-button" type="submit" class="raised button-submit block">
-                        <span>Save</span>
-                    </button>
+                    <div class="finSaveRow">
+                        <button is="emby-button" type="submit" class="raised button-submit block">
+                            <span>Save</span>
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
