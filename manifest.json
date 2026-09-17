@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.38.0",
+        "changelog": "Refill genres on normal runs when tracks have none (settled skip no longer blocks empty genres).",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.38.0/MusicFin_1.8.38.0.zip",
+        "checksum": "2fa03d586847bb837a4ee941f006ebf3",
+        "timestamp": "2026-09-17T18:09:04Z"
+      },
+      {
         "version": "1.8.37.0",
         "changelog": "Fix genre writes: replace messy local lists with provider genres instead of merging leftovers; clear all-junk tags.",
         "targetAbi": "10.11.0.0",
