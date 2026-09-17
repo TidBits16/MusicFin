@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.37.0",
+        "changelog": "Fix genre writes: replace messy local lists with provider genres instead of merging leftovers; clear all-junk tags.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.37.0/MusicFin_1.8.37.0.zip",
+        "checksum": "42eb663e656b4325970d59dcb137faee",
+        "timestamp": "2026-09-17T17:50:56Z"
+      },
+      {
         "version": "1.8.36.0",
         "changelog": "Simultaneous-run safety: preserve explicit marks on album renames, album re-mark when tracks seen, shared Deezer/MusicBrainz pace, staggered Sunday defaults.",
         "targetAbi": "10.11.0.0",
