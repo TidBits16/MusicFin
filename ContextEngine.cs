@@ -214,7 +214,12 @@ public class ContextEngine
         }
 
         if (!force
-            && ArtistLooksSettled(artist, artistTracks, providerKeys, cfg.EffectiveIgnoreTitleMarkers))
+            && ArtistLooksSettled(
+                artist,
+                artistTracks,
+                providerKeys,
+                cfg.EffectiveIgnoreTitleMarkers,
+                requireGenres: cfg.WriteGenres))
         {
             _logger.LogInformation(
                 "SmarterMusicTagging: {Artist}: skipped ({Count} tracks already tagged)",
@@ -998,12 +1003,15 @@ public class ContextEngine
     /// <summary>
     /// True when every track already has a provider id and on-disk album names agree with Jellyfin
     /// (so a bad Live in '25 tag still re-runs when the folder name differs).
+    /// When <paramref name="requireGenres"/> is on, empty track genres force a re-run so
+    /// WriteGenres can refill after a manual clear.
     /// </summary>
     private static bool ArtistLooksSettled(
         string artist,
         IReadOnlyList<Audio> tracks,
         IReadOnlyList<string> providerKeys,
-        IReadOnlyList<string> markers)
+        IReadOnlyList<string> markers,
+        bool requireGenres = false)
     {
         if (tracks.Count == 0 || providerKeys.Count == 0)
         {
@@ -1023,6 +1031,11 @@ public class ContextEngine
             }
 
             if (!tagged)
+            {
+                return false;
+            }
+
+            if (requireGenres && (track.Genres is null || track.Genres.Length == 0))
             {
                 return false;
             }

@@ -1,6 +1,6 @@
 name: "MusicFin: Smarter Music Tagging"
 guid: "ade80bea-e92e-4f2c-9a42-f5bf88bffa98"
-version: "1.8.37.0"
+version: "1.8.38.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Context-based track & album recognition."
@@ -11,4 +11,4 @@ artifacts:
   - "Jellyfin.Plugin.MusicFin.dll"
   - "backdrop.svg"
 changelog: >
-  Fix genre writes: replace messy local lists with provider genres instead of merging leftovers; clear all-junk tags.
+  Refill genres on normal runs when tracks have none (settled skip no longer blocks empty genres).

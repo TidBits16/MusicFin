@@ -6,8 +6,8 @@
   "owner": "TidBits16",
   "category": "Metadata",
   "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.37.0",
+  "version": "1.8.38.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Fix genre writes: replace messy local lists with provider genres instead of merging leftovers; clear all-junk tags.",
+  "changelog": "Refill genres on normal runs when tracks have none (settled skip no longer blocks empty genres).",
   "imagePath": "backdrop.svg"
 }
