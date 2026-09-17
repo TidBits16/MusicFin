@@ -441,7 +441,9 @@ public class ContextEngine
                         if (restoreFolder.Length > 0
                             && !Titles.SameTitleIgnoringMarks(currentAbsorbed, restoreFolder, markersAbsorbed))
                         {
-                            var restore = new Patch { ItemId = albumId, Item = albumItem, Name = restoreFolder };
+                            var restoreName = Titles.PreserveIgnoreMarkers(
+                                currentAbsorbed, restoreFolder, markersAbsorbed);
+                            var restore = new Patch { ItemId = albumId, Item = albumItem, Name = restoreName };
                             albumPatches.AddOrUpdate(albumId, restore, (_, existing) => existing.Merge(restore));
                         }
                     }
@@ -492,6 +494,7 @@ public class ContextEngine
                     continue;
                 }
 
+                desired = Titles.PreserveIgnoreMarkers(current, desired, markers);
                 var patch = new Patch { ItemId = albumId, Item = albumItem, Name = desired };
                 albumPatches.AddOrUpdate(albumId, patch, (_, existing) => existing.Merge(patch));
             }
@@ -1082,7 +1085,7 @@ public class ContextEngine
                     || Titles.ShouldReplaceAlbumTitle(current, assignment.AlbumTitle, markers)
                     || Titles.IsComboExpansionOf(desired, current, markers)))
             {
-                albumWrite = desired;
+                albumWrite = Titles.PreserveIgnoreMarkers(current, desired, markers);
             }
         }
 

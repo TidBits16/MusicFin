@@ -149,6 +149,50 @@ public static class Titles
     }
 
     /// <summary>
+    /// Re-applies IgnoreTitleMarkers from <paramref name="previousTitle"/> onto
+    /// <paramref name="newTitle"/> so ExplicitFin marks (e.g. 🅴) survive catalog renames.
+    /// </summary>
+    public static string PreserveIgnoreMarkers(
+        string previousTitle,
+        string newTitle,
+        IReadOnlyList<string>? markers = null)
+    {
+        var marks = markers ?? DefaultIgnoreTitleMarkers;
+        var prev = (previousTitle ?? string.Empty).Trim();
+        var next = (newTitle ?? string.Empty).Trim();
+        if (next.Length == 0 || prev.Length == 0)
+        {
+            return next;
+        }
+
+        // Already marked — leave alone.
+        if (!string.Equals(next, StripMark(next, marks), StringComparison.Ordinal))
+        {
+            return next;
+        }
+
+        foreach (var token in marks)
+        {
+            var mark = token.Trim();
+            if (mark.Length == 0)
+            {
+                continue;
+            }
+
+            var prepend = prev.StartsWith(mark, StringComparison.Ordinal);
+            var append = prev.EndsWith(mark, StringComparison.Ordinal);
+            if (!prepend && !append)
+            {
+                continue;
+            }
+
+            return prepend ? mark + " " + next : next + " " + mark;
+        }
+
+        return next;
+    }
+
+    /// <summary>
     /// True when <paramref name="part"/> is a whole-token phrase inside a longer
     /// <paramref name="whole"/> (Seven ⊂ Seven + Mary / Mary ⊂ Seven + Mary).
     /// </summary>

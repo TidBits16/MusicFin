@@ -62,6 +62,20 @@ public class TitlesTests
         string catalog,
         string expected)
         => Assert.Equal(expected, Titles.PreferredAlbumWriteTitle(local, catalog, DefaultMarkers));
+
+    [Theory]
+    [InlineData("SOUR 🅴", "Sour", "Sour 🅴")]
+    [InlineData("🅴 SOUR", "Sour", "🅴 Sour")]
+    [InlineData("SOUR [Explicit]", "Sour", "Sour [Explicit]")]
+    [InlineData("SOUR", "Sour", "Sour")]
+    [InlineData("SOUR 🅴", "SOUR 🅴", "SOUR 🅴")]
+    [InlineData("", "Sour", "Sour")]
+    public void PreserveIgnoreMarkers_KeepsExplicitMarksAcrossRename(
+        string previous,
+        string next,
+        string expected)
+        => Assert.Equal(expected, Titles.PreserveIgnoreMarkers(previous, next, DefaultMarkers));
+
     [Fact]
     public void PreferExactArtistMatches_DropsFentanylWhenFemtanylExactExists()
     {
