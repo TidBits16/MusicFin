@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
     "versions": [
       {
+        "version": "1.8.35.0",
+        "changelog": "Settings page polish: clearer helpers, grouped toggles, styled Advanced / force-refresh sections.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.35.0/MusicFin_1.8.35.0.zip",
+        "checksum": "42aaf975d52978f37838a8516f385f4c",
+        "timestamp": "2026-09-17T13:33:00Z"
+      },
+      {
         "version": "1.8.34.0",
         "changelog": "Standardize Genres setting (split Classical: World, fix typos, drop junk); keep AI Generated as a genre; album-first folder matching; block foreign cover-single artist credits (e.g. Byrne on SOUR).",
         "targetAbi": "10.11.0.0",
