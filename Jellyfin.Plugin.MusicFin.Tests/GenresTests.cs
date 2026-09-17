@@ -144,6 +144,62 @@ public class GenresTests
     }
 
     [Fact]
+    public void ResolveWrite_ReplacesMessyLocalWithProviderInsteadOfMerging()
+    {
+        var got = Genres.ResolveWrite(
+            ["Breakcore", "Electronic"],
+            ["Classical: World", "Explicit", "& Country", "Indie Rock"],
+            force: false);
+        Assert.Equal(["Breakcore", "Electronic"], got);
+    }
+
+    [Fact]
+    public void ResolveWrite_ClearsAllJunkWhenProviderEmpty()
+    {
+        var got = Genres.ResolveWrite([], ["Explicit", "Screen", "& Country"], force: false);
+        Assert.NotNull(got);
+        Assert.Empty(got!);
+    }
+
+    [Fact]
+    public void ResolveWrite_StandardizesCompoundsWhenProviderEmpty()
+    {
+        var got = Genres.ResolveWrite([], ["Classical: World", "Elecronic"], force: false);
+        Assert.NotNull(got);
+        Assert.Contains("Classical", got!);
+        Assert.Contains("World", got);
+        Assert.Contains("Electronic", got);
+        Assert.DoesNotContain("Classical: World", got);
+    }
+
+    [Fact]
+    public void ResolveWrite_LeavesCleanSpecificLocalAlone()
+    {
+        Assert.Null(Genres.ResolveWrite(["Dream Pop"], ["Indie Rock", "Folk"], force: false));
+    }
+
+    [Fact]
+    public void ResolveWrite_ForceReplacesCleanLocal()
+    {
+        var got = Genres.ResolveWrite(["Dream Pop"], ["Indie Rock", "Folk"], force: true);
+        Assert.Equal(["Dream Pop"], got);
+    }
+
+    [Fact]
+    public void ResolveWrite_ReplacesGenericOnlyWithProvider()
+    {
+        var got = Genres.ResolveWrite(["Breakcore"], ["Pop", "Rock"], force: false);
+        Assert.Equal(["Breakcore"], got);
+    }
+
+    [Fact]
+    public void NeedRewriteList_DetectsCaseOnlyChanges()
+    {
+        Assert.True(Genres.NeedRewriteList(["Indie Rock"], ["indie rock"]));
+        Assert.False(Genres.NeedRewriteList(["Indie Rock"], ["Indie Rock"]));
+    }
+
+    [Fact]
     public void PreferSpecific_ReplacesGenericWithDiscogsStyles()
     {
         var got = Genres.PreferSpecific(["Pop"], ["Breakcore", "Electronic", "Hardcore"]);

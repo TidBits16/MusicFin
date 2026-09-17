@@ -313,6 +313,59 @@ public static partial class Genres
         return PrettyList(raw, 0);
     }
 
+    /// <summary>
+    /// True when <paramref name="want"/> should replace <paramref name="got"/> (ordinal, including clear-to-empty).
+    /// </summary>
+    public static bool NeedRewriteList(IReadOnlyList<string> want, IReadOnlyList<string> got)
+    {
+        if (want.Count != got.Count)
+        {
+            return true;
+        }
+
+        for (var i = 0; i < want.Count; i++)
+        {
+            if (!want[i].Equals(got[i], StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Decide the genre list to write. Provider replaces messy/generic/empty local lists;
+    /// otherwise local PrettyList cleanup (may be empty to clear all-junk).
+    /// Null means leave the item alone.
+    /// </summary>
+    public static List<string>? ResolveWrite(
+        IReadOnlyList<string> provider,
+        IReadOnlyList<string>? current,
+        bool force)
+    {
+        var raw = current ?? [];
+        var cleanedCurrent = PrettyList(raw);
+        var want = PrettyList(provider);
+
+        if (want.Count > 0)
+        {
+            if (force || raw.Count == 0 || NeedsRewrite(raw) || IsGenericOnly(raw))
+            {
+                return NeedRewriteList(want, raw) ? want : null;
+            }
+
+            return null;
+        }
+
+        if (raw.Count > 0 && NeedsRewrite(raw) && NeedRewriteList(cleanedCurrent, raw))
+        {
+            return cleanedCurrent;
+        }
+
+        return null;
+    }
+
     private static string SoftKey(string name)
     {
         var s = DecodeEntities(name).Trim().ToLowerInvariant().Replace('_', ' ');

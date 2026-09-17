@@ -1316,44 +1316,11 @@ public class ContextEngine
     }
 
     /// <summary>
-    /// Provider genres win when force is on, current genres are empty/messy, or provider is more specific.
-    /// Local cleanup alone is allowed only to fix messy existing lists when providers have nothing.
+    /// Provider genres replace local when force is on, current is empty/messy/generic.
+    /// Local cleanup alone runs only when the provider has nothing (including clearing all-junk).
     /// </summary>
     private static List<string>? GenreWant(IReadOnlyList<string> provider, IReadOnlyList<string>? current, bool force)
-    {
-        var raw = current ?? [];
-        var cleanedCurrent = Genres.PrettyList(raw);
-        var want = Genres.PrettyList(provider);
-
-        if (want.Count == 0)
-        {
-            if (raw.Count > 0 && Genres.NeedsRewrite(raw) && cleanedCurrent.Count > 0
-                && !Titles.SameNames(cleanedCurrent, raw))
-            {
-                return cleanedCurrent;
-            }
-
-            return null;
-        }
-
-        if (force || raw.Count == 0)
-        {
-            return NeedList(want, raw) ? want : null;
-        }
-
-        if (Genres.NeedsRewrite(raw))
-        {
-            var preferred = Genres.PreferSpecific(cleanedCurrent, want);
-            return NeedList(preferred, raw) ? preferred : null;
-        }
-
-        if (Genres.IsGenericOnly(raw) && !Genres.IsGenericOnly(want))
-        {
-            return want;
-        }
-
-        return null;
-    }
+        => Genres.ResolveWrite(provider, current, force);
 
     private static bool NeedList(IReadOnlyList<string> want, IReadOnlyList<string> got)
         => want.Count > 0 && !Titles.SameNames(want, got);
