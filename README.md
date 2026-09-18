@@ -6,6 +6,8 @@
 
 # MusicTagShelf: Smarter Music Tagging
 
+> <strong>LLM disclosure:</strong> This plugin is <strong>primarily developed with LLM assistance</strong> (Cursor / coding agents). Review and test before relying on it in production.
+
 > Formerly <strong>MusicFin</strong>. Same plugin GUID — settings carry over when you update.
 
 Problem: most music taggers <strong><em>kinda suck</em></strong>.
