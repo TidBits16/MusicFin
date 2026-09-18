@@ -1,0 +1,87 @@
+using System.Text.Json;
+using Jellyfin.Plugin.MusicTagShelf;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Jellyfin.Plugin.MusicTagShelf.Tests;
+
+public class AjrArtistSearchTests
+{
+    private readonly ITestOutputHelper _out;
+
+    public AjrArtistSearchTests(ITestOutputHelper output) => _out = output;
+
+    [Fact]
+    public void RankArtistSearchResults_DropsFentanylNearMissForFemtanyl()
+    {
+        using var doc = JsonDocument.Parse(
+            """
+            {
+              "data": [
+                { "id": 220484855, "name": "femtanyl", "nb_fan": 14309, "nb_album": 23 },
+                { "id": 1166093, "name": "Fentanyl", "nb_fan": 70, "nb_album": 22 },
+                { "id": 284960531, "name": "FXNTANYL", "nb_fan": 73, "nb_album": 4 }
+              ]
+            }
+            """);
+
+        var ranked = DeezerContextClient.RankArtistSearchResults(
+            JsonUtil.Arr(doc.RootElement, "data"),
+            Titles.Norm("Femtanyl"));
+
+        Assert.Single(ranked);
+        Assert.Equal("220484855", ranked[0].ArtistId);
+    }
+
+    [Fact]
+    public void RankArtistSearchResults_PrefersPopularAjrOverHomonym()
+    {
+        using var doc = JsonDocument.Parse(
+            """
+            {
+              "data": [
+                { "id": 176420427, "name": "AJR", "nb_fan": 682, "nb_album": 1 },
+                { "id": 3288461, "name": "AJR", "nb_fan": 182928, "nb_album": 25 }
+              ]
+            }
+            """);
+
+        var ranked = DeezerContextClient.RankArtistSearchResults(
+            JsonUtil.Arr(doc.RootElement, "data"),
+            Titles.Norm("AJR"));
+
+        Assert.Equal(2, ranked.Count);
+        Assert.Equal("3288461", ranked[0].ArtistId);
+        Assert.Equal("176420427", ranked[1].ArtistId);
+    }
+
+    [Fact]
+    [Trait("Category", "Live")]
+    public async Task Ajr_LiveSearchPicksPopularArtistWithStudioAlbums()
+    {
+        var client = TestDeezer.CreateClient();
+        var candidates = await client.GetArtistCandidatesAsync("AJR", CancellationToken.None);
+        Assert.NotEmpty(candidates);
+
+        _out.WriteLine(string.Join(", ", candidates.Select(c => $"{c.ArtistId} {c.Name}")));
+
+        Assert.Equal("3288461", candidates[0].ArtistId);
+
+        var discography = await client.GetArtistDiscographyAsync(
+            candidates[0].ArtistId,
+            "AJR",
+            1,
+            CancellationToken.None);
+
+        _out.WriteLine($"Albums: {discography.Count}");
+        foreach (var album in discography)
+        {
+            _out.WriteLine($"  {album.Title} ({album.Tracks.Count} tracks)");
+        }
+
+        Assert.NotEmpty(discography);
+        Assert.Contains(discography, a => a.Title.Contains("Neotheater", StringComparison.OrdinalIgnoreCase)
+            || a.Title.Contains("OK Orchestra", StringComparison.OrdinalIgnoreCase)
+            || a.Title.Contains("The Click", StringComparison.OrdinalIgnoreCase));
+    }
+}

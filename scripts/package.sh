@@ -7,7 +7,7 @@ cd "$root"
 version="$(python3 - <<'PY'
 import re
 from pathlib import Path
-text = Path("Jellyfin.Plugin.MusicFin.csproj").read_text()
+text = Path("Jellyfin.Plugin.MusicTagShelf.csproj").read_text()
 raw = re.search(r"<Version>([^<]+)</Version>", text).group(1).strip()
 parts = [p for p in raw.split(".") if p != ""]
 while len(parts) < 4:
@@ -17,23 +17,23 @@ PY
 )"
 
 export PATH="${HOME}/.dotnet:${PATH}"
-dotnet build Jellyfin.Plugin.MusicFin.csproj -c Release --nologo
+dotnet build Jellyfin.Plugin.MusicTagShelf.csproj -c Release --nologo
 
 stage="$(mktemp -d)"
 trap 'rm -rf "$stage"' EXIT
-cp "bin/Release/net9.0/Jellyfin.Plugin.MusicFin.dll" "$stage/"
+cp "bin/Release/net9.0/Jellyfin.Plugin.MusicTagShelf.dll" "$stage/"
 cp meta.json "$stage/"
 cp backdrop.svg "$stage/"
 
 mkdir -p dist
-zip_path="$root/dist/MusicFin_${version}.zip"
+zip_path="$root/dist/MusicTagShelf_${version}.zip"
 rm -f "$zip_path"
 python3 - "$stage" "$zip_path" <<'PY'
 import sys, zipfile
 from pathlib import Path
 stage, zip_path = sys.argv[1], sys.argv[2]
 with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-    for name in ("Jellyfin.Plugin.MusicFin.dll", "meta.json", "backdrop.svg"):
+    for name in ("Jellyfin.Plugin.MusicTagShelf.dll", "meta.json", "backdrop.svg"):
         zf.write(Path(stage) / name, name)
 PY
 
@@ -44,7 +44,7 @@ print(hashlib.md5(Path(sys.argv[1]).read_bytes()).hexdigest())
 PY
 )"
 timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-source_url="https://github.com/TidBits16/MusicFin/releases/download/v${version}/MusicFin_${version}.zip"
+source_url="https://github.com/TidBits16/MusicTagShelf/releases/download/v${version}/MusicTagShelf_${version}.zip"
 
 python3 - "$version" "$checksum" "$timestamp" "$source_url" <<'PY'
 import json, sys

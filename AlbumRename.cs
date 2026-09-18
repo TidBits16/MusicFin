@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 /// <summary>
 /// Guards MusicAlbum entity renames so one matched single cannot rename a full album folder.

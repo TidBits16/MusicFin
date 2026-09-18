@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
-using Jellyfin.Plugin.MusicFin.Configuration;
+using Jellyfin.Plugin.MusicTagShelf.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public sealed class MusicBrainzContextClient : IContextMetadataClient
 {
@@ -446,9 +446,9 @@ public sealed class MusicBrainzContextClient : IContextMetadataClient
         var contact = Plugin.Instance?.Configuration.MusicBrainzContact?.Trim();
         if (string.IsNullOrEmpty(contact))
         {
-            contact = "https://github.com/TidBits16/MusicFin";
+            contact = "https://github.com/TidBits16/MusicTagShelf";
         }
 
-        return "MusicFin/1.0 ( " + contact + " )";
+        return "MusicTagShelf/1.0 ( " + contact + " )";
     }
 }

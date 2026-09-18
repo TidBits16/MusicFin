@@ -1,6 +1,6 @@
-using Jellyfin.Plugin.MusicFin.Configuration;
+using Jellyfin.Plugin.MusicTagShelf.Configuration;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public class MetadataClientFactory
 {

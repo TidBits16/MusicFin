@@ -1,6 +1,6 @@
 using MediaBrowser.Model.Plugins;
 
-namespace Jellyfin.Plugin.MusicFin.Configuration;
+namespace Jellyfin.Plugin.MusicTagShelf.Configuration;
 
 public class PluginConfiguration : BasePluginConfiguration
 {
@@ -106,7 +106,7 @@ public class PluginConfiguration : BasePluginConfiguration
     }
 
     /// <summary>Contact URL or email required by MusicBrainz for API User-Agent.</summary>
-    public string MusicBrainzContact { get; set; } = "https://github.com/TidBits16/MusicFin";
+    public string MusicBrainzContact { get; set; } = "https://github.com/TidBits16/MusicTagShelf";
 
     /// <summary>Optional Discogs personal access token (higher rate limits). From discogs.com/settings/developers.</summary>
     public string DiscogsToken { get; set; } = string.Empty;

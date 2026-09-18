@@ -1,11 +1,11 @@
 using System.Globalization;
-using Jellyfin.Plugin.MusicFin.Configuration;
+using Jellyfin.Plugin.MusicTagShelf.Configuration;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
 using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 {
@@ -19,7 +19,7 @@ public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
 
     public static Plugin? Instance { get; private set; }
 
-    public override string Name => "MusicFin: Smarter Music Tagging";
+    public override string Name => "MusicTagShelf: Smarter Music Tagging";
 
     public override string Description =>
         "Context-based track & album recognition.";

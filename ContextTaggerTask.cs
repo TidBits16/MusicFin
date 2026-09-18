@@ -1,7 +1,7 @@
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public class ContextTaggerTask : IScheduledTask
 {
@@ -14,9 +14,9 @@ public class ContextTaggerTask : IScheduledTask
         _logger = logger;
     }
 
-    public string Name => "- MusicFin: Smarter Music Tagging";
+    public string Name => "- MusicTagShelf: Smarter Music Tagging";
 
-    public string Key => "MusicFinLibrary";
+    public string Key => "MusicTagShelfLibrary";
 
     public string Description =>
         "Assigns albums, track numbers, years, and genres using context-based metadata matching. Force refresh from plugin settings clears cache and overwrites genres/covers.";

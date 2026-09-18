@@ -3,7 +3,7 @@ using MediaBrowser.Controller;
 using MediaBrowser.Controller.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public class PluginServiceRegistrator : IPluginServiceRegistrator
 {
@@ -17,6 +17,6 @@ public class PluginServiceRegistrator : IPluginServiceRegistrator
         serviceCollection.AddSingleton<OpenOpusContextClient>();
         serviceCollection.AddSingleton<MetadataClientFactory>();
         serviceCollection.AddSingleton(sp =>
-            new HttpCache(sp.GetRequiredService<IApplicationPaths>(), "musicfin"));
+            new HttpCache(sp.GetRequiredService<IApplicationPaths>(), "musictagshelf", "musicfin"));
     }
 }

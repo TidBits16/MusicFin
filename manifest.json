@@ -1,18 +1,26 @@
 [
   {
     "guid": "ade80bea-e92e-4f2c-9a42-f5bf88bffa98",
-    "name": "MusicFin: Smarter Music Tagging",
+    "name": "MusicTagShelf: Smarter Music Tagging",
     "description": "Context-based track & album recognition.",
     "overview": "Context-based track & album recognition.",
     "owner": "TidBits16",
     "category": "Metadata",
-    "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
+    "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicTagShelf/main/backdrop.svg",
     "versions": [
+      {
+        "version": "1.9.0.0",
+        "changelog": "Rebrand from MusicFin to MusicTagShelf; new TagShelf logo (no Jellyfin mark); migrate HTTP cache folder.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.9.0.0/MusicTagShelf_1.9.0.0.zip",
+        "checksum": "63494db3ac1184260a08d16a91ca059f",
+        "timestamp": "2026-09-18T16:05:38Z"
+      },
       {
         "version": "1.8.38.0",
         "changelog": "Refill genres on normal runs when tracks have none (settled skip no longer blocks empty genres).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.38.0/MusicFin_1.8.38.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.38.0/MusicFin_1.8.38.0.zip",
         "checksum": "2fa03d586847bb837a4ee941f006ebf3",
         "timestamp": "2026-09-17T18:09:04Z"
       },
@@ -20,7 +28,7 @@
         "version": "1.8.37.0",
         "changelog": "Fix genre writes: replace messy local lists with provider genres instead of merging leftovers; clear all-junk tags.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.37.0/MusicFin_1.8.37.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.37.0/MusicFin_1.8.37.0.zip",
         "checksum": "42eb663e656b4325970d59dcb137faee",
         "timestamp": "2026-09-17T17:50:56Z"
       },
@@ -28,7 +36,7 @@
         "version": "1.8.36.0",
         "changelog": "Simultaneous-run safety: preserve explicit marks on album renames, album re-mark when tracks seen, shared Deezer/MusicBrainz pace, staggered Sunday defaults.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.36.0/MusicFin_1.8.36.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.36.0/MusicFin_1.8.36.0.zip",
         "checksum": "d5d37f5edf5195e5fc3fbf2e5f9a3a48",
         "timestamp": "2026-09-17T15:05:13Z"
       },
@@ -36,7 +44,7 @@
         "version": "1.8.35.0",
         "changelog": "Settings page polish: clearer helpers, grouped toggles, styled Advanced / force-refresh sections.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.35.0/MusicFin_1.8.35.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.35.0/MusicFin_1.8.35.0.zip",
         "checksum": "42aaf975d52978f37838a8516f385f4c",
         "timestamp": "2026-09-17T13:33:00Z"
       },
@@ -44,7 +52,7 @@
         "version": "1.8.34.0",
         "changelog": "Standardize Genres setting (split Classical: World, fix typos, drop junk); keep AI Generated as a genre; album-first folder matching; block foreign cover-single artist credits (e.g. Byrne on SOUR).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.34.0/MusicFin_1.8.34.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.34.0/MusicFin_1.8.34.0.zip",
         "checksum": "31094ab3c120b50a518d8489a767a60d",
         "timestamp": "2026-09-16T21:01:04Z"
       },
@@ -52,7 +60,7 @@
         "version": "1.8.33.0",
         "changelog": "Deezer-only by default (Discogs off); restore Seven/Mary EP names; keep singles out of larger LPs; prefer Deezer covers over Discogs scans.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.33.0/MusicFin_1.8.33.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.33.0/MusicFin_1.8.33.0.zip",
         "checksum": "f1d22a48ccfb40db0be7f29d156f156b",
         "timestamp": "2026-09-16T19:25:53Z"
       },
@@ -60,7 +68,7 @@
         "version": "1.8.32.0",
         "changelog": "Cleaner genres (drop junk, fix splits); Discogs styles when Deezer is only Pop/Rock/Alternative; skip failed lookups until cache TTL.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.32.0/MusicFin_1.8.32.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.32.0/MusicFin_1.8.32.0.zip",
         "checksum": "c488c03faa232b87fa5eea568f1800e7",
         "timestamp": "2026-09-16T15:27:20Z"
       },
@@ -68,7 +76,7 @@
         "version": "1.8.31.0",
         "changelog": "HTTP caches last 30 days; force refresh clears cache; expired lookups re-fetch individually.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.31.0/MusicFin_1.8.31.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.31.0/MusicFin_1.8.31.0.zip",
         "checksum": "f714c83381e429cb02e05138cc364920",
         "timestamp": "2026-09-16T15:07:30Z"
       },
@@ -76,7 +84,7 @@
         "version": "1.8.30.0",
         "changelog": "Default to Deezer (cleaner covers) with Discogs fallback; preserve library artist casing (NF vs nf, femtanyl).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.30.0/MusicFin_1.8.30.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.30.0/MusicFin_1.8.30.0.zip",
         "checksum": "b737d651b38bb85fa7dfd024bc82d4bc",
         "timestamp": "2026-09-15T21:13:31Z"
       },
@@ -84,7 +92,7 @@
         "version": "1.8.29.0",
         "changelog": "Keep separate EP folder names (Seven / Mary) when catalog only has a combo like Seven + Mary.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.29.0/MusicFin_1.8.29.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.29.0/MusicFin_1.8.29.0.zip",
         "checksum": "b4a8dafe6ec434890e2ac41fec961b8a",
         "timestamp": "2026-09-15T20:26:16Z"
       },
@@ -92,7 +100,7 @@
         "version": "1.8.28.0",
         "changelog": "Faster scheduled runs: parallel Discogs/MusicBrainz fetches, skip settled artists, cache empty provider lookups, cheaper cover majority checks.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.28.0/MusicFin_1.8.28.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.28.0/MusicFin_1.8.28.0.zip",
         "checksum": "e4602eda34f2e6a52e4ef3628207065f",
         "timestamp": "2026-09-15T16:52:52Z"
       },
@@ -100,15 +108,15 @@
         "version": "1.8.27.0",
         "changelog": "Match using on-disk file/folder names so wrong Jellyfin tags (e.g. Live in '25) can self-heal.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.27.0/MusicFin_1.8.27.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.27.0/MusicFin_1.8.27.0.zip",
         "checksum": "8dba8f087e1cf7f73c27e536b13a641a",
         "timestamp": "2026-09-15T16:26:35Z"
       },
       {
         "version": "1.8.26.0",
-        "changelog": "Keep ExplicitFin marks when album titles only differ by IgnoreTitleMarkers; shared FinCommon HTTP; rename-guard cleanup.",
+        "changelog": "Keep ExplicitTagShelf marks when album titles only differ by IgnoreTitleMarkers; shared TagShelfCommon HTTP; rename-guard cleanup.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.26.0/MusicFin_1.8.26.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.26.0/MusicFin_1.8.26.0.zip",
         "checksum": "d98799f9fa1d936b09412f0396394585",
         "timestamp": "2026-09-15T14:30:06Z"
       },
@@ -116,7 +124,7 @@
         "version": "1.8.25.0",
         "changelog": "Separate Artist genres toggle; remove Force rewrite genres checkbox (overwrite only via Force Refresh).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.25.0/MusicFin_1.8.25.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.25.0/MusicFin_1.8.25.0.zip",
         "checksum": "ecd5fba44d858619c805e0b5d67b6dd6",
         "timestamp": "2026-09-15T13:34:12Z"
       },
@@ -124,7 +132,7 @@
         "version": "1.8.24.0",
         "changelog": "Roll track genres up onto MusicArtist entities (union of that artist's track genres). Album/track genre overwrite still only on Force rewrite / Force Refresh.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.24.0/MusicFin_1.8.24.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.24.0/MusicFin_1.8.24.0.zip",
         "checksum": "db93848c5c85c7aaabada725bed3cb36",
         "timestamp": "2026-09-15T13:29:13Z"
       },
@@ -132,7 +140,7 @@
         "version": "1.8.23.0",
         "changelog": "Match each album folder on its own tracks (Seven/Mary stay separate EPs; a single-track folder stays a single). Combo releases only win when both halves share one folder.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.23.0/MusicFin_1.8.23.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.23.0/MusicFin_1.8.23.0.zip",
         "checksum": "1940adbc2e9d62dc757604d61308242b",
         "timestamp": "2026-09-15T13:22:07Z"
       },
@@ -140,7 +148,7 @@
         "version": "1.8.22.0",
         "changelog": "Prefer studio-album consensus inside multi-track folders so lead singles (e.g. drivers license, the cure) do not steal track numbers, album titles, or covers; standalone single folders stay singles.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.22.0/MusicFin_1.8.22.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.22.0/MusicFin_1.8.22.0.zip",
         "checksum": "95bc270cc6ddac5edbf65cd66575a71d",
         "timestamp": "2026-09-14T19:01:28Z"
       },
@@ -148,7 +156,7 @@
         "version": "1.8.21.0",
         "changelog": "Prefer studio albums over singles, compilations, live tours, and deluxe editions (fixes Classics Collection / SOUR / GUTS spilled / The Land live). Sorry \u2014 1.8.20.0 missed several of these secondary-release cases.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.21.0/MusicFin_1.8.21.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.21.0/MusicFin_1.8.21.0.zip",
         "checksum": "6ad1b066365e65f56cc80d82f40ecabb",
         "timestamp": "2026-09-14T16:54:21Z"
       },
@@ -156,31 +164,31 @@
         "version": "1.8.20.0",
         "changelog": "Fix album title collapse: keep (Live) distinct from studio; prefer local album tags; don't demote THE X to X.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.20.0/MusicFin_1.8.20.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.20.0/MusicFin_1.8.20.0.zip",
         "checksum": "c3fac8a678e01bd5b50c9cc55bd929eb",
         "timestamp": "2026-09-14T16:43:50Z"
       },
       {
         "version": "1.8.19.0",
-        "changelog": "Solid primary backdrop; horizontal logo+title lockup; italic FinFamily tagline.",
+        "changelog": "Solid primary backdrop; horizontal logo+title lockup; italic TagShelf tagline.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.19.0/MusicFin_1.8.19.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.19.0/MusicFin_1.8.19.0.zip",
         "checksum": "fc554e2cecb35fc88a623ea68349336c",
         "timestamp": "2026-09-14T16:30:30Z"
       },
       {
         "version": "1.8.18.0",
-        "changelog": "Horizontal logo+title lockup; full-opacity FinFamily tagline under title.",
+        "changelog": "Horizontal logo+title lockup; full-opacity TagShelf tagline under title.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.18.0/MusicFin_1.8.18.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.18.0/MusicFin_1.8.18.0.zip",
         "checksum": "fc564330139fc9725908d1c5536f8b12",
         "timestamp": "2026-09-14T16:24:37Z"
       },
       {
         "version": "1.8.17.0",
-        "changelog": "Move FinFamily tagline below title on backdrop.",
+        "changelog": "Move TagShelf tagline below title on backdrop.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.17.0/MusicFin_1.8.17.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.17.0/MusicFin_1.8.17.0.zip",
         "checksum": "3bf3699360431a8f1a3ba5120c451eff",
         "timestamp": "2026-09-14T16:22:31Z"
       },
@@ -188,23 +196,23 @@
         "version": "1.8.16.0",
         "changelog": "Clarify Force Refresh copy: wipes cache; normal runs reuse provider cache.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.16.0/MusicFin_1.8.16.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.16.0/MusicFin_1.8.16.0.zip",
         "checksum": "3f17255e949384cc8b9acb862bbde27b",
         "timestamp": "2026-09-14T16:15:32Z"
       },
       {
         "version": "1.8.15.0",
-        "changelog": "Add FinFamily tagline under logo on backdrop.",
+        "changelog": "Add TagShelf tagline under logo on backdrop.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.15.0/MusicFin_1.8.15.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.15.0/MusicFin_1.8.15.0.zip",
         "checksum": "c1e7a6b8353d97f3bfdc450a99b886cc",
         "timestamp": "2026-09-14T16:14:41Z"
       },
       {
         "version": "1.8.14.0",
-        "changelog": "Center logo + title on backdrop; fix ExplicitFin cutoff.",
+        "changelog": "Center logo + title on backdrop; fix ExplicitTagShelf cutoff.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.14.0/MusicFin_1.8.14.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.14.0/MusicFin_1.8.14.0.zip",
         "checksum": "76085ffaa4cf6749a0e7aaef0ff322ff",
         "timestamp": "2026-09-14T16:12:42Z"
       },
@@ -212,15 +220,15 @@
         "version": "1.8.13.0",
         "changelog": "Add Force Refresh All Music (clears cache, overwrites genres/covers).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.13.0/MusicFin_1.8.13.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.13.0/MusicFin_1.8.13.0.zip",
         "checksum": "772625d1f7c40330449fe34c073aa3f7",
         "timestamp": "2026-09-14T16:08:12Z"
       },
       {
         "version": "1.8.12.0",
-        "changelog": "Rename internal assembly/namespace from DeezerTagger to MusicFin; cache folder musicfin.",
+        "changelog": "Rename internal assembly/namespace from DeezerTagger to MusicTagShelf; cache folder musictagshelf.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.12.0/MusicFin_1.8.12.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.12.0/MusicFin_1.8.12.0.zip",
         "checksum": "712bce57d1f14b24ae4bab17b92168d5",
         "timestamp": "2026-09-14T15:52:02Z"
       },
@@ -228,7 +236,7 @@
         "version": "1.8.11.0",
         "changelog": "Keep - prefix on scheduled task only; Discogs-first lookup and first-provider genre writes.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.11.0/MusicFin_1.8.11.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.11.0/MusicFin_1.8.11.0.zip",
         "checksum": "43c3baaa3907d0bc22348c0329ad860d",
         "timestamp": "2026-09-14T15:42:19Z"
       },
@@ -236,7 +244,7 @@
         "version": "1.8.10.0",
         "changelog": "Discogs-first lookup with Deezer fallback; genres only from the first provider (force rewrite); sort name with - prefix.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.10.0/MusicFin_1.8.10.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.10.0/MusicFin_1.8.10.0.zip",
         "checksum": "0125b8fdf4fc6fd4c63996aef12407c0",
         "timestamp": "2026-09-14T15:24:44Z"
       },
@@ -244,15 +252,15 @@
         "version": "1.8.9.0",
         "changelog": "Normalize messy genre tags (split compounds, fix casing/typos) and clean local genres when WriteGenres is on.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.9.0/MusicFin_1.8.9.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.9.0/MusicFin_1.8.9.0.zip",
         "checksum": "47267ba7a1ba2200e40da9b4cc71e99b",
         "timestamp": "2026-09-14T15:15:16Z"
       },
       {
         "version": "1.8.8.0",
-        "changelog": "Keep ExplicitFin album marks when writing names; prefer exact artist matches (Femtanyl vs Fentanyl).",
+        "changelog": "Keep ExplicitTagShelf album marks when writing names; prefer exact artist matches (Femtanyl vs Fentanyl).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.8.0/MusicFin_1.8.8.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.8.0/MusicFin_1.8.8.0.zip",
         "checksum": "663cb1b1f8a7358402c76c1170dac814",
         "timestamp": "2026-09-12T19:21:36Z"
       },
@@ -260,7 +268,7 @@
         "version": "1.8.7.0",
         "changelog": "Default schedule: weekly, Sunday at 2:00 AM.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.7.0/MusicFin_1.8.7.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.7.0/MusicFin_1.8.7.0.zip",
         "checksum": "bfbf7bc7181387b37aa594ad5edeafea",
         "timestamp": "2026-09-03T01:39:08Z"
       },
@@ -268,7 +276,7 @@
         "version": "1.8.6.0",
         "changelog": "Write matched album covers from catalog providers (Deezer, iTunes, Discogs, MusicBrainz CAA).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.6.0/MusicFin_1.8.6.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.6.0/MusicFin_1.8.6.0.zip",
         "checksum": "9b0fa1e8a8c67cec43784a5d9687c1f5",
         "timestamp": "2026-08-29T18:51:13Z"
       },
@@ -276,7 +284,7 @@
         "version": "1.8.5.0",
         "changelog": "Normalize arrow punctuation in UI copy and logs.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.5.0/MusicFin_1.8.5.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.5.0/MusicFin_1.8.5.0.zip",
         "checksum": "438e779754313b25306fe0c380eaf664",
         "timestamp": "2026-08-29T16:26:23Z"
       },
@@ -284,7 +292,7 @@
         "version": "1.8.4.0",
         "changelog": "Shorten catalog description.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.4.0/MusicFin_1.8.4.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.4.0/MusicFin_1.8.4.0.zip",
         "checksum": "21e753663ab80a59df8dc71c1eee43bd",
         "timestamp": "2026-08-29T02:09:07Z"
       },
@@ -292,7 +300,7 @@
         "version": "1.8.3.0",
         "changelog": "Normalize plugin version to four-part SemVer (1.8.3.0).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.3.0/MusicFin_1.8.3.0.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.3.0/MusicFin_1.8.3.0.zip",
         "checksum": "24c14ba492a64a563bde7743c1853d7c",
         "timestamp": "2026-08-29T01:58:22Z"
       },
@@ -300,7 +308,7 @@
         "version": "1.8.2.0",
         "changelog": "Refresh branding: flatter logo + 1920x1080 backdrop assets.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.2/MusicFin_1.8.2.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.2/MusicFin_1.8.2.zip",
         "checksum": "a76b81d21f5c1d55b65994f61cb11d92",
         "timestamp": "2026-08-29T01:46:58Z"
       },
@@ -308,7 +316,7 @@
         "version": "1.8.1.0",
         "changelog": "Add plugin catalog icon.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8.1/MusicFin_1.8.1.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8.1/MusicFin_1.8.1.zip",
         "checksum": "d83c8d1c09b2c9847cd253e828b4991f",
         "timestamp": "2026-08-29T01:39:21Z"
       },
@@ -316,7 +324,7 @@
         "version": "1.8.0.0",
         "changelog": "Fetch real Deezer disc/track positions for multi-disc albums; tighten deluxe detection so album tracks are not stolen by singles (mxmtoon the masquerade).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.8/MusicFin_1.8.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.8/MusicFin_1.8.zip",
         "checksum": "9220cc232331075eaabf9cb7bf0b5114",
         "timestamp": "2026-08-28T19:03:22Z"
       },
@@ -324,7 +332,7 @@
         "version": "1.7.0.0",
         "changelog": "Write disc numbers (ParentIndexNumber) from catalog sources including Deezer disk_number so tracks no longer float above Disc 1.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.7/MusicFin_1.7.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.7/MusicFin_1.7.zip",
         "checksum": "7a3fe91d154e64c6e97793c539b598d9",
         "timestamp": "2026-08-28T18:54:50Z"
       },
@@ -332,7 +340,7 @@
         "version": "1.6.0.0",
         "changelog": "Smarter title folding (&/and, compound words, stylized digits) and title-band + fitness so short local titles land on the studio album instead of live/edit singles.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.6/MusicFin_1.6.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.6/MusicFin_1.6.zip",
         "checksum": "832c14e7bc2669fa27b209781fea9c2d",
         "timestamp": "2026-08-28T18:45:53Z"
       },
@@ -340,7 +348,7 @@
         "version": "1.5.0.0",
         "changelog": "Album fitness = matchCount \u00d7 completion\u00b2 so full albums beat half-covered tour sets/collections while fully owned EPs still rank above sparse big releases.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.5/MusicFin_1.5.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.5/MusicFin_1.5.zip",
         "checksum": "594da203700b6ec309b091538bc8935f",
         "timestamp": "2026-08-28T18:31:58Z"
       },
@@ -348,7 +356,7 @@
         "version": "1.4.0.0",
         "changelog": "Prefer album coverage ratio over raw hit count; keep base albums when bonus tracks are owned as singles (Dreamland / TobyMac Collection fixes).",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.4/MusicFin_1.4.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.4/MusicFin_1.4.zip",
         "checksum": "8c393a0429bb1c4f92c8bd3f33aa35d4",
         "timestamp": "2026-08-28T17:41:23Z"
       },
@@ -356,7 +364,7 @@
         "version": "1.3.0.0",
         "changelog": "Singles compete with albums on coverage percent so a 1/1 single beats a 1/20 album hit.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.3/MusicFin_1.3.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.3/MusicFin_1.3.zip",
         "checksum": "5571301d7c328a7c5dc89f1386682560",
         "timestamp": "2026-08-28T16:53:07Z"
       },
@@ -364,7 +372,7 @@
         "version": "1.2.0.0",
         "changelog": "Per-track album assignment: prefer exact studio titles over live variants; strip trailing artist from titles; case-insensitive artist grouping.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.2/MusicFin_1.2.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.2/MusicFin_1.2.zip",
         "checksum": "bce1d8ddb77cffd1ad9b2c0be5b15fad",
         "timestamp": "2026-08-28T16:33:10Z"
       },
@@ -372,7 +380,7 @@
         "version": "1.1.0.0",
         "changelog": "Separate plugin identity (new GUID) from the old Smarter Music Tagging install.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/TidBits16/MusicFin/releases/download/v1.1/MusicFin_1.1.zip",
+        "sourceUrl": "https://github.com/TidBits16/MusicTagShelf/releases/download/v1.1/MusicFin_1.1.zip",
         "checksum": "cb4a6dbf8ef37a4a91a601ddf94133ac",
         "timestamp": "2026-08-28T15:37:29Z"
       }

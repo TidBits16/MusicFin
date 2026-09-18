@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public static class Titles
 {
@@ -150,7 +150,7 @@ public static class Titles
 
     /// <summary>
     /// Re-applies IgnoreTitleMarkers from <paramref name="previousTitle"/> onto
-    /// <paramref name="newTitle"/> so ExplicitFin marks (e.g. 🅴) survive catalog renames.
+    /// <paramref name="newTitle"/> so ExplicitTagShelf marks (e.g. 🅴) survive catalog renames.
     /// </summary>
     public static string PreserveIgnoreMarkers(
         string previousTitle,

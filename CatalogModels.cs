@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public sealed class CatalogTrack
 {

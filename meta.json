@@ -1,13 +1,13 @@
 {
   "guid": "ade80bea-e92e-4f2c-9a42-f5bf88bffa98",
-  "name": "MusicFin: Smarter Music Tagging",
+  "name": "MusicTagShelf: Smarter Music Tagging",
   "description": "Context-based track & album recognition.",
   "overview": "Context-based track & album recognition.",
   "owner": "TidBits16",
   "category": "Metadata",
-  "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicFin/main/backdrop.svg",
-  "version": "1.8.38.0",
+  "imageUrl": "https://raw.githubusercontent.com/TidBits16/MusicTagShelf/main/backdrop.svg",
+  "version": "1.9.0.0",
   "targetAbi": "10.11.0.0",
-  "changelog": "Refill genres on normal runs when tracks have none (settled skip no longer blocks empty genres).",
+  "changelog": "Rebrand from MusicFin to MusicTagShelf; new TagShelf logo (no Jellyfin mark); migrate HTTP cache folder.",
   "imagePath": "backdrop.svg"
 }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>MusicFin: Smarter Music Tagging</title>
+    <title>MusicTagShelf: Smarter Music Tagging</title>
     <style>
         .finConfig .finIntro { margin: 0.25em 0 1.5em; opacity: 0.75; }
         .finConfig .verticalSection { margin-top: 1.75em; }
@@ -58,9 +58,9 @@
             <div class="content-primary">
                 <form id="DtConfigForm">
                     <div class="sectionTitleContainer flex align-items-center">
-                        <h2 class="sectionTitle">MusicFin: Smarter Music Tagging</h2>
+                        <h2 class="sectionTitle">MusicTagShelf: Smarter Music Tagging</h2>
                     </div>
-                    <p class="fieldDescription finIntro">Context-based track &amp; album recognition. Safe alongside other Fin plugins — when force-running manually, finish MusicFin before ExplicitFin.</p>
+                    <p class="fieldDescription finIntro">Context-based track &amp; album recognition. Safe alongside other TagShelf plugins — when force-running manually, finish MusicTagShelf before ExplicitTagShelf.</p>
 
                     <div class="verticalSection">
                         <h3 class="checkboxListLabel finSectionLabel">Metadata providers</h3>
@@ -365,7 +365,7 @@
                         ? legacyProviders(config)
                         : defaultEnabledProviders());
                 renderProviderList(order, enabled);
-                document.querySelector('#MusicBrainzContact').value = config.MusicBrainzContact || 'https://github.com/TidBits16/MusicFin';
+                document.querySelector('#MusicBrainzContact').value = config.MusicBrainzContact || 'https://github.com/TidBits16/MusicTagShelf';
                 document.querySelector('#DiscogsToken').value = config.DiscogsToken || '';
                 document.querySelector('#WriteAlbumNames').checked = config.WriteAlbumNames !== false;
                 document.querySelector('#WriteTrackNumbers').checked = config.WriteTrackNumbers !== false;
@@ -419,11 +419,11 @@
                 Dashboard.showLoadingMsg();
                 return ApiClient.ajax({
                     type: 'POST',
-                    url: ApiClient.getUrl('MusicFin/RefreshAll'),
+                    url: ApiClient.getUrl('MusicTagShelf/RefreshAll'),
                     contentType: 'application/json',
                     dataType: 'json'
                 }).then(function () {
-                    status.textContent = 'Queued. Watch Scheduled Tasks for - MusicFin: Smarter Music Tagging.';
+                    status.textContent = 'Queued. Watch Scheduled Tasks for - MusicTagShelf: Smarter Music Tagging.';
                     Dashboard.hideLoadingMsg();
                 }).catch(function (err) {
                     var detail = (err && (err.message || err.statusText)) || 'unknown error';

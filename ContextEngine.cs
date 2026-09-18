@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using Jellyfin.Data.Enums;
-using Jellyfin.Plugin.MusicFin.Configuration;
+using Jellyfin.Plugin.MusicTagShelf.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
@@ -9,7 +9,7 @@ using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public class ContextEngine
 {
@@ -318,7 +318,7 @@ public class ContextEngine
         {
             _logger.LogWarning(
                 "SmarterMusicTagging: {Artist}: no {Provider} matches for any track. " +
-                "Check Jellyfin track titles, MinTitleSimilarity ({MinSim}), or delete stale files under Jellyfin's cache/musicfin folder.",
+                "Check Jellyfin track titles, MinTitleSimilarity ({MinSim}), or delete stale files under Jellyfin's cache/musictagshelf folder.",
                 artist,
                 metadataClient.ProviderKey,
                 cfg.MinTitleSimilarity);

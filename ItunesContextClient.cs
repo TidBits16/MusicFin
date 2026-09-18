@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public sealed class ItunesContextClient : IContextMetadataClient
 {
@@ -22,7 +22,7 @@ public sealed class ItunesContextClient : IContextMetadataClient
             cache,
             TimeSpan.FromMilliseconds(200),
             maxInFlight: 2,
-            userAgent: "MusicFin/1.0",
+            userAgent: "MusicTagShelf/1.0",
             skipCacheOnErrorProperty: true);
     }
 

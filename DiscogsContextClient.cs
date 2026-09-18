@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
-using Jellyfin.Plugin.MusicFin.Configuration;
+using Jellyfin.Plugin.MusicTagShelf.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Plugin.MusicFin;
+namespace Jellyfin.Plugin.MusicTagShelf;
 
 public sealed class DiscogsContextClient : IContextMetadataClient
 {
@@ -24,7 +24,7 @@ public sealed class DiscogsContextClient : IContextMetadataClient
             cache,
             TimeSpan.FromMilliseconds(1100),
             maxInFlight: 3,
-            userAgent: "MusicFin/1.0 +https://github.com/TidBits16/MusicFin",
+            userAgent: "MusicTagShelf/1.0 +https://github.com/TidBits16/MusicTagShelf",
             extraHeaders: BuildAuthHeaders(),
             skipCacheOnErrorProperty: true);
     }

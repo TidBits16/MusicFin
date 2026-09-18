@@ -14,5 +14,5 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
-      - run: dotnet build MusicFin.sln -c Release --nologo
-      - run: dotnet test MusicFin.sln -c Release --nologo --no-build --filter "Category!=Live"
+      - run: dotnet build MusicTagShelf.sln -c Release --nologo
+      - run: dotnet test MusicTagShelf.sln -c Release --nologo --no-build --filter "Category!=Live"

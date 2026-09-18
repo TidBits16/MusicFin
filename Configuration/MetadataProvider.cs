@@ -1,4 +1,4 @@
-namespace Jellyfin.Plugin.MusicFin.Configuration;
+namespace Jellyfin.Plugin.MusicTagShelf.Configuration;
 
 public enum MetadataProvider
 {
